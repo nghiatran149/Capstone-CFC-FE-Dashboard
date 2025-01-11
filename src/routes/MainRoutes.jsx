@@ -14,6 +14,9 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 // const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
 // const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
 
+const StaffManagement = Loadable(lazy(() => import('views/pages/management-pages/StaffManagement')));
+const CustomerManagement = Loadable(lazy(() => import('views/pages/management-pages/CustomerManagement')));
+const ProductManagement = Loadable(lazy(() => import('views/pages/management-pages/ProductManagement')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
@@ -36,30 +39,57 @@ const MainRoutes = {
         }
       ]
     },
+    // {
+    //   path: 'utils',
+    //   children: [
+    //     {
+    //       path: 'util-typography',
+    //       element: <UtilsTypography />
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: 'utils',
+    //   children: [
+    //     {
+    //       path: 'util-color',
+    //       element: <UtilsColor />
+    //     }
+    //   ]
+    // },
+    // {
+    //   path: 'utils',
+    //   children: [
+    //     {
+    //       path: 'util-shadow',
+    //       element: <UtilsShadow />
+    //     }
+    //   ]
+    // },
     {
-      path: 'utils',
+      path: '/managements',
       children: [
         {
-          path: 'util-typography',
-          element: <UtilsTypography />
+          path: 'staff-management',
+          element: <StaffManagement />
         }
       ]
     },
     {
-      path: 'utils',
+      path: '/managements',
       children: [
         {
-          path: 'util-color',
-          element: <UtilsColor />
+          path: 'customer-management',
+          element: <CustomerManagement />
         }
       ]
     },
     {
-      path: 'utils',
+      path: '/managements',
       children: [
         {
-          path: 'util-shadow',
-          element: <UtilsShadow />
+          path: 'product-management',
+          element: <ProductManagement />
         }
       ]
     },
