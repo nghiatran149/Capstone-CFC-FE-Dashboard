@@ -17,6 +17,10 @@ const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
 const StaffManagement = Loadable(lazy(() => import('views/pages/management-pages/StaffManagement')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/management-pages/CustomerManagement')));
 const ProductManagement = Loadable(lazy(() => import('views/pages/management-pages/ProductManagement')));
+
+
+const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
+const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 // sample page routing
 const SamplePage = Loadable(lazy(() => import('views/sample-page')));
 
@@ -90,6 +94,24 @@ const MainRoutes = {
         {
           path: 'product-management',
           element: <ProductManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'store-overview',
+          element: <StoreOverview />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'promotion-management',
+          element: <PromotionManagement />
         }
       ]
     },
