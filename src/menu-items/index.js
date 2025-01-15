@@ -4,12 +4,12 @@ import utilities from './utilities';
 import other from './other';
 import managements from './management';
 import adminDashboard from './adminDashboard';
+import storeDashboard from './storeDashboard';
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  // items: [dashboard, pages, utilities, other]
-  items: [dashboard, managements, adminDashboard]
+  items: [dashboard, adminDashboard, storeDashboard]
 };
 
 export default menuItems;

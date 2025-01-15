@@ -7,22 +7,15 @@ import Loadable from 'ui-component/Loadable';
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
-// utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
-// const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
-// const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
-
-const StaffManagement = Loadable(lazy(() => import('views/pages/management-pages/StaffManagement')));
-const CustomerManagement = Loadable(lazy(() => import('views/pages/management-pages/CustomerManagement')));
-const ProductManagement = Loadable(lazy(() => import('views/pages/management-pages/ProductManagement')));
-
-
+// Admin Dashboard
 const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
+
+// Store Dashboard
+const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
+const CustomerManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CustomerManagement')));
+const ProductManagement = Loadable(lazy(() => import('views/pages/store-dashboard/ProductManagement')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -40,60 +33,6 @@ const MainRoutes = {
         {
           path: 'default',
           element: <DashboardDefault />
-        }
-      ]
-    },
-    // {
-    //   path: 'utils',
-    //   children: [
-    //     {
-    //       path: 'util-typography',
-    //       element: <UtilsTypography />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'utils',
-    //   children: [
-    //     {
-    //       path: 'util-color',
-    //       element: <UtilsColor />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'utils',
-    //   children: [
-    //     {
-    //       path: 'util-shadow',
-    //       element: <UtilsShadow />
-    //     }
-    //   ]
-    // },
-    {
-      path: '/managements',
-      children: [
-        {
-          path: 'staff-management',
-          element: <StaffManagement />
-        }
-      ]
-    },
-    {
-      path: '/managements',
-      children: [
-        {
-          path: 'customer-management',
-          element: <CustomerManagement />
-        }
-      ]
-    },
-    {
-      path: '/managements',
-      children: [
-        {
-          path: 'product-management',
-          element: <ProductManagement />
         }
       ]
     },
@@ -115,28 +54,42 @@ const MainRoutes = {
         }
       ]
     },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'tabler-icons',
-    //       element: <UtilsTablerIcons />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'material-icons',
-    //       element: <UtilsMaterialIcons />
-    //     }
-    //   ]
-    // },
     {
-      path: 'sample-page',
-      element: <SamplePage />
-    }
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'refund-management',
+          element: <RefundManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'staff-management',
+          element: <StaffManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'customer-management',
+          element: <CustomerManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'product-management',
+          element: <ProductManagement />
+        }
+      ]
+    },
   ]
 };
 

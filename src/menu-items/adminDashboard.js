@@ -1,9 +1,12 @@
 // assets
-import { IconDeviceDesktopCog } from '@tabler/icons-react';
+import { IconDashboard, IconDeviceDesktopCog, IconGiftCard, IconCreditCardRefund } from '@tabler/icons-react';
 
 // constant
 const icons = {
-    IconDeviceDesktopCog
+  IconDashboard,
+  IconDeviceDesktopCog,
+  IconGiftCard,
+  IconCreditCardRefund
 };
 
 // ==============================|| EXTRA MANAGEMENT MENU ITEMS ||============================== //
@@ -11,32 +14,33 @@ const icons = {
 const adminDashboard = {
   id: 'adminDashboard',
   title: 'Admin Dashboard',
-  // caption: 'Managements Caption',
+  // caption: 'Caption',
   type: 'group',
   children: [
     {
-      id: 'authentication',
-      title: 'Management',
-      type: 'collapse',
-      icon: icons.IconDeviceDesktopCog,
-
-      children: [
-        {
-          id: 'store',
-          title: 'Store Overview',
-          type: 'item',
-          url: '/adminDashboard/store-overview',
-          target: false
-        },
-        {
-          id: 'promotion',
-          title: 'Promotion Management',
-          type: 'item',
-          url: '/adminDashboard/promotion-management',
-          target: false
-        },
-      ]
-    }
+      id: 'store',
+      title: 'Store Overview',
+      type: 'item',
+      url: '/adminDashboard/store-overview',
+      icon: IconDashboard,
+      breadcrumbs: true
+    },
+    {
+      id: 'promotion',
+      title: 'Promotion Management',
+      type: 'item',
+      url: '/adminDashboard/promotion-management',
+      icon: IconGiftCard,
+      breadcrumbs: true
+    },
+    {
+      id: 'refund',
+      title: 'Refund Management',
+      type: 'item',
+      url: '/adminDashboard/refund-management',
+      icon: IconCreditCardRefund,
+      breadcrumbs: true
+    },
   ]
 };
 
