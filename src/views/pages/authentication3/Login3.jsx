@@ -38,7 +38,7 @@ const Login = () => {
     };
 
     try {
-      const response = await fetch('http://customflowerchainapi.runasp.net/api/auth/login', {
+      const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

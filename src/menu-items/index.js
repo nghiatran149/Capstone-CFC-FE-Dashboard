@@ -9,7 +9,7 @@ import storeDashboard from './storeDashboard';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [dashboard, adminDashboard, storeDashboard]
+  items: [adminDashboard, storeDashboard]
 };
 
 export default menuItems;

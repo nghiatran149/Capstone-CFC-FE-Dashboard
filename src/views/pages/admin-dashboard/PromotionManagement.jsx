@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
@@ -19,58 +19,119 @@ import {
 import { Delete, Edit, Add } from '@mui/icons-material';
 
 const PromotionManagement = () => {
-  const [promotions, setPromotions] = useState([
-    {
-      id: 1,
-      name: 'Summer Sale',
-      quantity: 100,
-      discount: 20,
-      code: 'SUMMER20',
-      startDate: '2025-06-01',
-      endDate: '2025-06-30',
-    },
-    {
-      id: 2,
-      name: 'Black Friday',
-      quantity: 200,
-      discount: 50,
-      code: 'BLACKFRIDAY50',
-      startDate: '2025-11-27',
-      endDate: '2025-11-30',
-    },
-  ]);
+  const [promotions, setPromotions] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [newPromotion, setNewPromotion] = useState({
-    name: '',
+    promotionName: '',
     quantity: '',
-    discount: '',
-    code: '',
+    promotionDiscount: '',
+    promotionCode: '',
     startDate: '',
     endDate: '',
   });
 
+  useEffect(() => {
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetch(
+          'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions'
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setPromotions(data);
+      } catch (error) {
+        console.error('Failed to fetch promotions:', error);
+      }
+    };
+
+    fetchPromotions();
+  }, []);
+
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
 
-  const handleAddPromotion = () => {
-    setPromotions([
-      ...promotions,
-      { id: Date.now(), ...newPromotion, quantity: parseInt(newPromotion.quantity) },
-    ]);
-    setNewPromotion({
-      name: '',
-      quantity: '',
-      discount: '',
-      code: '',
-      startDate: '',
-      endDate: '',
-    });
-    setOpenDialog(false);
+  const handleAddPromotion = async () => {
+    try {
+      const response = await fetch(
+        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/create-promotion',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...newPromotion,
+            quantity: parseInt(newPromotion.quantity),
+            promotionDiscount: parseInt(newPromotion.promotionDiscount),
+            createAt: new Date().toISOString(),
+          }),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+  
+      console.log('API Response:', result);
+
+      const createdPromotion = {
+        ...result.data,
+        startDate: result.data.startDate.split('T')[0],
+        endDate: result.data.endDate.split('T')[0],
+      };
+  
+      setPromotions((prev) => [...prev, createdPromotion]);
+  
+      setNewPromotion({
+        promotionName: '',
+        quantity: '',
+        promotionDiscount: '',
+        promotionCode: '',
+        startDate: '',
+        endDate: '',
+      });
+      setOpenDialog(false);
+    } catch (error) {
+      console.error('Failed to create promotion:', error);
+    }
   };
 
-  const handleDeletePromotion = (id) => {
-    setPromotions(promotions.filter((promotion) => promotion.id !== id));
+  const handleDeletePromotion = async (id) => {
+    try {
+      const response = await fetch(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/delete-promotion?id=${id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      console.log('Delete API Response:', result);
+
+      if (result.resultStatus === 'Success') {
+        setPromotions((prev) => prev.filter((promo) => promo.promotionId !== id));
+        alert('Promotion deleted successfully!');
+      } else {
+        alert(result.messages[0] || 'Failed to delete promotion.');
+      }
+    } catch (error) {
+      console.error('Failed to delete promotion:', error);
+      alert('An error occurred while deleting the promotion.');
+    }
   };
+
 
   return (
     <Box sx={{ p: 4 }}>
@@ -84,7 +145,6 @@ const PromotionManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Discount (%)</TableCell>
@@ -96,24 +156,31 @@ const PromotionManagement = () => {
           </TableHead>
           <TableBody>
             {promotions.map((promotion) => (
-              <TableRow key={promotion.id}>
-                <TableCell>{promotion.id}</TableCell>
-                <TableCell>{promotion.name}</TableCell>
+              <TableRow key={promotion.promotionId}>
+                <TableCell>{promotion.promotionName}</TableCell>
                 <TableCell>{promotion.quantity}</TableCell>
-                <TableCell>{promotion.discount}</TableCell>
-                <TableCell>{promotion.code}</TableCell>
-                <TableCell>{promotion.startDate}</TableCell>
-                <TableCell>{promotion.endDate}</TableCell>
+                <TableCell>{promotion.promotionDiscount}</TableCell>
+                <TableCell>{promotion.promotionCode}</TableCell>
+                <TableCell>{new Date(promotion.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(promotion.endDate).toLocaleDateString()}</TableCell>
                 <TableCell align="right">
                   <IconButton color="primary">
                     <Edit />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDeletePromotion(promotion.id)}>
+                  <IconButton
+                    color="error"
+                    onClick={() => {
+                      if (window.confirm(`Are you sure you want to delete this promotion: ${promotion.promotionName}?`)) {
+                        handleDeletePromotion(promotion.promotionId);
+                      }
+                    }}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
               </TableRow>
             ))}
+
           </TableBody>
         </Table>
       </TableContainer>
@@ -126,8 +193,8 @@ const PromotionManagement = () => {
             margin="dense"
             label="Name"
             fullWidth
-            value={newPromotion.name}
-            onChange={(e) => setNewPromotion({ ...newPromotion, name: e.target.value })}
+            value={newPromotion.promotionName}
+            onChange={(e) => setNewPromotion({ ...newPromotion, promotionName: e.target.value })}
           />
           <TextField
             margin="dense"
@@ -142,15 +209,15 @@ const PromotionManagement = () => {
             label="Discount (%)"
             type="number"
             fullWidth
-            value={newPromotion.discount}
-            onChange={(e) => setNewPromotion({ ...newPromotion, discount: e.target.value })}
+            value={newPromotion.promotionDiscount}
+            onChange={(e) => setNewPromotion({ ...newPromotion, promotionDiscount: e.target.value })}
           />
           <TextField
             margin="dense"
             label="Code"
             fullWidth
-            value={newPromotion.code}
-            onChange={(e) => setNewPromotion({ ...newPromotion, code: e.target.value })}
+            value={newPromotion.promotionCode}
+            onChange={(e) => setNewPromotion({ ...newPromotion, promotionCode: e.target.value })}
           />
           <TextField
             margin="dense"
