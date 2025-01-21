@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // material-ui
 import Divider from '@mui/material/Divider';
@@ -27,11 +27,13 @@ const Login = () => {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const navigate = useNavigate();
+
   const handleLogin = async () => {
     setLoading(true);
     setError(null);
     setSuccessMessage('');
-    
+
     const payload = {
       email,
       password,
@@ -49,8 +51,24 @@ const Login = () => {
       const data = await response.json();
       if (response.ok) {
         setSuccessMessage(data.messages[0]);
-        // Lưu token vào localStorage (nếu cần)
         localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('roleName', data.data.roleName);
+
+        const { roleName } = data.data;
+        switch (roleName) {
+          case 'Admin':
+            navigate('/adminDashboard/store-overview');
+            break;
+          case 'Store Manager':
+            navigate('/storeManagerDashboard');
+            break;
+          case 'Florist':
+            navigate('/floristDashboard');
+            break;
+          default:
+            setError('You do not have access to this system.');
+            break;
+        }
       } else {
         setError(data.messages ? data.messages[0] : 'Login failed. Please try again.');
       }
