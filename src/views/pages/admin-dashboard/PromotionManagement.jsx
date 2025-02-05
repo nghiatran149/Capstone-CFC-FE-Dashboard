@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Paper,
-} from "@mui/material";
+import axios from "axios";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert } from "@mui/material";
 import { Delete, Edit, Add } from "@mui/icons-material";
 
 const PromotionManagement = () => {
@@ -23,6 +8,8 @@ const PromotionManagement = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editDialog, setEditDialog] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, promotionId: null, promotionName: '' });
 
   const [newPromotion, setNewPromotion] = useState({
     promotionName: "",
@@ -36,13 +23,9 @@ const PromotionManagement = () => {
   useEffect(() => {
     const fetchPromotions = async () => {
       try {
-        const response = await fetch(
+        const { data } = await axios.get(
           "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions"
         );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
         setPromotions(data);
       } catch (error) {
         console.error("Failed to fetch promotions:", error);
@@ -57,31 +40,20 @@ const PromotionManagement = () => {
 
   const handleAddPromotion = async () => {
     try {
-      const response = await fetch(
+      const { data } = await axios.post(
         "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/create-promotion",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...newPromotion,
-            quantity: parseInt(newPromotion.quantity),
-            promotionDiscount: parseInt(newPromotion.promotionDiscount),
-            createAt: new Date().toISOString(),
-          }),
+          ...newPromotion,
+          quantity: parseInt(newPromotion.quantity),
+          promotionDiscount: parseInt(newPromotion.promotionDiscount),
+          createAt: new Date().toISOString(),
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
       const createdPromotion = {
-        ...result.data,
-        startDate: result.data.startDate.split("T")[0],
-        endDate: result.data.endDate.split("T")[0],
+        ...data.data,
+        startDate: data.data.startDate.split("T")[0],
+        endDate: data.data.endDate.split("T")[0],
       };
 
       setPromotions((prev) => [...prev, createdPromotion]);
@@ -94,41 +66,35 @@ const PromotionManagement = () => {
         startDate: "",
         endDate: "",
       });
+
       setOpenDialog(false);
+      setSnackbar({ open: true, message: "Promotion added successfully!", severity: "success" });
     } catch (error) {
       console.error("Failed to create promotion:", error);
+      setSnackbar({ open: true, message: "An error occurred while adding the promotion.", severity: "error" });
     }
   };
-
-  const handleDeletePromotion = async (id) => {
+  
+  const handleDeletePromotion = async () => {
     try {
-      const response = await fetch(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/delete-promotion?id=${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const { data } = await axios.delete(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/delete-promotion`,
+        { params: { id: confirmDialog.promotionId } }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      if (result.resultStatus === "Success") {
+      if (data.resultStatus === "Success") {
         setPromotions((prev) =>
-          prev.filter((promo) => promo.promotionId !== id)
+          prev.filter((promo) => promo.promotionId !== confirmDialog.promotionId)
         );
-        alert("Promotion deleted successfully!");
+        setSnackbar({ open: true, message: "Promotion deleted successfully!", severity: "success" });
       } else {
-        alert(result.messages[0] || "Failed to delete promotion.");
+        setSnackbar({ open: true, message: data.messages[0] || "Failed to delete promotion.", severity: "error" });
       }
     } catch (error) {
       console.error("Failed to delete promotion:", error);
-      alert("An error occurred while deleting the promotion.");
+      setSnackbar({ open: true, message: "An error occurred while deleting the promotion.", severity: "error" });
+    } finally {
+      setConfirmDialog({ open: false, promotionId: null, promotionName: '' });
     }
   };
 
@@ -136,44 +102,34 @@ const PromotionManagement = () => {
     if (!selectedPromotion) return;
   
     try {
-      const response = await fetch(
+      const { data } = await axios.put(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/${selectedPromotion.promotionId}`,
         {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...selectedPromotion,
-            quantity: parseInt(selectedPromotion.quantity),
-            promotionDiscount: parseInt(selectedPromotion.promotionDiscount),
-            updateAt: new Date().toISOString(),
-          }),
+          ...selectedPromotion,
+          quantity: parseInt(selectedPromotion.quantity),
+          promotionDiscount: parseInt(selectedPromotion.promotionDiscount),
+          updateAt: new Date().toISOString(),
         }
       );
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-      const updatedPromotion = await response.json();
-
       setPromotions((prev) =>
         prev.map((promo) =>
-          promo.promotionId === updatedPromotion.promotionId
+          promo.promotionId === data.promotionId
             ? {
-                ...updatedPromotion,
-                startDate: updatedPromotion.startDate.split("T")[0],
-                endDate: updatedPromotion.endDate.split("T")[0],
+                ...data,
+                startDate: data.startDate.split("T")[0],
+                endDate: data.endDate.split("T")[0],
               }
             : promo
         )
       );
-
+  
       setEditDialog(false);
       setSelectedPromotion(null);
+      setSnackbar({ open: true, message: "Promotion updated successfully!", severity: "success" });
     } catch (error) {
       console.error("Failed to update promotion:", error);
+      setSnackbar({ open: true, message: "An error occurred while updating the promotion.", severity: "error" });
     }
   };
   
@@ -220,15 +176,7 @@ const PromotionManagement = () => {
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          `Are you sure you want to delete this promotion: ${promotion.promotionName}?`
-                        )
-                      ) {
-                        handleDeletePromotion(promotion.promotionId);
-                      }
-                    }}
+                    onClick={() => setConfirmDialog({ open: true, promotionId: promotion.promotionId, promotionName: promotion.promotionName })}
                   >
                     <Delete />
                   </IconButton>
@@ -239,7 +187,6 @@ const PromotionManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog for Adding Promotion */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>Add New Promotion</DialogTitle>
         <DialogContent>
@@ -315,7 +262,6 @@ const PromotionManagement = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog for Editing Promotion */}
       <Dialog open={editDialog} onClose={() => setEditDialog(false)}>
         <DialogTitle>Edit Promotion</DialogTitle>
         <DialogContent>
@@ -405,6 +351,30 @@ const PromotionManagement = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, promotionId: null, promotionName: '' })}>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Deletion</DialogTitle>
+        <DialogContent>Are you sure you want to delete the promotion: <strong>{confirmDialog.promotionName}</strong>?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, promotionId: null, promotionName: '' })}>Cancel</Button>
+          <Button variant="contained" color="error" onClick={handleDeletePromotion}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

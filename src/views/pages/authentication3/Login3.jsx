@@ -60,7 +60,7 @@ const Login = () => {
             navigate('/adminDashboard/store-overview');
             break;
           case 'Store Manager':
-            navigate('/storeManagerDashboard');
+            navigate('/storeDashboard/staff-management');
             break;
           case 'Florist':
             navigate('/floristDashboard');

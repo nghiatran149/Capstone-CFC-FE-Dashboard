@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, Typography, Dialog, DialogContent, DialogTitle, DialogActions } from '@mui/material';
+import axios from 'axios';
+import { Card, CardContent, CardHeader, Typography, Dialog, DialogContent, DialogTitle, DialogActions, Snackbar, Alert, } from '@mui/material';
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Table, TableBody, TableCell, TableHead, TableRow, Box } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import Divider from '@mui/material/Divider';
@@ -12,9 +13,10 @@ const StoreOverview = () => {
   const [selectedStore, setSelectedStore] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
-
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [editStore, setEditStore] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, storeId: null });
 
   const [newStore, setNewStore] = useState({
     storeName: '',
@@ -33,11 +35,10 @@ const StoreOverview = () => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
-        const data = await response.json();
-        setStores(data.data);
-        if (data.data.length > 0) {
-          setSelectedStore(data.data[0]);
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
+        setStores(response.data.data);
+        if (response.data.data.length > 0) {
+          setSelectedStore(response.data.data[0]);
         }
       } catch (error) {
         console.error('Error fetching stores:', error);
@@ -86,30 +87,43 @@ const StoreOverview = () => {
     if (!validateForm()) {
       return;
     }
-
+  
     try {
-      const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/CreateStore', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newStore),
-      });
-
-      if (response.ok) {
-        const addedStore = await response.json();
-        setStores((prevStores) => [...prevStores, addedStore]);
+      const response = await axios.post(
+        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/CreateStore',
+        newStore, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      if (response.status === 200) {
+        setStores((prevStores) => [...prevStores, response.data]);
         setIsDialogOpen(false);
         resetForm();
-        alert('Store added successfully!');
+        setSnackbar({
+          open: true,
+          message: 'Store added successfully!',
+          severity: 'success',
+        });
       } else {
-        alert('Failed to add store!');
+        setSnackbar({
+          open: true,
+          message: 'Failed to add store!',
+          severity: 'error',
+        });
       }
     } catch (error) {
       console.error('Error adding store:', error);
-      alert('An error occurred while adding the store.');
+      setSnackbar({
+        open: true,
+        message: 'An error occurred while adding the store.',
+        severity: 'error',
+      });
     }
   };
+
 
   const resetForm = () => {
     setNewStore({
@@ -144,21 +158,19 @@ const StoreOverview = () => {
     if (!validateEditForm()) {
       return;
     }
-
+  
     try {
-      const response = await fetch(
+      const response = await axios.put(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/UpdateStore/${editStore.storeId}`,
-        {
-          method: 'PUT',
+        editStore, {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(editStore),
         }
       );
-
-      if (response.ok) {
-        const updatedStore = await response.json();
+  
+      if (response.status === 200) {
+        const updatedStore = response.data;
         setSelectedStore(updatedStore);
         setStores((prevStores) =>
           prevStores.map((store) =>
@@ -166,13 +178,25 @@ const StoreOverview = () => {
           )
         );
         setIsEditDialogOpen(false);
-        alert('Store updated successfully!');
+        setSnackbar({
+          open: true,
+          message: 'Store updated successfully!',
+          severity: 'success',
+        });
       } else {
-        alert('Failed to update store!');
+        setSnackbar({
+          open: true,
+          message: 'Failed to update store!',
+          severity: 'error',
+        });
       }
     } catch (error) {
       console.error('Error updating store:', error);
-      alert('An error occurred while updating the store.');
+      setSnackbar({
+        open: true,
+        message: 'An error occurred while updating the store.',
+        severity: 'error',
+      });
     }
   };
 
@@ -185,33 +209,50 @@ const StoreOverview = () => {
     }
   };
 
-  const handleDeleteStore = async (storeId) => {
-    if (window.confirm('Are you sure you want to delete this store?')) {
-      try {
-        const response = await fetch(
-          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/DeleteStore/${storeId}`,
-          {
-            method: 'DELETE',
-          }
-        );
+  const handleDeleteStore = async () => {
+    if (!confirmDelete.storeId) return;
 
-        if (response.ok) {
-          setStores((prevStores) => prevStores.filter((store) => store.storeId !== storeId));
-          setSelectedStore(null); // Optionally reset selected store if needed
-          alert('Store deleted successfully!');
+    try {
+      const response = await axios.delete(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/DeleteStore/${confirmDelete.storeId}`
+      );
+
+      if (response.status === 200) {
+        const updatedStores = stores.filter((store) => store.storeId !== confirmDelete.storeId);
+        setStores(updatedStores);
+
+        if (updatedStores.length > 0) {
+          setSelectedStore(updatedStores[0]);
         } else {
-          alert('Failed to delete store!');
+          setSelectedStore(null);
         }
-      } catch (error) {
-        console.error('Error deleting store:', error);
-        alert('An error occurred while deleting the store.');
+        setSnackbar({
+          open: true,
+          message: 'Store deleted successfully!',
+          severity: 'success'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Failed to delete store!',
+          severity: 'error'
+        });
       }
+      setConfirmDelete({ open: false, storeId: null });
+    } catch (error) {
+      console.error('Error deleting store:', error);
+      setSnackbar({
+        open: true,
+        message: 'An error occurred while deleting the store.',
+        severity: 'error'
+      });
+      setConfirmDelete({ open: false, storeId: null });
     }
   };
 
   return (
     <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Store Selector */}
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
         <FormControl fullWidth sx={{ flex: 1 }}>
           <InputLabel>Select a store</InputLabel>
@@ -240,7 +281,6 @@ const StoreOverview = () => {
         </Button>
       </Box>
 
-      {/* Store Info */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <EarningCard
@@ -269,7 +309,6 @@ const StoreOverview = () => {
                     Store Information
                   </Typography>
                   <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-
                     <Button
                       variant="outlined"
                       color="primary"
@@ -281,11 +320,13 @@ const StoreOverview = () => {
                     >
                       Edit
                     </Button>
-
                     <Button
                       variant="outlined"
                       color="error"
-                      onClick={() => handleDeleteStore(selectedStore.storeId)}
+                      onClick={() => setConfirmDelete({
+                        open: true,
+                        storeId: selectedStore.storeId
+                      })}
                       sx={{ width: '50%' }}
                     >
                       Delete
@@ -343,7 +384,6 @@ const StoreOverview = () => {
 
       <TotalGrowthBarChart />
 
-      {/* Employees Table */}
       <Card sx={{ boxShadow: 3 }}>
         <CardHeader
           title="Employees"
@@ -370,7 +410,6 @@ const StoreOverview = () => {
         </CardContent>
       </Card>
 
-      {/* Dialog for add store */}
       <Dialog
         open={isDialogOpen}
         onClose={handleDialogClose}
@@ -450,7 +489,6 @@ const StoreOverview = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog for edit store */}
       <Dialog
         open={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
@@ -522,6 +560,42 @@ const StoreOverview = () => {
           <Button onClick={handleUpdateStore} color="success">Update Store</Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog 
+        open={confirmDelete.open} 
+        onClose={() => setConfirmDelete({ open: false, storeId: null })}
+      >
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Store Deletion</DialogTitle>
+        <DialogContent>Are you sure you want to delete this store?</DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setConfirmDelete({ open: false, storeId: null })}
+          >
+            Cancel
+          </Button>
+          <Button 
+            color="error" 
+            variant="contained" 
+            onClick={handleDeleteStore}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          severity={snackbar.severity} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
