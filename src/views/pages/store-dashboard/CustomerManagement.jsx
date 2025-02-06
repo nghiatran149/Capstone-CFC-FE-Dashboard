@@ -1,23 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert } from '@mui/material';
-import { Delete, Edit, Add } from '@mui/icons-material';
+import { 
+  Box, 
+  Button, 
+  Dialog, 
+  DialogActions, 
+  DialogContent, 
+  DialogTitle, 
+  IconButton, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  TextField, 
+  Paper, 
+  Snackbar, 
+  Alert 
+} from '@mui/material';
+import { Delete, Edit } from '@mui/icons-material';
 
 const CustomerManagement = () => {
   const [customers, setCustomers] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
+  const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, customerId: null });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [newCustomer, setNewCustomer] = useState({
-    fullName: '',
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [updateCustomer, setUpdateCustomer] = useState({
     city: '',
     district: '',
     address: '',
-    email: '',
     phone: '',
-    gender: '',
     birthday: '',
     status: '',
+    avatar: ''
   });
 
   useEffect(() => {
@@ -32,26 +49,52 @@ const CustomerManagement = () => {
       setCustomers(response.data);
     } catch (error) {
       console.error('Error fetching customers:', error);
+      setSnackbar({ open: true, message: 'Error fetching customers', severity: 'error' });
     }
   };
 
-  const handleOpenDialog = () => setOpenDialog(true);
-  const handleCloseDialog = () => setOpenDialog(false);
+  const handleOpenUpdateDialog = (customer) => {
+    setSelectedCustomer(customer);
+    setUpdateCustomer({
+      city: customer.city || '',
+      district: customer.district || '',
+      address: customer.address || '',
+      phone: customer.phone || '',
+      birthday: customer.birthday ? customer.birthday.split('T')[0] : '',
+      status: customer.status || '',
+      avatar: customer.avatar || ''
+    });
+    setOpenUpdateDialog(true);
+  };
 
-  const handleAddCustomer = () => {
-    setCustomers([...customers, { customerId: Date.now().toString(), ...newCustomer }]);
-    setNewCustomer({
-      fullName: '',
+  const handleCloseUpdateDialog = () => {
+    setOpenUpdateDialog(false);
+    setSelectedCustomer(null);
+    setUpdateCustomer({
       city: '',
       district: '',
       address: '',
-      email: '',
       phone: '',
-      gender: '',
       birthday: '',
       status: '',
+      avatar: ''
     });
-    setOpenDialog(false);
+  };
+
+  const handleUpdateCustomer = async () => {
+    try {
+      await axios.put(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/customers/${selectedCustomer.customerId}`,
+        updateCustomer
+      );
+      
+      setSnackbar({ open: true, message: 'Customer updated successfully', severity: 'success' });
+      handleCloseUpdateDialog();
+      fetchCustomers();
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      setSnackbar({ open: true, message: 'Error updating customer', severity: 'error' });
+    }
   };
 
   const handleConfirmDelete = (id) => {
@@ -76,9 +119,6 @@ const CustomerManagement = () => {
     <Box sx={{ p: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <h2>Customer Management</h2>
-        {/* <Button variant="contained" startIcon={<Add />} onClick={handleOpenDialog}>
-          Add Customer
-        </Button> */}
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -111,7 +151,7 @@ const CustomerManagement = () => {
                 <TableCell>{customer.birthday}</TableCell>
                 <TableCell>{customer.status}</TableCell>
                 <TableCell align="right">
-                  <IconButton color="primary">
+                  <IconButton color="primary" onClick={() => handleOpenUpdateDialog(customer)}>
                     <Edit />
                   </IconButton>
                   <IconButton color="error" onClick={() => handleConfirmDelete(customer.customerId)}>
@@ -124,30 +164,75 @@ const CustomerManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Add New Customer</DialogTitle>
+      {/* Update Customer Dialog */}
+      <Dialog open={openUpdateDialog} onClose={handleCloseUpdateDialog}>
+        <DialogTitle>Update Customer</DialogTitle>
         <DialogContent>
-          {['fullName', 'city', 'district', 'address', 'email', 'phone', 'gender', 'birthday', 'status'].map((field) => (
-            <TextField
-              key={field}
-              margin="dense"
-              label={field.charAt(0).toUpperCase() + field.slice(1)}
-              fullWidth
-              value={newCustomer[field]}
-              onChange={(e) => setNewCustomer({ ...newCustomer, [field]: e.target.value })}
-            />
-          ))}
+          <TextField
+            margin="dense"
+            label="City"
+            fullWidth
+            value={updateCustomer.city}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, city: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="District"
+            fullWidth
+            value={updateCustomer.district}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, district: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Address"
+            fullWidth
+            value={updateCustomer.address}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, address: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Phone"
+            fullWidth
+            value={updateCustomer.phone}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, phone: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Birthday"
+            type="date"
+            fullWidth
+            value={updateCustomer.birthday}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, birthday: e.target.value })}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <TextField
+            margin="dense"
+            label="Status"
+            fullWidth
+            value={updateCustomer.status}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, status: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Avatar"
+            fullWidth
+            value={updateCustomer.avatar}
+            onChange={(e) => setUpdateCustomer({ ...updateCustomer, avatar: e.target.value })}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button variant="contained" onClick={handleAddCustomer}>
-            Add
+          <Button onClick={handleCloseUpdateDialog}>Cancel</Button>
+          <Button variant="contained" onClick={handleUpdateCustomer}>
+            Update
           </Button>
         </DialogActions>
       </Dialog>
 
+      {/* Delete Confirmation Dialog */}
       <Dialog open={confirmDelete.open} onClose={() => setConfirmDelete({ open: false, customerId: null })}>
-        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Store Deletion</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Customer Deletion</DialogTitle>
         <DialogContent>Are you sure you want to delete this customer?</DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDelete({ open: false, customerId: null })}>Cancel</Button>

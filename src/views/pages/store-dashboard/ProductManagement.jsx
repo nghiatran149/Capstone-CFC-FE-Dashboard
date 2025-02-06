@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Box,
   Button,
@@ -15,32 +16,99 @@ import {
   TableRow,
   TextField,
   Paper,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import { Delete, Edit, Add } from '@mui/icons-material';
 
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
     price: '',
+    store: '',
     category: '',
     size: '',
     description: '',
     image: '',
+    discount: 0,
   });
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
-      const data = await response.json();
-      setProducts(data.data);
+      try {
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
+        setProducts(response.data.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
     };
 
     fetchProducts();
   }, []);
 
-  const handleOpenDialog = () => setOpenDialog(true);
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
+        setStores(response.data.data || []);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+      }
+    };
+  
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories');
+        console.log('Categories response:', response.data);
+        setCategories(response.data || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const handleOpenDialog = (product = null) => {
+    if (product) {
+      setEditingProduct(product);
+      setNewProduct({
+        name: product.productName,
+        price: product.price,
+        store: product.storeId || '',
+        category: product.categoryId || '',
+        size: product.size,
+        description: product.description,
+        image: product.productImages?.[0]?.productImage1 || '',
+        discount: product.discount || 0,
+      });
+    } else {
+      setEditingProduct(null);
+      setNewProduct({
+        name: '',
+        price: '',
+        store: '',
+        category: '',
+        size: '',
+        description: '',
+        image: '',
+        discount: 0,
+      });
+    }
+    setOpenDialog(true);
+  };
+  
   const handleCloseDialog = () => setOpenDialog(false);
 
   const handleAddProduct = async () => {
@@ -49,10 +117,11 @@ const ProductManagement = () => {
       quantity: 0,
       price: newProduct.price,
       size: newProduct.size,
-      discount: 0,
+      discount: newProduct.discount,
       description: newProduct.description,
       featured: true,
-      categoryId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+      storeId: newProduct.store,
+      categoryId: newProduct.category,
       status: true,
       images: [
         {
@@ -61,27 +130,45 @@ const ProductManagement = () => {
       ],
     };
 
-    const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(productData),
-    });
-
-    const data = await response.json();
-    if (data.statusCode === 200) {
-
-      setProducts([...products, { productId: Date.now(), ...newProduct }]);
-      setNewProduct({ name: '', price: '', category: '', size: '', description: '', image: '' });
-      setOpenDialog(false);
-    } else {
+    try {
+      const response = await axios.post(
+        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct',
+        productData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      if (response.data.statusCode === 200) {
+        const updatedProducts = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
+        setProducts(updatedProducts.data.data);
+        setNewProduct({ name: '', price: '', store: '', category: '', size: '', description: '', image: '', discount: 0 });
+        setOpenDialog(false);
+      } else {
+        alert('Tạo sản phẩm thất bại');
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
       alert('Tạo sản phẩm thất bại');
     }
   };
 
-  const handleDeleteProduct = (id) => {
-    setProducts(products.filter((product) => product.productId !== id));
+  const handleDeleteProduct = async (productId) => {
+    try {
+      const response = await axios.delete(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${productId}`
+      );
+      
+      if (response.data.statusCode === 200) {
+        setProducts(products.filter((product) => product.productId !== productId));
+      } else {
+        alert('Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      alert('Failed to delete product');
+    }
   };
 
   const handleImageChange = (e) => {
@@ -99,7 +186,7 @@ const ProductManagement = () => {
     <Box sx={{ p: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <h2>Product Management</h2>
-        <Button variant="contained" startIcon={<Add />} onClick={handleOpenDialog}>
+        <Button variant="contained" startIcon={<Add />} onClick={() => handleOpenDialog()}>
           Add Product
         </Button>
       </Box>
@@ -111,8 +198,10 @@ const ProductManagement = () => {
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
+              <TableCell>Store</TableCell>
               <TableCell>Category</TableCell>
               <TableCell>Size</TableCell>
+              <TableCell>Discount</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Status</TableCell>
@@ -134,13 +223,15 @@ const ProductManagement = () => {
                 </TableCell>
                 <TableCell>{product.productName}</TableCell>
                 <TableCell>{product.price}</TableCell>
+                <TableCell>{product.storeName}</TableCell>
                 <TableCell>{product.categoryName}</TableCell>
                 <TableCell>{product.size}</TableCell>
+                <TableCell>{product.discount}%</TableCell>
                 <TableCell>{product.description}</TableCell>
                 <TableCell>{product.quantity}</TableCell>
                 <TableCell>{product.status ? 'Active' : 'Inactive'}</TableCell>
                 <TableCell align="right">
-                  <IconButton color="primary">
+                  <IconButton color="primary" onClick={() => handleOpenDialog(product)}>
                     <Edit />
                   </IconButton>
                   <IconButton color="error" onClick={() => handleDeleteProduct(product.productId)}>
@@ -154,7 +245,7 @@ const ProductManagement = () => {
       </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Add New Product</DialogTitle>
+        <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -167,16 +258,38 @@ const ProductManagement = () => {
             margin="dense"
             label="Price"
             fullWidth
+            type="number"
             value={newProduct.price}
             onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
           />
-          <TextField
-            margin="dense"
-            label="Category"
-            fullWidth
-            value={newProduct.category}
-            onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Store</InputLabel>
+            <Select
+              value={newProduct.store}
+              label="Store"
+              onChange={(e) => setNewProduct({ ...newProduct, store: e.target.value })}
+            >
+              {stores.map((store) => (
+                <MenuItem key={store.storeId} value={store.storeId}>
+                  {store.storeName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={newProduct.category}
+              label="Category"
+              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.categoryId} value={category.categoryId}>
+                  {category.categoryName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             label="Size"
@@ -186,8 +299,21 @@ const ProductManagement = () => {
           />
           <TextField
             margin="dense"
+            label="Discount (%)"
+            fullWidth
+            type="number"
+            value={newProduct.discount}
+            onChange={(e) => setNewProduct({ ...newProduct, discount: e.target.value })}
+            InputProps={{
+              inputProps: { min: 0, max: 100 }
+            }}
+          />
+          <TextField
+            margin="dense"
             label="Description"
             fullWidth
+            multiline
+            rows={4}
             value={newProduct.description}
             onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
           />
@@ -215,7 +341,7 @@ const ProductManagement = () => {
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleAddProduct}>
-            Add
+            {editingProduct ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>
