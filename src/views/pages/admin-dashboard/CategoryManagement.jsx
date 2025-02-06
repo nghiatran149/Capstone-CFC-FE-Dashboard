@@ -119,18 +119,18 @@ const CategoryManagement = () => {
             </TableContainer>
 
             <Dialog open={openDialog} onClose={handleCloseDialog}>
-                <DialogTitle>Add New Category</DialogTitle>
+                <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Add New Category</DialogTitle>
                 <DialogContent>
                     <TextField margin="dense" label="Name" fullWidth value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Cancel</Button>
+                    <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseDialog}>Cancel</Button>
                     <Button variant="contained" onClick={handleAddCategory}>Add</Button>
                 </DialogActions>
             </Dialog>
 
             <Dialog open={editDialog} onClose={() => setEditDialog(false)}>
-                <DialogTitle>Edit Category</DialogTitle>
+                <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Edit Category</DialogTitle>
                 <DialogContent>
                     <TextField
                         margin="dense"
@@ -141,7 +141,7 @@ const CategoryManagement = () => {
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setEditDialog(false)}>Cancel</Button>
+                    <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={() => setEditDialog(false)}>Cancel</Button>
                     <Button variant="contained" onClick={handleEditCategory}>Save</Button>
                 </DialogActions>
             </Dialog>

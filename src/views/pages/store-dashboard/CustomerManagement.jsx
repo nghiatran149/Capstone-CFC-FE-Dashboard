@@ -124,10 +124,10 @@ const CustomerManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              {/* <TableCell>ID</TableCell> */}
               <TableCell>Full Name</TableCell>
               <TableCell>City</TableCell>
-              <TableCell>District</TableCell>
+              {/* <TableCell>District</TableCell> */}
               <TableCell>Address</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Phone</TableCell>
@@ -140,15 +140,15 @@ const CustomerManagement = () => {
           <TableBody>
             {customers.map((customer) => (
               <TableRow key={customer.customerId}>
-                <TableCell>{customer.customerId}</TableCell>
+                {/* <TableCell>{customer.customerId}</TableCell> */}
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.city}</TableCell>
-                <TableCell>{customer.district}</TableCell>
+                {/* <TableCell>{customer.district}</TableCell> */}
                 <TableCell>{customer.address}</TableCell>
                 <TableCell>{customer.email}</TableCell>
                 <TableCell>{customer.phone}</TableCell>
                 <TableCell>{customer.gender}</TableCell>
-                <TableCell>{customer.birthday}</TableCell>
+                <TableCell>{customer.birthday ? customer.birthday.split('T')[0] : ''}</TableCell>
                 <TableCell>{customer.status}</TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => handleOpenUpdateDialog(customer)}>
@@ -164,9 +164,8 @@ const CustomerManagement = () => {
         </Table>
       </TableContainer>
 
-      {/* Update Customer Dialog */}
       <Dialog open={openUpdateDialog} onClose={handleCloseUpdateDialog}>
-        <DialogTitle>Update Customer</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Update Customer</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -175,13 +174,13 @@ const CustomerManagement = () => {
             value={updateCustomer.city}
             onChange={(e) => setUpdateCustomer({ ...updateCustomer, city: e.target.value })}
           />
-          <TextField
+          {/* <TextField
             margin="dense"
             label="District"
             fullWidth
             value={updateCustomer.district}
             onChange={(e) => setUpdateCustomer({ ...updateCustomer, district: e.target.value })}
-          />
+          /> */}
           <TextField
             margin="dense"
             label="Address"
@@ -223,14 +222,13 @@ const CustomerManagement = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseUpdateDialog}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseUpdateDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleUpdateCustomer}>
             Update
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={confirmDelete.open} onClose={() => setConfirmDelete({ open: false, customerId: null })}>
         <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Customer Deletion</DialogTitle>
         <DialogContent>Are you sure you want to delete this customer?</DialogContent>

@@ -411,7 +411,7 @@ const handleUpdateStore = async () => {
         onClose={handleDialogClose}
         sx={{ '& .MuiDialog-paper': { width: '500px', padding: '24px' } }}
       >
-        <DialogTitle>Add New Store</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Add New Store</DialogTitle>
         <DialogContent>
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField
@@ -490,7 +490,7 @@ const handleUpdateStore = async () => {
         onClose={() => setIsEditDialogOpen(false)}
         sx={{ '& .MuiDialog-paper': { width: '500px', padding: '24px' } }}
       >
-        <DialogTitle>Edit Store</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Edit Store</DialogTitle>
         <DialogContent>
           <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
             <TextField

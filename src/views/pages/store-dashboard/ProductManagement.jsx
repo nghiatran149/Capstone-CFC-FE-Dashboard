@@ -20,6 +20,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { Delete, Edit, Add } from '@mui/icons-material';
 
@@ -28,16 +30,31 @@ const ProductManagement = () => {
   const [stores, setStores] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, customerId: null });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [openDialog, setOpenDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
     name: '',
+    quantity: 0,
     price: '',
+    size: '',
+    discount: 0,
     store: '',
     category: '',
-    size: '',
     description: '',
     image: '',
+  });
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [updateProductData, setUpdateProductData] = useState({
+    productName: '',
+    quantity: 0,
+    price: 0,
+    size: '',
     discount: 0,
+    description: '',
+    featured: true,
+    categoryId: '',
+    status: true
   });
 
   useEffect(() => {
@@ -62,7 +79,7 @@ const ProductManagement = () => {
         console.error('Error fetching stores:', error);
       }
     };
-  
+
     fetchStores();
   }, []);
 
@@ -70,7 +87,6 @@ const ProductManagement = () => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories');
-        console.log('Categories response:', response.data);
         setCategories(response.data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -85,73 +101,154 @@ const ProductManagement = () => {
       setEditingProduct(product);
       setNewProduct({
         name: product.productName,
+        quantity: product.quantity || 0,
         price: product.price,
+        size: product.size,
+        discount: product.discount || 0,
         store: product.storeId || '',
         category: product.categoryId || '',
-        size: product.size,
         description: product.description,
         image: product.productImages?.[0]?.productImage1 || '',
-        discount: product.discount || 0,
       });
     } else {
       setEditingProduct(null);
       setNewProduct({
         name: '',
+        quantity: 0,
         price: '',
+        size: '',
+        discount: 0,
         store: '',
         category: '',
-        size: '',
         description: '',
         image: '',
-        discount: 0,
       });
     }
     setOpenDialog(true);
   };
-  
+
   const handleCloseDialog = () => setOpenDialog(false);
 
   const handleAddProduct = async () => {
     const productData = {
       productName: newProduct.name,
-      quantity: 0,
-      price: newProduct.price,
+      quantity: parseInt(newProduct.quantity),
+      price: parseFloat(newProduct.price),
       size: newProduct.size,
-      discount: newProduct.discount,
+      discount: parseInt(newProduct.discount),
       description: newProduct.description,
       featured: true,
-      storeId: newProduct.store,
       categoryId: newProduct.category,
       status: true,
       images: [
         {
-          productImage1: newProduct.image,
-        },
-      ],
+          productImage1: newProduct.image
+        }
+      ]
     };
 
     try {
       const response = await axios.post(
-        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct',
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct?storeId=${newProduct.store}`,
         productData,
         {
           headers: {
-            'Content-Type': 'application/json',
-          },
+            'Content-Type': 'application/json'
+          }
         }
       );
+
       if (response.data.statusCode === 200) {
         const updatedProducts = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
         setProducts(updatedProducts.data.data);
-        setNewProduct({ name: '', price: '', store: '', category: '', size: '', description: '', image: '', discount: 0 });
+        setNewProduct({
+          name: '',
+          quantity: 0,
+          price: '',
+          size: '',
+          discount: 0,
+          store: '',
+          category: '',
+          description: '',
+          image: '',
+        });
         setOpenDialog(false);
-      } else {
-        alert('Tạo sản phẩm thất bại');
+        setSnackbar({
+          open: true,
+          message: editingProduct ? 'Product updated successfully!' : 'Product added successfully!',
+          severity: 'success'
+        });
       }
     } catch (error) {
-      console.error('Error adding product:', error);
-      alert('Tạo sản phẩm thất bại');
+      console.error('Error adding product:', error.response?.data || error);
+      setSnackbar({
+        open: true,
+        message: `Failed to ${editingProduct ? 'update' : 'add'} product: ${error.response?.data?.message || error.message}`,
+        severity: 'error'
+      });
     }
+  };
+
+  const handleOpenUpdateDialog = (product) => {
+    setEditingProduct(product);
+    setUpdateProductData({
+      productName: product.productName,
+      quantity: product.quantity,
+      price: product.price,
+      size: product.size,
+      discount: product.discount,
+      description: product.description,
+      featured: product.featured,
+      categoryId: product.categoryId,
+      status: product.status
+    });
+    setUpdateDialogOpen(true);
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!editingProduct) {
+      console.error('No product selected for update');
+      setSnackbar({
+        open: true,
+        message: 'Product not selected for update.',
+        severity: 'error'
+      });
+      return;
+    }
+  
+    try {
+      const response = await axios.put(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/UpdateProduct/${editingProduct.productId}`,
+        updateProductData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+  
+      if (response.data.statusCode === 200) {
+        const updatedProducts = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
+        setProducts(updatedProducts.data.data);
+        setUpdateDialogOpen(false);
+        setSnackbar({
+          open: true,
+          message: 'Cập nhật sản phẩm thành công!',
+          severity: 'success'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating product:', error.response?.data || error);
+      setSnackbar({
+        open: true,
+        message: `Lỗi cập nhật sản phẩm: ${error.response?.data?.message || error.message}`,
+        severity: 'error'
+      });
+    }
+  };
+
+  const handleConfirmDelete = (id) => {
+    setConfirmDelete({ open: true, customerId: id });
   };
 
   const handleDeleteProduct = async (productId) => {
@@ -159,15 +256,24 @@ const ProductManagement = () => {
       const response = await axios.delete(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${productId}`
       );
-      
+
       if (response.data.statusCode === 200) {
         setProducts(products.filter((product) => product.productId !== productId));
-      } else {
-        alert('Failed to delete product');
+        setSnackbar({
+          open: true,
+          message: 'Product deleted successfully!',
+          severity: 'success'
+        });
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      setSnackbar({
+        open: true,
+        message: `Failed to delete product: ${error.response?.data?.message || error.message}`,
+        severity: 'error'
+      });
+    } finally {
+      setConfirmDelete({ open: false, productId: null });
     }
   };
 
@@ -194,7 +300,7 @@ const ProductManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
+              {/* <TableCell>ID</TableCell> */}
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
@@ -211,7 +317,7 @@ const ProductManagement = () => {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.productId}>
-                <TableCell>{product.productId}</TableCell>
+                {/* <TableCell>{product.productId}</TableCell> */}
                 <TableCell>
                   {product.productImages && product.productImages[0]?.productImage1 && (
                     <img
@@ -223,7 +329,9 @@ const ProductManagement = () => {
                 </TableCell>
                 <TableCell>{product.productName}</TableCell>
                 <TableCell>{product.price}</TableCell>
-                <TableCell>{product.storeName}</TableCell>
+                <TableCell>
+                  {stores.find(store => store.storeId === product.storeId)?.storeName || 'Unknown Store'}
+                </TableCell>
                 <TableCell>{product.categoryName}</TableCell>
                 <TableCell>{product.size}</TableCell>
                 <TableCell>{product.discount}%</TableCell>
@@ -231,10 +339,13 @@ const ProductManagement = () => {
                 <TableCell>{product.quantity}</TableCell>
                 <TableCell>{product.status ? 'Active' : 'Inactive'}</TableCell>
                 <TableCell align="right">
-                  <IconButton color="primary" onClick={() => handleOpenDialog(product)}>
+                  <IconButton color="primary" onClick={() => handleOpenUpdateDialog(product)}>
                     <Edit />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDeleteProduct(product.productId)}>
+                  <IconButton
+                    color="error"
+                    onClick={() => setConfirmDelete({ open: true, productId: product.productId })}
+                  >
                     <Delete />
                   </IconButton>
                 </TableCell>
@@ -245,7 +356,7 @@ const ProductManagement = () => {
       </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{editingProduct ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Add New Product</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
@@ -253,6 +364,17 @@ const ProductManagement = () => {
             fullWidth
             value={newProduct.name}
             onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          />
+          <TextField
+            margin="dense"
+            label="Quantity"
+            fullWidth
+            type="number"
+            value={newProduct.quantity}
+            onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
+            InputProps={{
+              inputProps: { min: 0 }
+            }}
           />
           <TextField
             margin="dense"
@@ -317,7 +439,7 @@ const ProductManagement = () => {
             value={newProduct.description}
             onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
           />
-          <Button
+          {/* <Button
             variant="contained"
             component="label"
             sx={{ mt: 2 }}
@@ -329,7 +451,14 @@ const ProductManagement = () => {
               accept="image/*"
               onChange={handleImageChange}
             />
-          </Button>
+          </Button> */}
+          <TextField
+            margin="dense"
+            label="Image URL"
+            fullWidth
+            value={newProduct.image}
+            onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+          />
           {newProduct.image && (
             <img
               src={newProduct.image}
@@ -339,12 +468,140 @@ const ProductManagement = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleAddProduct}>
-            {editingProduct ? 'Update' : 'Add'}
+            Add
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog open={updateDialogOpen} onClose={() => setUpdateDialogOpen(false)}>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Update Product</DialogTitle>
+        <DialogContent>
+          <TextField
+            margin="dense"
+            label="Product Name"
+            fullWidth
+            value={updateProductData.productName}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              productName: e.target.value
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Quantity"
+            fullWidth
+            type="number"
+            value={updateProductData.quantity}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              quantity: parseInt(e.target.value)
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Price"
+            fullWidth
+            type="number"
+            value={updateProductData.price}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              price: parseFloat(e.target.value)
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Size"
+            fullWidth
+            value={updateProductData.size}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              size: e.target.value
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Discount (%)"
+            fullWidth
+            type="number"
+            value={updateProductData.discount}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              discount: parseInt(e.target.value)
+            })}
+          />
+          <TextField
+            margin="dense"
+            label="Description"
+            fullWidth
+            multiline
+            rows={4}
+            value={updateProductData.description}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              description: e.target.value
+            })}
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={updateProductData.categoryId}
+              label="Danh mục"
+              onChange={(e) => setUpdateProductData({
+                ...updateProductData,
+                categoryId: e.target.value
+              })}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.categoryId} value={category.categoryId}>
+                  {category.categoryName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleUpdateProduct}>
+            Update
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+      <Dialog
+        open={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, productId: null })}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this product?
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete({ open: false, productId: null })}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => handleDeleteProduct(confirmDelete.productId)}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
