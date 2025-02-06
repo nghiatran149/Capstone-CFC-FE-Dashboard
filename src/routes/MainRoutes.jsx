@@ -11,6 +11,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
+const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CategoryManagement')));
 
 // Store Dashboard
 const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
@@ -60,6 +61,15 @@ const MainRoutes = {
         {
           path: 'refund-management',
           element: <RefundManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'category-management',
+          element: <CategoryManagement />
         }
       ]
     },

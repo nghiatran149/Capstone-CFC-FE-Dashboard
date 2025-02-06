@@ -8,6 +8,8 @@ import EarningCard from 'views/dashboard/EarningCard';
 import TotalOrderLineChartCard from 'views/dashboard/TotalOrderLineChartCard';
 import TotalGrowthBarChart from 'views/dashboard/TotalGrowthBarChart';
 
+const API_BASE_URL = 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store';
+
 const StoreOverview = () => {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
@@ -32,18 +34,20 @@ const StoreOverview = () => {
   const PHONE_REGEX = /^(0|\+84)([0-9]{9,10})$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
-        setStores(response.data.data);
-        if (response.data.data.length > 0) {
-          setSelectedStore(response.data.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching stores:', error);
+
+  const fetchStores = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/GetAllStore`);
+      setStores(response.data.data);
+      if (response.data.data.length > 0) {
+        setSelectedStore(response.data.data[0]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching stores:', error);
+    }
+  };
+
+  useEffect(() => {
     fetchStores();
   }, []);
 
@@ -90,7 +94,7 @@ const StoreOverview = () => {
   
     try {
       const response = await axios.post(
-        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/CreateStore',
+        `${API_BASE_URL}/CreateStore`,
         newStore, {
           headers: {
             'Content-Type': 'application/json',
@@ -99,7 +103,7 @@ const StoreOverview = () => {
       );
   
       if (response.status === 200) {
-        setStores((prevStores) => [...prevStores, response.data]);
+        fetchStores();
         setIsDialogOpen(false);
         resetForm();
         setSnackbar({
@@ -123,7 +127,6 @@ const StoreOverview = () => {
       });
     }
   };
-
 
   const resetForm = () => {
     setNewStore({
@@ -153,52 +156,45 @@ const StoreOverview = () => {
     }
   };
 
+const handleUpdateStore = async () => {
+  if (!validateEditForm()) {
+    return;
+  }
 
-  const handleUpdateStore = async () => {
-    if (!validateEditForm()) {
-      return;
-    }
-  
-    try {
-      const response = await axios.put(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/UpdateStore/${editStore.storeId}`,
-        editStore, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-  
-      if (response.status === 200) {
-        const updatedStore = response.data;
-        setSelectedStore(updatedStore);
-        setStores((prevStores) =>
-          prevStores.map((store) =>
-            store.storeId === updatedStore.storeId ? updatedStore : store
-          )
-        );
-        setIsEditDialogOpen(false);
-        setSnackbar({
-          open: true,
-          message: 'Store updated successfully!',
-          severity: 'success',
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: 'Failed to update store!',
-          severity: 'error',
-        });
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/UpdateStore/${editStore.storeId}`,
+      editStore, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
-    } catch (error) {
-      console.error('Error updating store:', error);
+    );
+
+    if (response.status === 200) {
+      fetchStores();
+      setIsEditDialogOpen(false);
       setSnackbar({
         open: true,
-        message: 'An error occurred while updating the store.',
+        message: 'Store updated successfully!',
+        severity: 'success',
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: 'Failed to update store!',
         severity: 'error',
       });
     }
-  };
+  } catch (error) {
+    console.error('Error updating store:', error);
+    setSnackbar({
+      open: true,
+      message: 'An error occurred while updating the store.',
+      severity: 'error',
+    });
+  }
+};
 
   const handleInputChangeForEdit = (field) => (event) => {
     const value = event.target.value;
@@ -214,7 +210,7 @@ const StoreOverview = () => {
 
     try {
       const response = await axios.delete(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/DeleteStore/${confirmDelete.storeId}`
+        `${API_BASE_URL}/DeleteStore/${confirmDelete.storeId}`
       );
 
       if (response.status === 200) {
@@ -561,21 +557,23 @@ const StoreOverview = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog 
-        open={confirmDelete.open} 
+      <Dialog
+        open={confirmDelete.open}
         onClose={() => setConfirmDelete({ open: false, storeId: null })}
       >
         <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Store Deletion</DialogTitle>
-        <DialogContent>Are you sure you want to delete this store?</DialogContent>
+        <DialogContent>
+          Are you sure you want to delete the store: <strong>{selectedStore?.storeName}</strong>?
+        </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setConfirmDelete({ open: false, storeId: null })}
           >
             Cancel
           </Button>
-          <Button 
-            color="error" 
-            variant="contained" 
+          <Button
+            color="error"
+            variant="contained"
             onClick={handleDeleteStore}
           >
             Delete
@@ -589,8 +587,8 @@ const StoreOverview = () => {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          severity={snackbar.severity} 
+        <Alert
+          severity={snackbar.severity}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
         >
           {snackbar.message}

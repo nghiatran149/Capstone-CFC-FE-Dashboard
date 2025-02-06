@@ -3,6 +3,8 @@ import axios from "axios";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert } from "@mui/material";
 import { Delete, Edit, Add } from "@mui/icons-material";
 
+const API_BASE_URL = "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api";
+
 const PromotionManagement = () => {
   const [promotions, setPromotions] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -20,18 +22,16 @@ const PromotionManagement = () => {
     endDate: "",
   });
 
-  useEffect(() => {
-    const fetchPromotions = async () => {
-      try {
-        const { data } = await axios.get(
-          "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions"
-        );
-        setPromotions(data);
-      } catch (error) {
-        console.error("Failed to fetch promotions:", error);
-      }
-    };
+  const fetchPromotions = async () => {
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/promotions`);
+      setPromotions(data);
+    } catch (error) {
+      console.error("Failed to fetch promotions:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchPromotions();
   }, []);
 
@@ -41,7 +41,7 @@ const PromotionManagement = () => {
   const handleAddPromotion = async () => {
     try {
       const { data } = await axios.post(
-        "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/create-promotion",
+        `${API_BASE_URL}/promotions/create-promotion`,
         {
           ...newPromotion,
           quantity: parseInt(newPromotion.quantity),
@@ -74,11 +74,11 @@ const PromotionManagement = () => {
       setSnackbar({ open: true, message: "An error occurred while adding the promotion.", severity: "error" });
     }
   };
-  
+
   const handleDeletePromotion = async () => {
     try {
       const { data } = await axios.delete(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/delete-promotion`,
+        `${API_BASE_URL}/promotions/delete-promotion`,
         { params: { id: confirmDialog.promotionId } }
       );
 
@@ -103,7 +103,7 @@ const PromotionManagement = () => {
   
     try {
       const { data } = await axios.put(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/promotions/${selectedPromotion.promotionId}`,
+        `${API_BASE_URL}/promotions/${selectedPromotion.promotionId}`,
         {
           ...selectedPromotion,
           quantity: parseInt(selectedPromotion.quantity),
@@ -112,27 +112,15 @@ const PromotionManagement = () => {
         }
       );
   
-      setPromotions((prev) =>
-        prev.map((promo) =>
-          promo.promotionId === data.promotionId
-            ? {
-                ...data,
-                startDate: data.startDate.split("T")[0],
-                endDate: data.endDate.split("T")[0],
-              }
-            : promo
-        )
-      );
-  
       setEditDialog(false);
       setSelectedPromotion(null);
       setSnackbar({ open: true, message: "Promotion updated successfully!", severity: "success" });
+      fetchPromotions();
     } catch (error) {
       console.error("Failed to update promotion:", error);
       setSnackbar({ open: true, message: "An error occurred while updating the promotion.", severity: "error" });
     }
   };
-  
 
   return (
     <Box sx={{ p: 4 }}>

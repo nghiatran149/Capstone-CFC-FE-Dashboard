@@ -1,5 +1,5 @@
 // assets
-import { IconDashboard, IconDeviceDesktopCog, IconGiftCard, IconCreditCardRefund } from '@tabler/icons-react';
+import { IconDashboard, IconDeviceDesktopCog, IconGiftCard, IconCreditCardRefund, IconCategory } from '@tabler/icons-react';
 
 // constant
 const icons = {
@@ -39,6 +39,14 @@ const adminDashboard = {
       type: 'item',
       url: '/adminDashboard/refund-management',
       icon: IconCreditCardRefund,
+      breadcrumbs: true
+    },
+    {
+      id: 'category',
+      title: 'Category Management',
+      type: 'item',
+      url: '/adminDashboard/category-management',
+      icon: IconCategory,
       breadcrumbs: true
     },
   ]
