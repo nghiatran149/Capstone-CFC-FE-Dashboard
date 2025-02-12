@@ -22,6 +22,15 @@ const PromotionManagement = () => {
     endDate: "",
   });
 
+  const [formErrors, setFormErrors] = useState({
+    promotionName: "",
+    quantity: "",
+    promotionDiscount: "",
+    promotionCode: "",
+    startDate: "",
+    endDate: "",
+  });
+
   const fetchPromotions = async () => {
     try {
       const { data } = await axios.get(`${API_BASE_URL}/promotions`);
@@ -38,7 +47,131 @@ const PromotionManagement = () => {
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
 
+  const validatePromotion = () => {
+    const errors = {};
+    let isValid = true;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!newPromotion.promotionName) {
+      errors.promotionName = "Promotion name is required";
+      isValid = false;
+    } else if (newPromotion.promotionName.length < 3) {
+      errors.promotionName = "Promotion name must be at least 3 characters";
+      isValid = false;
+    }
+
+    if (!newPromotion.quantity) {
+      errors.quantity = "Quantity is required";
+      isValid = false;
+    } else if (parseInt(newPromotion.quantity) <= 0) {
+      errors.quantity = "Quantity must be greater than 0";
+      isValid = false;
+    }
+
+    if (!newPromotion.promotionDiscount) {
+      errors.promotionDiscount = "Discount percentage is required";
+      isValid = false;
+    } else {
+      const discount = parseInt(newPromotion.promotionDiscount);
+      if (discount <= 0 || discount > 100) {
+        errors.promotionDiscount = "Discount must be between 1 and 100";
+        isValid = false;
+      }
+    }
+
+    if (!newPromotion.promotionCode) {
+      errors.promotionCode = "Promotion code is required";
+      isValid = false;
+    } else if (!/^[A-Z0-9]{4,10}$/.test(newPromotion.promotionCode)) {
+      errors.promotionCode = "Code must be 4-10 characters, uppercase letters and numbers only";
+      isValid = false;
+    }
+
+    if (!newPromotion.startDate) {
+      errors.startDate = "Start date is required";
+      isValid = false;
+    } else {
+      const startDate = new Date(newPromotion.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      if (startDate < today) {
+        errors.startDate = "Start date cannot be in the past";
+        isValid = false;
+      }
+    }
+
+    if (!newPromotion.endDate) {
+      errors.endDate = "End date is required";
+      isValid = false;
+    } else {
+      const endDate = new Date(newPromotion.endDate);
+      endDate.setHours(0, 0, 0, 0);
+      const startDate = new Date(newPromotion.startDate);
+      startDate.setHours(0, 0, 0, 0);
+  
+      if (endDate <= startDate) {
+        errors.endDate = "End date must be after start date";
+        isValid = false;
+      }
+      
+      if (endDate < today) {
+        errors.endDate = "End date cannot be in the past";
+        isValid = false;
+      }
+    }
+
+    setFormErrors(errors);
+    return isValid;
+  };
+
+
+  // const handleAddPromotion = async () => {
+  //   try {
+  //     const { data } = await axios.post(
+  //       `${API_BASE_URL}/promotions/create-promotion`,
+  //       {
+  //         ...newPromotion,
+  //         quantity: parseInt(newPromotion.quantity),
+  //         promotionDiscount: parseInt(newPromotion.promotionDiscount),
+  //         createAt: new Date().toISOString(),
+  //       }
+  //     );
+
+  //     const createdPromotion = {
+  //       ...data.data,
+  //       startDate: data.data.startDate.split("T")[0],
+  //       endDate: data.data.endDate.split("T")[0],
+  //     };
+
+  //     setPromotions((prev) => [...prev, createdPromotion]);
+
+  //     setNewPromotion({
+  //       promotionName: "",
+  //       quantity: "",
+  //       promotionDiscount: "",
+  //       promotionCode: "",
+  //       startDate: "",
+  //       endDate: "",
+  //     });
+
+  //     setOpenDialog(false);
+  //     setSnackbar({ open: true, message: "Promotion added successfully!", severity: "success" });
+  //   } catch (error) {
+  //     console.error("Failed to create promotion:", error);
+  //     setSnackbar({ open: true, message: "An error occurred while adding the promotion.", severity: "error" });
+  //   }
+  // };
+
   const handleAddPromotion = async () => {
+    if (!validatePromotion()) {
+      setSnackbar({ 
+        open: true, 
+        message: "Please check your input information", 
+        severity: "error" 
+      });
+      return;
+    }
+
     try {
       const { data } = await axios.post(
         `${API_BASE_URL}/promotions/create-promotion`,
@@ -57,6 +190,7 @@ const PromotionManagement = () => {
       };
 
       setPromotions((prev) => [...prev, createdPromotion]);
+      setOpenDialog(false);
 
       setNewPromotion({
         promotionName: "",
@@ -67,11 +201,22 @@ const PromotionManagement = () => {
         endDate: "",
       });
 
-      setOpenDialog(false);
+      setFormErrors({
+        promotionName: "",
+        quantity: "",
+        promotionDiscount: "",
+        promotionCode: "",
+        startDate: "",
+        endDate: "",
+      });
       setSnackbar({ open: true, message: "Promotion added successfully!", severity: "success" });
     } catch (error) {
       console.error("Failed to create promotion:", error);
-      setSnackbar({ open: true, message: "An error occurred while adding the promotion.", severity: "error" });
+      setSnackbar({ 
+        open: true, 
+        message: error.response?.data?.message || "An error occurred while adding the promotion.", 
+        severity: "error" 
+      });
     }
   };
 
@@ -100,7 +245,7 @@ const PromotionManagement = () => {
 
   const handleEditPromotion = async () => {
     if (!selectedPromotion) return;
-  
+
     try {
       const { data } = await axios.put(
         `${API_BASE_URL}/promotions/${selectedPromotion.promotionId}`,
@@ -111,7 +256,7 @@ const PromotionManagement = () => {
           updateAt: new Date().toISOString(),
         }
       );
-  
+
       setEditDialog(false);
       setSelectedPromotion(null);
       setSnackbar({ open: true, message: "Promotion updated successfully!", severity: "success" });
@@ -186,6 +331,8 @@ const PromotionManagement = () => {
             onChange={(e) =>
               setNewPromotion({ ...newPromotion, promotionName: e.target.value })
             }
+            error={!!formErrors.promotionName}
+            helperText={formErrors.promotionName}
           />
           <TextField
             margin="dense"
@@ -196,6 +343,8 @@ const PromotionManagement = () => {
             onChange={(e) =>
               setNewPromotion({ ...newPromotion, quantity: e.target.value })
             }
+            error={!!formErrors.quantity}
+            helperText={formErrors.quantity}
           />
           <TextField
             margin="dense"
@@ -209,6 +358,8 @@ const PromotionManagement = () => {
                 promotionDiscount: e.target.value,
               })
             }
+            error={!!formErrors.promotionDiscount}
+            helperText={formErrors.promotionDiscount}
           />
           <TextField
             margin="dense"
@@ -218,6 +369,8 @@ const PromotionManagement = () => {
             onChange={(e) =>
               setNewPromotion({ ...newPromotion, promotionCode: e.target.value })
             }
+            error={!!formErrors.promotionCode}
+            helperText={formErrors.promotionCode}
           />
           <TextField
             margin="dense"
@@ -229,6 +382,8 @@ const PromotionManagement = () => {
             onChange={(e) =>
               setNewPromotion({ ...newPromotion, startDate: e.target.value })
             }
+            error={!!formErrors.startDate}
+            helperText={formErrors.startDate}
           />
           <TextField
             margin="dense"
@@ -240,10 +395,12 @@ const PromotionManagement = () => {
             onChange={(e) =>
               setNewPromotion({ ...newPromotion, endDate: e.target.value })
             }
+            error={!!formErrors.endDate}
+            helperText={formErrors.endDate}
           />
         </DialogContent>
         <DialogActions>
-          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseDialog}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred', } }} onClick={handleCloseDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleAddPromotion}>
             Add
           </Button>
@@ -333,7 +490,7 @@ const PromotionManagement = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={() => setEditDialog(false)}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred', } }} onClick={() => setEditDialog(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleEditPromotion}>
             Save
           </Button>

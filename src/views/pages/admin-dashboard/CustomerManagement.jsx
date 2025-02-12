@@ -127,7 +127,7 @@ const CustomerManagement = () => {
               {/* <TableCell>ID</TableCell> */}
               <TableCell>Full Name</TableCell>
               <TableCell>City</TableCell>
-              {/* <TableCell>District</TableCell> */}
+              <TableCell>District</TableCell>
               <TableCell>Address</TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Phone</TableCell>
@@ -143,7 +143,7 @@ const CustomerManagement = () => {
                 {/* <TableCell>{customer.customerId}</TableCell> */}
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.city}</TableCell>
-                {/* <TableCell>{customer.district}</TableCell> */}
+                <TableCell>{customer.district}</TableCell>
                 <TableCell>{customer.address}</TableCell>
                 <TableCell>{customer.email}</TableCell>
                 <TableCell>{customer.phone}</TableCell>
@@ -174,13 +174,13 @@ const CustomerManagement = () => {
             value={updateCustomer.city}
             onChange={(e) => setUpdateCustomer({ ...updateCustomer, city: e.target.value })}
           />
-          {/* <TextField
+          <TextField
             margin="dense"
             label="District"
             fullWidth
             value={updateCustomer.district}
             onChange={(e) => setUpdateCustomer({ ...updateCustomer, district: e.target.value })}
-          /> */}
+          />
           <TextField
             margin="dense"
             label="Address"

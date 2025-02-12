@@ -1,45 +1,41 @@
-// assets
-import { IconUserCog, IconUsersGroup, IconFlower } from '@tabler/icons-react';
+import { IconUserCog, IconUsersGroup, IconTruckDelivery } from '@tabler/icons-react';
 
-// constant
 const icons = {
   IconUserCog,
   IconUsersGroup,
-  IconFlower
+  IconTruckDelivery
 };
-
-// ==============================|| EXTRA MANAGEMENT MENU ITEMS ||============================== //
 
 const storeDashboard = {
   id: 'storeDashboard',
   title: 'Store Dashboard',
-  // caption: 'Managements Caption',
+  caption: 'Management Dashboard for Store Manager',
   type: 'group',
   children: [
+    // {
+    //   id: 'staff',
+    //   title: 'Staff Management',
+    //   type: 'item',
+    //   url: '/storeDashboard/staff-management',
+    //   icon: IconUserCog,
+    //   breadcrumbs: true
+    // },
     {
-      id: 'staff',
-      title: 'Staff Management',
+      id: 'florist',
+      title: 'Florist Management',
       type: 'item',
-      url: '/storeDashboard/staff-management',
+      url: '/storeDashboard/florist-management',
       icon: IconUserCog,
       breadcrumbs: true
     },
     {
-      id: 'customer',
-      title: 'Customer Management',
+      id: 'couriver',
+      title: 'Couriver Management',
       type: 'item',
-      url: '/storeDashboard/customer-management',
-      icon: IconUsersGroup,
+      url: '/storeDashboard/couriver-management',
+      icon: IconTruckDelivery,
       breadcrumbs: true
     },
-    {
-      id: 'product',
-      title: 'Product Management',
-      type: 'item',
-      url: '/storeDashboard/product-management',
-      icon: IconFlower,
-      breadcrumbs: true
-    }
   ]
 };
 

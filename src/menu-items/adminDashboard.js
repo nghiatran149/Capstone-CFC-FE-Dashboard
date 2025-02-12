@@ -1,7 +1,5 @@
-// assets
-import { IconDashboard, IconDeviceDesktopCog, IconGiftCard, IconCreditCardRefund, IconCategory } from '@tabler/icons-react';
+import { IconDashboard, IconUsersGroup, IconDeviceDesktopCog, IconFlower, IconGiftCard, IconCreditCardRefund, IconCategory } from '@tabler/icons-react';
 
-// constant
 const icons = {
   IconDashboard,
   IconDeviceDesktopCog,
@@ -9,12 +7,10 @@ const icons = {
   IconCreditCardRefund
 };
 
-// ==============================|| EXTRA MANAGEMENT MENU ITEMS ||============================== //
-
 const adminDashboard = {
   id: 'adminDashboard',
   title: 'Admin Dashboard',
-  // caption: 'Caption',
+  caption: 'Management Dashboard for Admin',
   type: 'group',
   children: [
     {
@@ -23,6 +19,30 @@ const adminDashboard = {
       type: 'item',
       url: '/adminDashboard/store-overview',
       icon: IconDashboard,
+      breadcrumbs: true
+    },
+    {
+      id: 'customer',
+      title: 'Customer Management',
+      type: 'item',
+      url: '/adminDashboard/customer-management',
+      icon: IconUsersGroup,
+      breadcrumbs: true
+    },
+    {
+      id: 'category',
+      title: 'Category Management',
+      type: 'item',
+      url: '/adminDashboard/category-management',
+      icon: IconCategory,
+      breadcrumbs: true
+    },
+    {
+      id: 'product',
+      title: 'Product Management',
+      type: 'item',
+      url: '/adminDashboard/product-management',
+      icon: IconFlower,
       breadcrumbs: true
     },
     {
@@ -39,14 +59,6 @@ const adminDashboard = {
       type: 'item',
       url: '/adminDashboard/refund-management',
       icon: IconCreditCardRefund,
-      breadcrumbs: true
-    },
-    {
-      id: 'category',
-      title: 'Category Management',
-      type: 'item',
-      url: '/adminDashboard/category-management',
-      icon: IconCategory,
       breadcrumbs: true
     },
   ]
