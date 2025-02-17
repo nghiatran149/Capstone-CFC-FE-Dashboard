@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
 import { Card, CardContent, CardHeader, IconButton, Typography, Dialog, DialogContent, DialogTitle, DialogActions, Snackbar, Alert, } from '@mui/material';
 import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Table, TableBody, TableCell, TableHead, TableRow, Box, Avatar, Grid, Paper, Chip, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -11,9 +12,10 @@ import WcIcon from '@mui/icons-material/Wc';
 import EarningCard from 'views/dashboard/EarningCard';
 import TotalOrderLineChartCard from 'views/dashboard/TotalOrderLineChartCard';
 import TotalGrowthBarChart from 'views/dashboard/TotalGrowthBarChart';
-import { Add } from '@mui/icons-material';
+import { Add, Delete ,Edit} from '@mui/icons-material';
 import Visibility from '@mui/icons-material/Visibility';
 import Divider from '@mui/material/Divider';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const API_BASE_URL = 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store';
 
@@ -39,6 +41,19 @@ const StoreOverview = () => {
     storeEmail: '',
     status: true,
   });
+  const [openAddManagerDialog, setOpenAddManagerDialog] = useState(false);
+  const [newManager, setNewManager] = useState({
+    Password: '',
+    FullName: '',
+    Address: '',
+    Email: '',
+    Gender: true,
+    Phone: '',
+    Birthday: '',
+    Status: true,
+    Avatar: null
+  });
+  const [avatarFile, setAvatarFile] = useState(null);
 
   const PHONE_REGEX = /^(0|\+84)([0-9]{9,10})$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -285,6 +300,97 @@ const StoreOverview = () => {
     }
   };
 
+  const handleAddManager = () => {
+    setOpenAddManagerDialog(true);
+  };
+
+  const handleCreateManager = async () => {
+    if (!selectedStore?.storeId) {
+      setSnackbar({
+        open: true,
+        message: 'Please select a store first',
+        severity: 'error',
+      });
+      return;
+    }
+
+    try {
+      // Tạo FormData object
+      const formData = new FormData();
+      formData.append('FullName', newManager.FullName);
+      formData.append('Email', newManager.Email);
+      formData.append('Password', newManager.Password);
+      formData.append('Phone', newManager.Phone);
+      formData.append('Address', newManager.Address);
+      formData.append('Birthday', newManager.Birthday);
+      formData.append('Gender', newManager.Gender);
+      formData.append('Status', true);
+      formData.append('Avatar', avatarFile);
+
+      console.log('Selected Store ID:', selectedStore.storeId);
+      console.log('Form Data:', Object.fromEntries(formData));
+
+      const response = await axios.post(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/employees/CreateManagerStore?storeid=${selectedStore.storeId}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: 'Store Manager added successfully!',
+          severity: 'success',
+        });
+        setOpenAddManagerDialog(false);
+        fetchEmployees();
+        // Reset form
+        setNewManager({
+          Password: '',
+          FullName: '',
+          Address: '',
+          Email: '',
+          Gender: true,
+          Phone: '',
+          Birthday: '',
+          Status: true,
+          Avatar: null
+        });
+        setAvatarFile(null);
+      }
+    } catch (error) {
+      console.error('Error creating manager:', error);
+      setSnackbar({
+        open: true,
+        message: error.response?.data?.message || 'Failed to add Store Manager',
+        severity: 'error',
+      });
+    }
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'your_cloudinary_upload_preset');
+
+      try {
+        const response = await axios.post(
+          'https://api.cloudinary.com/v1_1/your_cloud_name/image/upload',
+          formData
+        );
+        setNewManager({ ...newManager, Avatar: response.data.secure_url });
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    }
+  };
+
   return (
     <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
@@ -428,10 +534,7 @@ const StoreOverview = () => {
                 variant="contained"
                 startIcon={<Add />}
                 color="primary"
-                onClick={() => {
-                  // Xử lý khi nhấn nút "Add Store Manager"
-                  console.log("Add Store Manager clicked");
-                }}
+                onClick={handleAddManager}
               >
                 Add Store Manager
               </Button>
@@ -480,6 +583,15 @@ const StoreOverview = () => {
                       onClick={() => handleViewDetail(employee)}
                     >
                       <Visibility />
+                    </IconButton>
+                    <IconButton color="primary" onClick={() => handleOpenUpdateDialog(product)}>
+                    <Edit />
+                  </IconButton>
+                    <IconButton
+                      color="error"
+                      onClick={() => setConfirmDelete({ open: true, productId: product.productId })}
+                    >
+                      <Delete />
                     </IconButton>
 
                   </TableCell>
@@ -665,10 +777,10 @@ const StoreOverview = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog 
-        open={openDetailDialog} 
-        onClose={() => setOpenDetailDialog(false)} 
-        maxWidth="sm" 
+      <Dialog
+        open={openDetailDialog}
+        onClose={() => setOpenDetailDialog(false)}
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
@@ -676,7 +788,7 @@ const StoreOverview = () => {
           }
         }}
       >
-        <DialogTitle sx={{ 
+        <DialogTitle sx={{
           fontSize: '18px',
           fontWeight: 'bold',
           pb: 2,
@@ -719,7 +831,7 @@ const StoreOverview = () => {
                 fullWidth
                 InputProps={{ readOnly: true }}
               />
-                <TextField
+              <TextField
                 label="Birthday"
                 value={new Date(selectedEmployee.birthday).toLocaleDateString()}
                 fullWidth
@@ -744,14 +856,14 @@ const StoreOverview = () => {
                 fullWidth
                 InputProps={{ readOnly: true }}
               />
-              
+
               <TextField
                 label="Identification Number"
                 value={selectedEmployee.identificationNumber}
                 fullWidth
                 InputProps={{ readOnly: true }}
               />
-              
+
               <Typography variant="subtitle1">Identification Back Of Photo:</Typography>
               <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
                 <img
@@ -782,25 +894,213 @@ const StoreOverview = () => {
                 />
               </Box>
 
-            
+
             </Box>
           ) : (
             <CircularProgress />
           )}
         </DialogContent>
         <DialogActions sx={{ px: 0, pb: 0, pt: 2 }}>
-          <Button 
-            onClick={() => setOpenDetailDialog(false)} 
+          <Button
+            onClick={() => setOpenDetailDialog(false)}
             variant="contained"
             color="error"
-            sx={{ 
+            sx={{
               textTransform: 'none',
               px: 3
             }}
           >
             Cancel
           </Button>
-        
+
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={openAddManagerDialog}
+        onClose={() => setOpenAddManagerDialog(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            padding: '20px'
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          fontSize: '18px',
+          fontWeight: 'bold',
+          pb: 2,
+          pt: 0,
+          px: 0
+        }}>
+          Add New Store Manager
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              label="Full Name"
+              placeholder="Enter full name"
+              value={newManager.FullName || ''}
+              onChange={(e) => {
+                console.log('Setting FullName:', e.target.value);
+                setNewManager({ ...newManager, FullName: e.target.value });
+              }}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Email"
+              placeholder="Enter email"
+              value={newManager.Email || ''}
+              onChange={(e) => {
+                console.log('Setting Email:', e.target.value);
+                setNewManager({ ...newManager, Email: e.target.value });
+              }}
+              fullWidth
+              required
+              type="email"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Password"
+              placeholder="Enter password"
+              value={newManager.Password || ''}
+              onChange={(e) => {
+                console.log('Setting Password:', e.target.value);
+                setNewManager({ ...newManager, Password: e.target.value });
+              }}
+              fullWidth
+              required
+              type="password"
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Phone"
+              placeholder="Enter phone number"
+              value={newManager.Phone || ''}
+              onChange={(e) => {
+                console.log('Setting Phone:', e.target.value);
+                setNewManager({ ...newManager, Phone: e.target.value });
+              }}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Address"
+              placeholder="Enter address"
+              value={newManager.Address || ''}
+              onChange={(e) => {
+                console.log('Setting Address:', e.target.value);
+                setNewManager({ ...newManager, Address: e.target.value });
+              }}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <TextField
+              label="Birthday"
+              type="date"
+              value={newManager.Birthday || ''}
+              onChange={(e) => {
+                console.log('Setting Birthday:', e.target.value);
+                setNewManager({ ...newManager, Birthday: e.target.value });
+              }}
+              fullWidth
+              required
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+            <FormControl fullWidth>
+              <InputLabel id="gender-label" shrink>Gender</InputLabel>
+              <Select
+                labelId="gender-label"
+                value={newManager.Gender}
+                onChange={(e) => {
+                  console.log('Setting Gender:', e.target.value);
+                  setNewManager({ ...newManager, Gender: e.target.value });
+                }}
+                label="Gender"
+              >
+                <MenuItem value={true}>Male</MenuItem>
+                <MenuItem value={false}>Female</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Box>
+              <Typography variant="caption" color="textSecondary" sx={{ mb: 1 }}>
+                Avatar Image
+              </Typography>
+              <input
+                accept="image/*"
+                type="file"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setAvatarFile(file);
+                    setNewManager({ ...newManager, Avatar: URL.createObjectURL(file) });
+                  }
+                }}
+                style={{ display: 'none' }}
+                id="avatar-upload"
+              />
+              <label htmlFor="avatar-upload">
+                <Button
+                  variant="outlined"
+                  component="span"
+                  fullWidth
+                  startIcon={<CloudUploadIcon />}
+                >
+                  Upload Avatar
+                </Button>
+              </label>
+              {newManager.Avatar && (
+                <Box sx={{ mt: 1 }}>
+                  <img
+                    src={newManager.Avatar}
+                    alt="Avatar preview"
+                    style={{
+                      width: '100px',
+                      height: '100px',
+                      objectFit: 'cover',
+                      borderRadius: '4px'
+                    }}
+                  />
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 0, pb: 0, pt: 2 }}>
+          <Button
+            onClick={() => setOpenAddManagerDialog(false)}
+            variant="contained"
+            color="error"
+            sx={{ textTransform: 'none' }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ textTransform: 'none' }}
+            onClick={handleCreateManager}
+          >
+            Add Manager
+          </Button>
         </DialogActions>
       </Dialog>
 
