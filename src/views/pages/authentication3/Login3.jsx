@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 // material-ui
 import Divider from '@mui/material/Divider';
@@ -6,11 +7,13 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
 
 // project imports
 import AuthWrapper1 from '../AuthWrapper1';
 import AuthCardWrapper from '../AuthCardWrapper';
-import AuthLogin from '../authentication/auth-forms/AuthLogin';
 import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
 
@@ -18,7 +21,64 @@ import AuthFooter from 'ui-component/cards/AuthFooter';
 
 const Login = () => {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
-  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccessMessage('');
+
+    const payload = {
+      email,
+      password,
+    };
+
+    try {
+      const response = await fetch('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setSuccessMessage(data.messages[0]);
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('roleName', data.data.roleName);
+
+        const { roleName } = data.data;
+        switch (roleName) {
+          case 'Admin':
+            navigate('/adminDashboard/store-overview');
+            break;
+          case 'Store Manager':
+            navigate('/storeDashboard/staff-management');
+            break;
+          case 'Florist':
+            navigate('/floristDashboard');
+            break;
+          default:
+            setError('You do not have access to this system.');
+            break;
+        }
+      } else {
+        setError(data.messages ? data.messages[0] : 'Login failed. Please try again.');
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthWrapper1>
       <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
@@ -33,31 +93,52 @@ const Login = () => {
                     </Link>
                   </Grid>
                   <Grid item xs={12}>
-                    <Grid container direction={{ xs: 'column-reverse', md: 'row' }} alignItems="center" justifyContent="center">
-                      <Grid item>
-                        <Stack alignItems="center" justifyContent="center" spacing={1}>
-                          <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
-                            Hi, Welcome Back
-                          </Typography>
-                          <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
-                            Enter your credentials to continue
-                          </Typography>
-                        </Stack>
-                      </Grid>
-                    </Grid>
+                    <Stack alignItems="center" justifyContent="center" spacing={1}>
+                      <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
+                        Hi, Welcome Back
+                      </Typography>
+                      <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
+                        Enter your credentials to continue
+                      </Typography>
+                    </Stack>
                   </Grid>
                   <Grid item xs={12}>
-                    <AuthLogin />
+                    <Stack spacing={2}>
+                      <TextField
+                        label="Email"
+                        variant="outlined"
+                        fullWidth
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                      <TextField
+                        label="Password"
+                        type="password"
+                        variant="outlined"
+                        fullWidth
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      {error && <Alert severity="error">{error}</Alert>}
+                      {successMessage && <Alert severity="success">{successMessage}</Alert>}
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        onClick={handleLogin}
+                        disabled={loading}
+                      >
+                        {loading ? 'Logging in...' : 'Login'}
+                      </Button>
+                    </Stack>
                   </Grid>
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
                   <Grid item xs={12}>
-                    <Grid item container direction="column" alignItems="center" xs={12}>
-                      <Typography component={Link} to="/pages/register/register3" variant="subtitle1" sx={{ textDecoration: 'none' }}>
-                        Don&apos;t have an account?
-                      </Typography>
-                    </Grid>
+                    <Typography component={Link} to="/pages/register/register3" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                      Don&apos;t have an account?
+                    </Typography>
                   </Grid>
                 </Grid>
               </AuthCardWrapper>

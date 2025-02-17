@@ -1,23 +1,26 @@
 import { lazy } from 'react';
 
-// project imports
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
-// utilities routing
-const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
-const UtilsColor = Loadable(lazy(() => import('views/utilities/Color')));
-const UtilsShadow = Loadable(lazy(() => import('views/utilities/Shadow')));
-// const UtilsMaterialIcons = Loadable(lazy(() => import('views/utilities/MaterialIcons')));
-// const UtilsTablerIcons = Loadable(lazy(() => import('views/utilities/TablerIcons')));
+// Admin Dashboard
+const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
+const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
+const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CategoryManagement')));
+const ProductManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/ProductManagement')));
+const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
+const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
 
-// sample page routing
-const SamplePage = Loadable(lazy(() => import('views/sample-page')));
+// Store Dashboard
+const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
+const FloristManagement = Loadable(lazy(() => import('views/pages/store-dashboard/FloristManagement')));
+const CouriverManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CouriverManagement')));
 
-// ==============================|| MAIN ROUTING ||============================== //
+// Florist Dashboard
+const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
 
 const MainRoutes = {
   path: '/',
@@ -36,55 +39,102 @@ const MainRoutes = {
         }
       ]
     },
+
+    // Admin Dashboard
     {
-      path: 'utils',
+      path: '/adminDashboard',
       children: [
         {
-          path: 'util-typography',
-          element: <UtilsTypography />
+          path: 'store-overview',
+          element: <StoreOverview />
         }
       ]
     },
     {
-      path: 'utils',
+      path: '/adminDashboard',
       children: [
         {
-          path: 'util-color',
-          element: <UtilsColor />
+          path: 'customer-management',
+          element: <CustomerManagement />
         }
       ]
     },
     {
-      path: 'utils',
+      path: '/adminDashboard',
       children: [
         {
-          path: 'util-shadow',
-          element: <UtilsShadow />
+          path: 'promotion-management',
+          element: <PromotionManagement />
         }
       ]
     },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'tabler-icons',
-    //       element: <UtilsTablerIcons />
-    //     }
-    //   ]
-    // },
-    // {
-    //   path: 'icons',
-    //   children: [
-    //     {
-    //       path: 'material-icons',
-    //       element: <UtilsMaterialIcons />
-    //     }
-    //   ]
-    // },
     {
-      path: 'sample-page',
-      element: <SamplePage />
-    }
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'refund-management',
+          element: <RefundManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'category-management',
+          element: <CategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'product-management',
+          element: <ProductManagement />
+        }
+      ]
+    },
+
+    // Store Dashboard
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'staff-management',
+          element: <StaffManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'florist-management',
+          element: <FloristManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'couriver-management',
+          element: <CouriverManagement />
+        }
+      ]
+    },
+
+    // Florist Dashboard
+    {
+      path: '/floristDashboard',
+      children: [
+        {
+          path: 'task-management',
+          element: <TaskManagement />
+        }
+      ]
+    },
   ]
 };
 
