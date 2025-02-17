@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent, CardHeader, Typography, Dialog, DialogContent, DialogTitle, DialogActions, Snackbar, Alert, } from '@mui/material';
-import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Table, TableBody, TableCell, TableHead, TableRow, Box } from '@mui/material';
-import { Add } from '@mui/icons-material';
-import Divider from '@mui/material/Divider';
+import { Card, CardContent, CardHeader, IconButton, Typography, Dialog, DialogContent, DialogTitle, DialogActions, Snackbar, Alert, } from '@mui/material';
+import { Button, TextField, Select, MenuItem, FormControl, InputLabel, Table, TableBody, TableCell, TableHead, TableRow, Box, Avatar, Grid, Paper, Chip, CircularProgress } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import EmailIcon from '@mui/icons-material/Email';
+import PhoneIcon from '@mui/icons-material/Phone';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import CakeIcon from '@mui/icons-material/Cake';
+import WcIcon from '@mui/icons-material/Wc';
 import EarningCard from 'views/dashboard/EarningCard';
 import TotalOrderLineChartCard from 'views/dashboard/TotalOrderLineChartCard';
 import TotalGrowthBarChart from 'views/dashboard/TotalGrowthBarChart';
+import { Add } from '@mui/icons-material';
+import Visibility from '@mui/icons-material/Visibility';
+import Divider from '@mui/material/Divider';
 
 const API_BASE_URL = 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store';
 
@@ -19,7 +26,9 @@ const StoreOverview = () => {
   const [editStore, setEditStore] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, storeId: null });
-
+  const [employees, setEmployees] = useState([]);
+  const [openDetailDialog, setOpenDetailDialog] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [newStore, setNewStore] = useState({
     storeName: '',
     city: '',
@@ -47,9 +56,39 @@ const StoreOverview = () => {
     }
   };
 
+
   useEffect(() => {
     fetchStores();
   }, []);
+
+
+
+  const fetchEmployees = async () => {
+    if (!selectedStore?.storeId) return;
+
+    try {
+      const response = await axios.get(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/employees/AllEmployeeWithStoreId?StoreId=${selectedStore.storeId}`
+      );
+
+      if (response.data && response.data.data) {
+        setEmployees(response.data.data);  // Lưu vào state employees thay vì selectedStore
+      }
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [selectedStore]);
+
+  const handleViewDetail = (employee) => {
+    console.log("Selected Employee:", employee);
+    setSelectedEmployee(employee);
+    setOpenDetailDialog(true);
+    console.log("Dialog State:", openDetailDialog);  // Kiểm tra state
+  };
 
   const validateForm = () => {
     const errors = {};
@@ -91,17 +130,17 @@ const StoreOverview = () => {
     if (!validateForm()) {
       return;
     }
-  
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/CreateStore`,
         newStore, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
       );
-  
+
       if (response.status === 200) {
         fetchStores();
         setIsDialogOpen(false);
@@ -156,45 +195,45 @@ const StoreOverview = () => {
     }
   };
 
-const handleUpdateStore = async () => {
-  if (!validateEditForm()) {
-    return;
-  }
+  const handleUpdateStore = async () => {
+    if (!validateEditForm()) {
+      return;
+    }
 
-  try {
-    const response = await axios.put(
-      `${API_BASE_URL}/UpdateStore/${editStore.storeId}`,
-      editStore, {
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/UpdateStore/${editStore.storeId}`,
+        editStore, {
         headers: {
           'Content-Type': 'application/json',
         },
       }
-    );
+      );
 
-    if (response.status === 200) {
-      fetchStores();
-      setIsEditDialogOpen(false);
+      if (response.status === 200) {
+        fetchStores();
+        setIsEditDialogOpen(false);
+        setSnackbar({
+          open: true,
+          message: 'Store updated successfully!',
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: 'Failed to update store!',
+          severity: 'error',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating store:', error);
       setSnackbar({
         open: true,
-        message: 'Store updated successfully!',
-        severity: 'success',
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: 'Failed to update store!',
+        message: 'An error occurred while updating the store.',
         severity: 'error',
       });
     }
-  } catch (error) {
-    console.error('Error updating store:', error);
-    setSnackbar({
-      open: true,
-      message: 'An error occurred while updating the store.',
-      severity: 'error',
-    });
-  }
-};
+  };
 
   const handleInputChangeForEdit = (field) => (event) => {
     const value = event.target.value;
@@ -382,23 +421,68 @@ const handleUpdateStore = async () => {
 
       <Card sx={{ boxShadow: 3 }}>
         <CardHeader
-          title="Employees"
+          title={
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Employees</Typography>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                color="primary"
+                onClick={() => {
+                  // Xử lý khi nhấn nút "Add Store Manager"
+                  console.log("Add Store Manager clicked");
+                }}
+              >
+                Add Store Manager
+              </Button>
+            </Box>
+          }
         />
         <CardContent>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Position</TableCell>
+                <TableCell>Avatar</TableCell>
+                <TableCell>FullName</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Email</TableCell>
                 <TableCell>Phone</TableCell>
+                <TableCell>Gender</TableCell>
+                <TableCell>Birthday</TableCell>
+                <TableCell>RoleName</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {selectedStore && selectedStore.employees && selectedStore.employees.map((employee) => (
+              {employees.map((employee) => (
                 <TableRow key={employee.id}>
-                  <TableCell>{employee.name}</TableCell>
-                  <TableCell>{employee.position}</TableCell>
+                  <TableCell>
+                    {employee.avatar && (
+                      <img
+                        src={employee.avatar}
+                        alt={employee.fullName}
+                        style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell>{employee.fullName}</TableCell>
+                  <TableCell>{employee.address}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
                   <TableCell>{employee.phone}</TableCell>
+                  <TableCell>{employee.gender ? "Male" : "Female"}</TableCell>
+                  <TableCell>{new Date(employee.birthday).toLocaleDateString()}</TableCell>
+                  <TableCell>{employee.roleName}</TableCell>
+                  <TableCell>{employee.status ? "Active" : "Inactive"}</TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      color="info"
+                      onClick={() => handleViewDetail(employee)}
+                    >
+                      <Visibility />
+                    </IconButton>
+
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -581,6 +665,145 @@ const handleUpdateStore = async () => {
         </DialogActions>
       </Dialog>
 
+      <Dialog 
+        open={openDetailDialog} 
+        onClose={() => setOpenDetailDialog(false)} 
+        maxWidth="sm" 
+        fullWidth
+        PaperProps={{
+          sx: {
+            padding: '20px'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          fontSize: '18px',
+          fontWeight: 'bold',
+          pb: 2,
+          pt: 0,
+          px: 0
+        }}>
+          Employee Details
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {selectedEmployee ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Avatar
+                  src={selectedEmployee.avatar}
+                  alt={selectedEmployee.fullName}
+                  sx={{ width: 120, height: 120 }}
+                />
+              </Box>
+              <TextField
+                label="Full Name"
+                value={selectedEmployee.fullName}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label="Email"
+                value={selectedEmployee.email}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label="Phone"
+                value={selectedEmployee.phone}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label="Address"
+                value={selectedEmployee.address}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+                <TextField
+                label="Birthday"
+                value={new Date(selectedEmployee.birthday).toLocaleDateString()}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label="Gender"
+                value={selectedEmployee.gender ? "Male" : "Female"}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              <TextField
+                label="Role"
+                value={selectedEmployee.roleName}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+
+              <TextField
+                label="Status"
+                value={selectedEmployee.status ? "Active" : "Inactive"}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              
+              <TextField
+                label="Identification Number"
+                value={selectedEmployee.identificationNumber}
+                fullWidth
+                InputProps={{ readOnly: true }}
+              />
+              
+              <Typography variant="subtitle1">Identification Back Of Photo:</Typography>
+              <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+                <img
+                  src={selectedEmployee.identificationBackOfPhoto}
+                  alt="ID Back"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </Box>
+
+              <Typography variant="subtitle1">Identification Front Of Photo:</Typography>
+              <Box sx={{ width: '100%', height: 200, position: 'relative' }}>
+                <img
+                  src={selectedEmployee.identificationFontOfPhoto}
+                  alt="ID Front"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    borderRadius: '4px',
+                    border: '1px solid #ddd'
+                  }}
+                />
+              </Box>
+
+            
+            </Box>
+          ) : (
+            <CircularProgress />
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 0, pb: 0, pt: 2 }}>
+          <Button 
+            onClick={() => setOpenDetailDialog(false)} 
+            variant="contained"
+            color="error"
+            sx={{ 
+              textTransform: 'none',
+              px: 3
+            }}
+          >
+            Cancel
+          </Button>
+        
+        </DialogActions>
+      </Dialog>
+
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
@@ -597,5 +820,19 @@ const handleUpdateStore = async () => {
     </div>
   );
 };
+
+const DetailItem = ({ icon, label, value }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    {icon}
+    <Box>
+      <Typography variant="caption" color="textSecondary">
+        {label}
+      </Typography>
+      <Typography variant="body1">
+        {value}
+      </Typography>
+    </Box>
+  </Box>
+);
 
 export default StoreOverview;
