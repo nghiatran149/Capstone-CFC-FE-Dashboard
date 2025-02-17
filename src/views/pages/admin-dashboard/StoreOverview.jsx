@@ -27,7 +27,7 @@ const StoreOverview = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [editStore, setEditStore] = useState(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState({ open: false, storeId: null });
+  const [confirmDelete, setConfirmDelete] = useState({ open: false, storeId: null, employeeId: null });
   const [employees, setEmployees] = useState([]);
   const [openDetailDialog, setOpenDetailDialog] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -391,6 +391,31 @@ const StoreOverview = () => {
     }
   };
 
+  const handleDeleteEmployee = async () => {
+    try {
+      const response = await axios.delete(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/employees/delete-employee?id=${confirmDelete.employeeId}`
+      );
+
+      if (response.status === 200) {
+        setSnackbar({
+          open: true,
+          message: 'Employee deleted successfully',
+          severity: 'success'
+        });
+        fetchEmployees(); // Refresh list after delete
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: 'Failed to delete employee',
+        severity: 'error'
+      });
+    } finally {
+      setConfirmDelete({ open: false, employeeId: null }); // Close dialog
+    }
+  };
+
   return (
     <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
@@ -584,12 +609,10 @@ const StoreOverview = () => {
                     >
                       <Visibility />
                     </IconButton>
-                    <IconButton color="primary" onClick={() => handleOpenUpdateDialog(product)}>
-                    <Edit />
-                  </IconButton>
+                   
                     <IconButton
                       color="error"
-                      onClick={() => setConfirmDelete({ open: true, productId: product.productId })}
+                      onClick={() => setConfirmDelete({ open: true, employeeId: employee.employeeId })}
                     >
                       <Delete />
                     </IconButton>
@@ -755,7 +778,7 @@ const StoreOverview = () => {
 
       <Dialog
         open={confirmDelete.open}
-        onClose={() => setConfirmDelete({ open: false, storeId: null })}
+        onClose={() => setConfirmDelete({ open: false, storeId: null, employeeId: null })}
       >
         <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Confirm Store Deletion</DialogTitle>
         <DialogContent>
@@ -763,7 +786,7 @@ const StoreOverview = () => {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setConfirmDelete({ open: false, storeId: null })}
+            onClick={() => setConfirmDelete({ open: false, storeId: null, employeeId: null })}
           >
             Cancel
           </Button>
@@ -1100,6 +1123,31 @@ const StoreOverview = () => {
             onClick={handleCreateManager}
           >
             Add Manager
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={confirmDelete.open}
+        onClose={() => setConfirmDelete({ open: false, employeeId: null })}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to delete this employee?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setConfirmDelete({ open: false, employeeId: null })}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteEmployee}
+            color="error"
+            variant="contained"
+          >
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
