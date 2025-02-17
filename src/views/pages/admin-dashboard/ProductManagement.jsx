@@ -70,18 +70,18 @@ const ProductManagement = () => {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      try {
-        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
-        setStores(response.data.data || []);
-      } catch (error) {
-        console.error('Error fetching stores:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchStores = async () => {
+  //     try {
+  //       const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store/GetAllStore');
+  //       setStores(response.data.data || []);
+  //     } catch (error) {
+  //       console.error('Error fetching stores:', error);
+  //     }
+  //   };
 
-    fetchStores();
-  }, []);
+  //   fetchStores();
+  // }, []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -304,12 +304,14 @@ const ProductManagement = () => {
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Store</TableCell>
+              {/* <TableCell>Store</TableCell> */}
               <TableCell>Category</TableCell>
               <TableCell>Size</TableCell>
               <TableCell>Discount</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Quantity</TableCell>
+              <TableCell>featured</TableCell>
+              <TableCell>Sold</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -329,14 +331,16 @@ const ProductManagement = () => {
                 </TableCell>
                 <TableCell>{product.productName}</TableCell>
                 <TableCell>{product.price}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {stores.find(store => store.storeId === product.storeId)?.storeName || 'Unknown Store'}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>{product.categoryName}</TableCell>
                 <TableCell>{product.size}</TableCell>
                 <TableCell>{product.discount}%</TableCell>
                 <TableCell>{product.description}</TableCell>
                 <TableCell>{product.quantity}</TableCell>
+                <TableCell>{product.featured ? 'Active' : 'Inactive' }</TableCell>
+                <TableCell>{product.sold}</TableCell>
                 <TableCell>{product.status ? 'Active' : 'Inactive'}</TableCell>
                 <TableCell align="right">
                   <IconButton color="primary" onClick={() => handleOpenUpdateDialog(product)}>
@@ -384,7 +388,7 @@ const ProductManagement = () => {
             value={newProduct.price}
             onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
           />
-          <FormControl fullWidth margin="dense">
+          {/* <FormControl fullWidth margin="dense">
             <InputLabel>Store</InputLabel>
             <Select
               value={newProduct.store}
@@ -397,7 +401,7 @@ const ProductManagement = () => {
                 </MenuItem>
               ))}
             </Select>
-          </FormControl>
+          </FormControl> */}
           <FormControl fullWidth margin="dense">
             <InputLabel>Category</InputLabel>
             <Select
@@ -439,7 +443,7 @@ const ProductManagement = () => {
             value={newProduct.description}
             onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
           />
-          {/* <Button
+          <Button
             variant="contained"
             component="label"
             sx={{ mt: 2 }}
@@ -451,7 +455,7 @@ const ProductManagement = () => {
               accept="image/*"
               onChange={handleImageChange}
             />
-          </Button> */}
+          </Button>
           <TextField
             margin="dense"
             label="Image URL"
@@ -531,6 +535,7 @@ const ProductManagement = () => {
               discount: parseInt(e.target.value)
             })}
           />
+          
           <TextField
             margin="dense"
             label="Description"
