@@ -1,12 +1,10 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import Grid from '@mui/material/Grid';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
+import { Grid, Typography } from '@mui/material';
 
 // third-party
 import ApexCharts from 'apexcharts';
@@ -18,66 +16,110 @@ import MainCard from 'ui-component/cards/MainCard';
 import { gridSpacing } from 'store/constant';
 
 // chart data
-import chartData from './chart-data/total-growth-bar-chart';
+import baseChartData from './chart-data/total-growth-bar-chart';
 
-const status = [
-  {
-    value: 'today',
-    label: 'Today'
-  },
-  {
-    value: 'month',
-    label: 'This Month'
-  },
-  {
-    value: 'year',
-    label: 'This Year'
-  }
-];
-
-// ==============================|| DASHBOARD DEFAULT - TOTAL GROWTH BAR CHART ||============================== //
-
-const TotalGrowthBarChart = ({ isLoading }) => {
-  const [value, setValue] = React.useState('today');
+const TotalGrowthBarChart = ({ isLoading, storeId }) => {
   const theme = useTheme();
+  const [chartData, setChartData] = useState(baseChartData);
+  const [totals, setTotals] = useState({
+    revenue: 0,
+    loss: 0,
+    profit: 0
+  });
 
-  const { primary } = theme.palette.text;
-  const divider = theme.palette.divider;
-  const grey500 = theme.palette.grey[500];
+  const fetchData = async () => {
+    if (!storeId) return;
 
-  const primary200 = theme.palette.primary[200];
-  const primaryDark = theme.palette.primary.dark;
-  const secondaryMain = theme.palette.secondary.main;
-  const secondaryLight = theme.palette.secondary.light;
+    try {
+      // Fetch cả revenue và loss
+      const [revenueResponse, lossResponse] = await Promise.all([
+        axios.get(
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenueByStoreId?storeId=${storeId}`
+        ),
+        axios.get(
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetLossByStoreId?storeId=${storeId}`
+        )
+      ]);
+      
+      if (revenueResponse.status === 200 && revenueResponse.data.data) {
+        const revenueData = revenueResponse.data.data;
+        const lossData = lossResponse.data.data;
+        
+        // Lấy dữ liệu Revenue từ API
+        const revenueArray = [
+          revenueData.january || 0,
+          revenueData.february || 0,
+          revenueData.march || 0,
+          revenueData.april || 0,
+          revenueData.may || 0,
+          revenueData.june || 0,
+          revenueData.july || 0,
+          revenueData.august || 0,
+          revenueData.september || 0,
+          revenueData.october || 0,
+          revenueData.november || 0,
+          revenueData.december || 0
+        ];
 
-  React.useEffect(() => {
-    const newChartData = {
-      ...chartData.options,
-      colors: [primary200, primaryDark, secondaryMain, secondaryLight],
-      xaxis: {
-        labels: {
-          style: {
-            colors: [primary, primary, primary, primary, primary, primary, primary, primary, primary, primary, primary, primary]
-          }
-        }
-      },
-      yaxis: {
-        labels: {
-          style: {
-            colors: [primary]
-          }
-        }
-      },
-      grid: { borderColor: divider },
-      tooltip: { theme: 'light' },
-      legend: { labels: { colors: grey500 } }
-    };
+        // Lấy dữ liệu Loss từ API
+        const lossArray = [
+          lossData.january || 0,
+          lossData.february || 0,
+          lossData.march || 0,
+          lossData.april || 0,
+          lossData.may || 0,
+          lossData.june || 0,
+          lossData.july || 0,
+          lossData.august || 0,
+          lossData.september || 0,
+          lossData.october || 0,
+          lossData.november || 0,
+          lossData.december || 0
+        ];
 
-    // do not load chart when loading
-    if (!isLoading) {
-      ApexCharts.exec(`bar-chart`, 'updateOptions', newChartData);
+        // Tính Profit = Revenue - Loss
+        const profitArray = revenueArray.map((revenue, index) => revenue - lossArray[index]);
+
+        // Tính tổng
+        const totalRevenue = revenueArray.reduce((sum, val) => sum + val, 0);
+        const totalLoss = lossArray.reduce((sum, val) => sum + val, 0);
+        const totalProfit = totalRevenue - totalLoss;
+
+        setTotals({
+          revenue: totalRevenue,
+          loss: totalLoss,
+          profit: totalProfit
+        });
+
+        const newChartData = {
+          ...baseChartData,
+          series: [
+            {
+              name: 'Revenue',
+              data: revenueArray
+            },
+            {
+              name: 'Loss',
+              data: lossArray
+            },
+            {
+              name: 'Profit',
+              data: profitArray
+            }
+          ]
+        };
+        
+        setChartData(newChartData);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setChartData(baseChartData);
     }
-  }, [primary200, primaryDark, secondaryMain, secondaryLight, primary, divider, isLoading, grey500]);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [storeId]);
 
   return (
     <>
@@ -87,37 +129,46 @@ const TotalGrowthBarChart = ({ isLoading }) => {
         <MainCard>
           <Grid container spacing={gridSpacing}>
             <Grid item xs={12}>
-              <Grid container alignItems="center" justifyContent="space-between">
-                <Grid item>
+              <Grid container alignItems="center" justifyContent="space-between" spacing={2}>
+                <Grid item xs={12} sm={4}>
                   <Grid container direction="column" spacing={1}>
                     <Grid item>
-                      <Typography variant="subtitle2">Total Growth</Typography>
+                      <Typography variant="subtitle2">Total Revenue</Typography>
                     </Grid>
                     <Grid item>
-                      <Typography variant="h3">$2,324.00</Typography>
+                      <Typography variant="h3" color="success.main">
+                        ${totals.revenue.toLocaleString()}
+                      </Typography>
                     </Grid>
                   </Grid>
                 </Grid>
-                <Grid item>
-                  <TextField id="standard-select-currency" select value={value} onChange={(e) => setValue(e.target.value)}>
-                    {status.map((option) => (
-                      <MenuItem key={option.value} value={option.value}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </TextField>
+                <Grid item xs={12} sm={4}>
+                  <Grid container direction="column" spacing={1}>
+                    <Grid item>
+                      <Typography variant="subtitle2">Total Loss</Typography>
+                    </Grid>
+                    <Grid item>
+                      <Typography variant="h3" color="error.main">
+                        ${totals.loss.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Grid container direction="column" spacing={1}>
+                    <Grid item>
+                      <Typography variant="subtitle2">Total Profit</Typography>
+                    </Grid>
+                    <Grid item>
+                      <Typography variant="h3" color="primary.main">
+                        ${totals.profit.toLocaleString()}
+                      </Typography>
+                    </Grid>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sx={{
-                '& .apexcharts-menu.apexcharts-menu-open': {
-                  bgcolor: 'background.paper'
-                }
-              }}
-            >
+            <Grid item xs={12}>
               <Chart {...chartData} />
             </Grid>
           </Grid>
@@ -128,7 +179,13 @@ const TotalGrowthBarChart = ({ isLoading }) => {
 };
 
 TotalGrowthBarChart.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  storeId: PropTypes.string
+};
+
+TotalGrowthBarChart.defaultProps = {
+  isLoading: false,
+  storeId: ''
 };
 
 export default TotalGrowthBarChart;

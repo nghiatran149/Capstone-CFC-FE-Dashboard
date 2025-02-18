@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -25,10 +26,34 @@ import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 
 // ==============================|| DASHBOARD - TOTAL ORDER LINE CHART CARD ||============================== //
 
-const TotalOrderLineChartCard = ({ isLoading }) => {
+const TotalOrderLineChartCard = ({ isLoading, storeId }) => {
   const theme = useTheme();
+  const [timeValue, setTimeValue] = useState(false);
+  const [orderData, setOrderData] = useState({
+    month: 0,
+    year: 0
+  });
 
-  const [timeValue, setTimeValue] = React.useState(false);
+  const fetchOrderData = async () => {
+    try {
+      const response = await axios.get(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetTotalOrdersByStoreId?storeId=${storeId}`
+      );
+
+      if (response.status === 200 && response.data.data) {
+        setOrderData(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching order data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (storeId) {
+      fetchOrderData();
+    }
+  }, [storeId]);
+
   const handleChangeTime = (event, newValue) => {
     setTimeValue(newValue);
   };
@@ -118,11 +143,9 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
                   <Grid item xs={6}>
                     <Grid container alignItems="center">
                       <Grid item>
-                        {timeValue ? (
-                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$108</Typography>
-                        ) : (
-                          <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>$961</Typography>
-                        )}
+                        <Typography sx={{ fontSize: '2.125rem', fontWeight: 500, mr: 1, mt: 1.75, mb: 0.75 }}>
+                          {timeValue ? orderData.month : orderData.year}
+                        </Typography>
                       </Grid>
                       <Grid item>
                         <Avatar
@@ -163,7 +186,12 @@ const TotalOrderLineChartCard = ({ isLoading }) => {
 };
 
 TotalOrderLineChartCard.propTypes = {
-  isLoading: PropTypes.bool
+  isLoading: PropTypes.bool,
+  storeId: PropTypes.string
+};
+
+TotalOrderLineChartCard.defaultProps = {
+  isLoading: false
 };
 
 export default TotalOrderLineChartCard;
