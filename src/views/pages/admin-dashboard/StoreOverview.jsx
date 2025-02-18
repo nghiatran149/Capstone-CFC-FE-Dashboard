@@ -16,6 +16,7 @@ import { Add, Delete ,Edit} from '@mui/icons-material';
 import Visibility from '@mui/icons-material/Visibility';
 import Divider from '@mui/material/Divider';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import MainCard from 'ui-component/cards/MainCard';
 
 const API_BASE_URL = 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Store';
 
@@ -391,28 +392,29 @@ const StoreOverview = () => {
     }
   };
 
-  const handleDeleteEmployee = async () => {
+  const handleDeleteEmployee = async (employeeId) => {
     try {
       const response = await axios.delete(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/employees/delete-employee?id=${confirmDelete.employeeId}`
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/employees/delete-employee?id=${employeeId}`
       );
 
       if (response.status === 200) {
         setSnackbar({
           open: true,
-          message: 'Employee deleted successfully',
+          message: 'Employee deleted successfully!',
           severity: 'success'
         });
-        fetchEmployees(); // Refresh list after delete
+        fetchEmployees(); // Refresh danh sách
       }
     } catch (error) {
+      console.error('Error deleting employee:', error);
       setSnackbar({
         open: true,
-        message: 'Failed to delete employee',
+        message: error.response?.data?.message || 'Failed to delete employee',
         severity: 'error'
       });
     } finally {
-      setConfirmDelete({ open: false, employeeId: null }); // Close dialog
+      setConfirmDelete({ open: false, employeeId: null });
     }
   };
 
@@ -455,7 +457,7 @@ const StoreOverview = () => {
             profit={selectedStore ? selectedStore.profit : 0}
             isLoading={false}
           />
-          <TotalOrderLineChartCard />
+         <TotalOrderLineChartCard isLoading={false} storeId={selectedStore?.storeId} />
         </div>
 
         {selectedStore && (
@@ -548,7 +550,20 @@ const StoreOverview = () => {
         )}
       </div>
 
-      <TotalGrowthBarChart />
+      {selectedStore ? (
+        <TotalGrowthBarChart 
+          isLoading={false} 
+          storeId={selectedStore.storeId} 
+        />
+      ) : (
+        <Box sx={{ mt: 2 }}>
+          <MainCard>
+            <Typography variant="body1" color="textSecondary" align="center">
+              Please select a store to view revenue data
+            </Typography>
+          </MainCard>
+        </Box>
+      )}
 
       <Card sx={{ boxShadow: 3 }}>
         <CardHeader
@@ -609,14 +624,12 @@ const StoreOverview = () => {
                     >
                       <Visibility />
                     </IconButton>
-                   
                     <IconButton
                       color="error"
                       onClick={() => setConfirmDelete({ open: true, employeeId: employee.employeeId })}
                     >
                       <Delete />
                     </IconButton>
-
                   </TableCell>
                 </TableRow>
               ))}
@@ -1143,7 +1156,7 @@ const StoreOverview = () => {
             Cancel
           </Button>
           <Button 
-            onClick={handleDeleteEmployee}
+            onClick={() => handleDeleteEmployee(confirmDelete.employeeId)}
             color="error"
             variant="contained"
           >
