@@ -457,7 +457,7 @@ const StoreOverview = () => {
             profit={selectedStore ? selectedStore.profit : 0}
             isLoading={false}
           />
-         <TotalOrderLineChartCard isLoading={false} storeId={selectedStore.storeId} />
+         <TotalOrderLineChartCard isLoading={false} storeId={selectedStore?.storeId} />
         </div>
 
         {selectedStore && (
