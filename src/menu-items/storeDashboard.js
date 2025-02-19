@@ -1,9 +1,10 @@
-import { IconUserCog, IconUsersGroup, IconTruckDelivery } from '@tabler/icons-react';
+import { IconUserCog, IconUsersGroup, IconTruckDelivery, IconBasketCog } from '@tabler/icons-react';
 
 const icons = {
   IconUserCog,
   IconUsersGroup,
-  IconTruckDelivery
+  IconTruckDelivery,
+  IconBasketCog
 };
 
 const storeDashboard = {
@@ -34,6 +35,14 @@ const storeDashboard = {
       type: 'item',
       url: '/storeDashboard/couriver-management',
       icon: IconTruckDelivery,
+      breadcrumbs: true
+    },
+    {
+      id: 'order',
+      title: 'Order Management',
+      type: 'item',
+      url: '/storeDashboard/order-management',
+      icon: IconBasketCog,
       breadcrumbs: true
     },
   ]
