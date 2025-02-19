@@ -582,59 +582,64 @@ const StoreOverview = () => {
           }
         />
         <CardContent>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Avatar</TableCell>
-                <TableCell>FullName</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Phone</TableCell>
-                <TableCell>Gender</TableCell>
-                <TableCell>Birthday</TableCell>
-                <TableCell>RoleName</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell>
-                    {employee.avatar && (
-                      <img
-                        src={employee.avatar}
-                        alt={employee.fullName}
-                        style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell>{employee.fullName}</TableCell>
-                  <TableCell>{employee.address}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{employee.gender ? "Male" : "Female"}</TableCell>
-                  <TableCell>{new Date(employee.birthday).toLocaleDateString()}</TableCell>
-                  <TableCell>{employee.roleName}</TableCell>
-                  <TableCell>{employee.status ? "Active" : "Inactive"}</TableCell>
-                  <TableCell align="right">
-                    <IconButton
-                      color="info"
-                      onClick={() => handleViewDetail(employee)}
-                    >
-                      <Visibility />
-                    </IconButton>
-                    <IconButton
-                      color="error"
-                      onClick={() => setConfirmDelete({ open: true, employeeId: employee.employeeId })}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
+          <Box sx={{ overflowX: 'auto', width: '100%' }}>
+            <Table sx={{ 
+              minWidth: 800,
+              whiteSpace: 'nowrap'
+            }}>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Avatar</TableCell>
+                  <TableCell>FullName</TableCell>
+                  <TableCell>Address</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Gender</TableCell>
+                  <TableCell>Birthday</TableCell>
+                  <TableCell>RoleName</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell align="right">Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {employees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>
+                      {employee.avatar && (
+                        <img
+                          src={employee.avatar}
+                          alt={employee.fullName}
+                          style={{ width: 50, height: 50, objectFit: "cover", borderRadius: 4 }}
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell>{employee.fullName}</TableCell>
+                    <TableCell>{employee.address}</TableCell>
+                    <TableCell>{employee.email}</TableCell>
+                    <TableCell>{employee.phone}</TableCell>
+                    <TableCell>{employee.gender ? "Male" : "Female"}</TableCell>
+                    <TableCell>{new Date(employee.birthday).toLocaleDateString()}</TableCell>
+                    <TableCell>{employee.roleName}</TableCell>
+                    <TableCell>{employee.status ? "Active" : "Inactive"}</TableCell>
+                    <TableCell align="right">
+                      <IconButton
+                        color="info"
+                        onClick={() => handleViewDetail(employee)}
+                      >
+                        <Visibility />
+                      </IconButton>
+                      <IconButton
+                        color="error"
+                        onClick={() => setConfirmDelete({ open: true, employeeId: employee.employeeId })}
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
         </CardContent>
       </Card>
 

@@ -13,11 +13,13 @@ const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboa
 const ProductManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/ProductManagement')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
-
+const FlowerManagement =  Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerManagement')));
+const FlowerBasketManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketManagement')));
 // Store Dashboard
 const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
 const FloristManagement = Loadable(lazy(() => import('views/pages/store-dashboard/FloristManagement')));
 const CouriverManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CouriverManagement')));
+const OrderManagement = Loadable(lazy(() => import('views/pages/store-dashboard/OrderManagement')));
 
 // Florist Dashboard
 const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
@@ -95,6 +97,24 @@ const MainRoutes = {
         }
       ]
     },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flower-management',
+          element: <FlowerManagement/>
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flowerbasket-management',
+          element: <FlowerBasketManagement/>
+        }
+      ]
+    },
 
     // Store Dashboard
     {
@@ -121,6 +141,15 @@ const MainRoutes = {
         {
           path: 'couriver-management',
           element: <CouriverManagement />
+        }
+      ]
+    },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'order-management',
+          element: <OrderManagement />
         }
       ]
     },
