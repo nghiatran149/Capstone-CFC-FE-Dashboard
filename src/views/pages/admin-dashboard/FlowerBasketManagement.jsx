@@ -23,9 +23,9 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
-import { Delete, Edit, Add, CloudUpload, Close } from '@mui/icons-material';
+import { Delete, Edit, Add } from '@mui/icons-material';
 
-const ProductManagement = () => {
+const FlowerBasketManagement = () => {
   const [products, setProducts] = useState([]);
   const [stores, setStores] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -34,16 +34,15 @@ const ProductManagement = () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [openDialog, setOpenDialog] = useState(false);
   const [newProduct, setNewProduct] = useState({
-    productName: '',
+    name: '',
     quantity: 0,
-    price: 0,
+    price: '',
     size: '',
     discount: 0,
+    store: '',
+    category: '',
     description: '',
-    featured: true,
-    categoryId: '',
-    status: true,
-    images: []
+    image: '',
   });
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [updateProductData, setUpdateProductData] = useState({
@@ -57,7 +56,6 @@ const ProductManagement = () => {
     categoryId: '',
     status: true
   });
-  const [selectedFiles, setSelectedFiles] = useState([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -102,30 +100,28 @@ const ProductManagement = () => {
     if (product) {
       setEditingProduct(product);
       setNewProduct({
-        productName: product.productName,
+        name: product.productName,
         quantity: product.quantity || 0,
         price: product.price,
         size: product.size,
         discount: product.discount || 0,
+        store: product.storeId || '',
+        category: product.categoryId || '',
         description: product.description,
-        featured: product.featured,
-        categoryId: product.categoryId || '',
-        status: product.status,
-        images: product.productImages?.map(image => image.productImage1) || []
+        image: product.productImages?.[0]?.productImage1 || '',
       });
     } else {
       setEditingProduct(null);
       setNewProduct({
-        productName: '',
+        name: '',
         quantity: 0,
-        price: 0,
+        price: '',
         size: '',
         discount: 0,
+        store: '',
+        category: '',
         description: '',
-        featured: true,
-        categoryId: '',
-        status: true,
-        images: []
+        image: '',
       });
     }
     setOpenDialog(true);
@@ -133,92 +129,61 @@ const ProductManagement = () => {
 
   const handleCloseDialog = () => setOpenDialog(false);
 
-  const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    setSelectedFiles(files);
-    
-    // Preview images
-    const imagePromises = files.map(file => {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.readAsDataURL(file);
-      });
-    });
-
-    Promise.all(imagePromises).then(images => {
-      setNewProduct(prev => ({
-        ...prev,
-        images: images
-      }));
-    });
-  };
-
   const handleAddProduct = async () => {
+    const productData = {
+      productName: newProduct.name,
+      quantity: parseInt(newProduct.quantity),
+      price: parseFloat(newProduct.price),
+      size: newProduct.size,
+      discount: parseInt(newProduct.discount),
+      description: newProduct.description,
+      featured: true,
+      categoryId: newProduct.category,
+      status: true,
+      images: [
+        {
+          productImage1: newProduct.image
+        }
+      ]
+    };
+
     try {
-      // Tạo FormData object
-      const formData = new FormData();
-      
-      // Thêm các trường thông tin sản phẩm
-      formData.append('productName', newProduct.productName);
-      formData.append('quantity', newProduct.quantity.toString());
-      formData.append('price', newProduct.price.toString());
-      formData.append('size', newProduct.size);
-      formData.append('discount', newProduct.discount.toString());
-      formData.append('description', newProduct.description);
-      formData.append('featured', 'true');
-      formData.append('categoryId', newProduct.categoryId);
-      formData.append('status', 'true');
-
-      // Thêm các file ảnh
-      selectedFiles.forEach((file, index) => {
-        formData.append(`images`, file);
-      });
-
-      console.log('Form Data:', Object.fromEntries(formData));
-
       const response = await axios.post(
-        'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct',
-        formData,
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/CreateProduct?storeId=${newProduct.store}`,
+        productData,
         {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      if (response.status === 200) {
-        // Refresh product list
+      if (response.data.statusCode === 200) {
         const updatedProducts = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
         setProducts(updatedProducts.data.data);
-
-        // Reset form
         setNewProduct({
-          productName: '',
+          name: '',
           quantity: 0,
-          price: 0,
+          price: '',
           size: '',
           discount: 0,
+          store: '',
+          category: '',
           description: '',
-          featured: true,
-          categoryId: '',
-          status: true,
-          images: []
+          image: '',
         });
-        setSelectedFiles([]);
-
         setOpenDialog(false);
         setSnackbar({
           open: true,
-          message: 'Product added successfully!',
+          message: editingProduct ? 'Product updated successfully!' : 'Product added successfully!',
           severity: 'success'
         });
       }
     } catch (error) {
-      console.error('Error adding product:', error);
+      console.error('Error adding product:', error.response?.data || error);
       setSnackbar({
         open: true,
-        message: `Failed to add product: ${error.response?.data?.message || error.message}`,
+        message: `Failed to ${editingProduct ? 'update' : 'add'} product: ${error.response?.data?.message || error.message}`,
         severity: 'error'
       });
     }
@@ -312,6 +277,17 @@ const ProductManagement = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setNewProduct({ ...newProduct, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <Box sx={{ p: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -384,14 +360,14 @@ const ProductManagement = () => {
       </TableContainer>
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Add New Product</DialogTitle>
+        <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Add New Product</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
-            label="Product Name"
+            label="Name"
             fullWidth
-            value={newProduct.productName}
-            onChange={(e) => setNewProduct({ ...newProduct, productName: e.target.value })}
+            value={newProduct.name}
+            onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
           />
           <TextField
             margin="dense"
@@ -399,7 +375,10 @@ const ProductManagement = () => {
             fullWidth
             type="number"
             value={newProduct.quantity}
-            onChange={(e) => setNewProduct({ ...newProduct, quantity: parseInt(e.target.value) })}
+            onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
+            InputProps={{
+              inputProps: { min: 0 }
+            }}
           />
           <TextField
             margin="dense"
@@ -407,8 +386,36 @@ const ProductManagement = () => {
             fullWidth
             type="number"
             value={newProduct.price}
-            onChange={(e) => setNewProduct({ ...newProduct, price: parseFloat(e.target.value) })}
+            onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
           />
+          {/* <FormControl fullWidth margin="dense">
+            <InputLabel>Store</InputLabel>
+            <Select
+              value={newProduct.store}
+              label="Store"
+              onChange={(e) => setNewProduct({ ...newProduct, store: e.target.value })}
+            >
+              {stores.map((store) => (
+                <MenuItem key={store.storeId} value={store.storeId}>
+                  {store.storeName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl> */}
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={newProduct.category}
+              label="Category"
+              onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.categoryId} value={category.categoryId}>
+                  {category.categoryName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             margin="dense"
             label="Size"
@@ -418,11 +425,14 @@ const ProductManagement = () => {
           />
           <TextField
             margin="dense"
-            label="Discount"
+            label="Discount (%)"
             fullWidth
             type="number"
             value={newProduct.discount}
-            onChange={(e) => setNewProduct({ ...newProduct, discount: parseInt(e.target.value) })}
+            onChange={(e) => setNewProduct({ ...newProduct, discount: e.target.value })}
+            InputProps={{
+              inputProps: { min: 0, max: 100 }
+            }}
           />
           <TextField
             margin="dense"
@@ -433,91 +443,38 @@ const ProductManagement = () => {
             value={newProduct.description}
             onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Category</InputLabel>
-            <Select
-              value={newProduct.categoryId}
-              label="Category"
-              onChange={(e) => setNewProduct({ ...newProduct, categoryId: e.target.value })}
-            >
-              {categories.map((category) => (
-                <MenuItem key={category.categoryId} value={category.categoryId}>
-                  {category.categoryName}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Box sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              component="label"
-              startIcon={<CloudUpload />}
-            >
-              Upload Images
-              <input
-                type="file"
-                hidden
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </Button>
-          </Box>
-
-          {/* Preview Images */}
-          <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {newProduct.images.map((image, index) => (
-              <Box
-                key={index}
-                sx={{
-                  position: 'relative',
-                  width: 100,
-                  height: 100
-                }}
-              >
-                <img
-                  src={image}
-                  alt={`Preview ${index + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    borderRadius: 4
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  sx={{
-                    position: 'absolute',
-                    top: -10,
-                    right: -10,
-                    backgroundColor: 'white',
-                    '&:hover': { backgroundColor: '#f5f5f5' }
-                  }}
-                  onClick={() => {
-                    const newFiles = [...selectedFiles];
-                    newFiles.splice(index, 1);
-                    setSelectedFiles(newFiles);
-                    
-                    const newImages = [...newProduct.images];
-                    newImages.splice(index, 1);
-                    setNewProduct(prev => ({
-                      ...prev,
-                      images: newImages
-                    }));
-                  }}
-                >
-                  <Close fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
-          </Box>
+          <Button
+            variant="contained"
+            component="label"
+            sx={{ mt: 2 }}
+          >
+            Upload Image
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+          </Button>
+          <TextField
+            margin="dense"
+            label="Image URL"
+            fullWidth
+            value={newProduct.image}
+            onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
+          />
+          {newProduct.image && (
+            <img
+              src={newProduct.image}
+              alt="Preview"
+              style={{ marginTop: 16, width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 4 }}
+            />
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseDialog}>Cancel</Button>
           <Button variant="contained" onClick={handleAddProduct}>
-            Add Product
+            Add
           </Button>
         </DialogActions>
       </Dialog>
@@ -654,4 +611,4 @@ const ProductManagement = () => {
   );
 };
 
-export default ProductManagement;
+export default FlowerBasketManagement;

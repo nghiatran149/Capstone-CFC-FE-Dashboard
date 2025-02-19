@@ -1,4 +1,4 @@
-import { IconDashboard, IconUsersGroup, IconDeviceDesktopCog, IconFlower, IconGiftCard, IconCreditCardRefund, IconCategory } from '@tabler/icons-react';
+import { IconDashboard, IconUsersGroup, IconDeviceDesktopCog, IconFlower, IconGiftCard, IconCreditCardRefund, IconCategory, IconGift, IconMenuOrder, IconBasket } from '@tabler/icons-react';
 
 const icons = {
   IconDashboard,
@@ -42,7 +42,23 @@ const adminDashboard = {
       title: 'Product Management',
       type: 'item',
       url: '/adminDashboard/product-management',
+      icon: IconGift,
+      breadcrumbs: true
+    },
+    {
+      id: 'flower',
+      title: 'Flower Management',
+      type: 'item',
+      url: '/adminDashboard/flower-management',
       icon: IconFlower,
+      breadcrumbs: true
+    },
+    {
+      id: 'flowerBasket',
+      title: 'Basket Management',
+      type: 'item',
+      url: '/adminDashboard/flowerbasket-management',
+      icon: IconBasket,
       breadcrumbs: true
     },
     {
@@ -61,6 +77,7 @@ const adminDashboard = {
       icon: IconCreditCardRefund,
       breadcrumbs: true
     },
+
   ]
 };
 
