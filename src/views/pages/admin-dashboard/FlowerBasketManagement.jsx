@@ -52,7 +52,8 @@ const FlowerBasketManagement = () => {
     categoryId: '',
     description: '',
     image: null,
-    feature: true
+    feature: true,
+    status: true
   });
   const [viewDetail, setViewDetail] = useState({
     open: false,
@@ -120,7 +121,8 @@ const FlowerBasketManagement = () => {
         categoryId: '',
         description: '',
         image: null,
-        feature: true
+        feature: true,
+        status: true
       });
     }
     setOpenDialog(true);
@@ -136,21 +138,61 @@ const FlowerBasketManagement = () => {
     }
   };
 
+  const handleEdit = (basket) => {
+    console.log('Editing basket:', basket); // Log để debug
+    setEditingBasket(basket);
+    setNewBasket({
+      flowerBasketName: basket.flowerBasketName || '',
+      maxQuantity: basket.maxQuantity || 0,
+      minQuantity: basket.minQuantity || 0,
+      quantity: basket.quantity || 0,
+      price: basket.price || 0,
+      categoryId: basket.categoryId || '',
+      description: basket.decription || '', // Note: API returns 'decription' not 'description'
+      image: null, // Reset image since we can't get the previous image file
+      feature: basket.feature || false,
+      status: basket.status || false
+    });
+    setOpenDialog(true);
+  };
+
   const handleAddBasket = async () => {
     try {
+      // Log data trước khi gửi để kiểm tra
+      console.log('Data before sending:', {
+        FlowerBasketName: newBasket.flowerBasketName,
+        MaxQuantity: newBasket.maxQuantity,
+        MinQuantity: newBasket.minQuantity,
+        Quantity: newBasket.quantity,
+        Price: newBasket.price,
+        Decription: newBasket.description,
+        Feature: newBasket.feature,
+        CategoryId: newBasket.categoryId,
+        Image: newBasket.image
+      });
+
       const formData = new FormData();
       
-      formData.append('Price', newBasket.price.toString());
-      formData.append('Quantity', newBasket.quantity.toString());
-      formData.append('Decription', newBasket.description);
-      formData.append('FlowerBasketName', newBasket.flowerBasketName);
-      formData.append('MaxQuantity', newBasket.maxQuantity.toString());
-      formData.append('Feature', newBasket.feature.toString());
-      formData.append('CategoryId', newBasket.categoryId);
-      formData.append('MinQuantity', newBasket.minQuantity.toString());
+      // Format và validate data trước khi append
+      formData.append('FlowerBasketName', String(newBasket.flowerBasketName).trim());
+      formData.append('MaxQuantity', Math.max(0, Number(newBasket.maxQuantity)));
+      formData.append('MinQuantity', Math.max(0, Number(newBasket.minQuantity)));
+      formData.append('Quantity', Math.max(0, Number(newBasket.quantity)));
+      formData.append('Price', Math.max(0, Number(newBasket.price)));
+      formData.append('Decription', String(newBasket.description || '').trim());
+      formData.append('Feature', Boolean(newBasket.feature));
+      formData.append('CategoryId', String(newBasket.categoryId).trim());
       
-      if (newBasket.image) {
-        formData.append('Image', newBasket.image, newBasket.image.name);
+      // Kiểm tra và xử lý file ảnh
+      if (newBasket.image instanceof File) {
+        formData.append('Image', newBasket.image);
+      } else {
+        throw new Error('Invalid image file');
+      }
+
+      // Log FormData để kiểm tra
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
       }
 
       const response = await axios.post(
@@ -160,14 +202,19 @@ const FlowerBasketManagement = () => {
           headers: {
             'accept': 'text/plain',
             'Content-Type': 'multipart/form-data'
-          }
+          },
+          // Thêm timeout dài hơn
+          timeout: 30000
         }
       );
 
-      if (response.data.resultStatus === "Success") {
+      // Log response để debug
+      console.log('API Response:', response);
+
+      if (response.data && response.data.resultStatus === "Success") {
         setSnackbar({
           open: true,
-          message: response.data.messages[0] || 'Flower basket created successfully!',
+          message: response.data.messages?.[0] || 'Flower basket created successfully!',
           severity: 'success'
         });
         setOpenDialog(false);
@@ -181,62 +228,89 @@ const FlowerBasketManagement = () => {
           categoryId: '',
           description: '',
           image: null,
-          feature: true
+          feature: true,
+          status: true
         });
-        // Refresh data
         await fetchFlowerBaskets();
         return true;
       } else {
-        throw new Error(response.data.messages?.[0] || 'Failed to create flower basket');
+        throw new Error(response.data?.messages?.[0] || 'Failed to create flower basket');
       }
     } catch (error) {
-      console.error('Error creating flower basket:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+
+      // Hiển thị thông báo lỗi chi tiết hơn
       setSnackbar({
         open: true,
-        message: error.response?.data?.messages?.[0] || error.message,
+        message: error.response?.status === 500 
+          ? 'Server error. Please check your input data and try again.'
+          : error.response?.data?.messages?.[0] || error.message,
         severity: 'error'
       });
       return false;
     }
   };
 
-  const handleUpdate = async () => {
-    if (!editingBasket) {
-      console.error('No flower basket selected for update');
-      setSnackbar({
-        open: true,
-        message: 'Flower basket not selected for update.',
-        severity: 'error'
-      });
-      return;
-    }
-  
+  const handleUpdateBasket = async () => {
     try {
+      console.log('Updating basket:', editingBasket.flowerBasketId); // Log để debug
+      
+      const formData = new FormData();
+      
+      formData.append('FlowerBasketName', String(newBasket.flowerBasketName).trim());
+      formData.append('MaxQuantity', Math.max(0, Number(newBasket.maxQuantity)));
+      formData.append('MinQuantity', Math.max(0, Number(newBasket.minQuantity)));
+      formData.append('Quantity', Math.max(0, Number(newBasket.quantity)));
+      formData.append('Price', Math.max(0, Number(newBasket.price)));
+      formData.append('Description', String(newBasket.description || '').trim());
+      formData.append('Feature', Boolean(newBasket.feature).toString());
+      formData.append('Status', Boolean(newBasket.status).toString());
+      formData.append('CategoryId', String(newBasket.categoryId).trim());
+      
+      if (newBasket.image instanceof File) {
+        formData.append('Image', newBasket.image);
+      }
+
+      // Log FormData
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+
       const response = await axios.put(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/flowerBaskets/${editingBasket.flowerBasketId}`,
-        newBasket,
+        formData,
         {
           headers: {
-            'Content-Type': 'application/json'
+            'accept': '*/*',
+            'Content-Type': 'multipart/form-data'
           }
         }
       );
-  
-      if (response.data.statusCode === 200) {
-        const updatedBaskets = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/flowerBaskets');
-        setFlowerBaskets(updatedBaskets.data);
-        setOpenDialog(false);
+
+      console.log('Update response:', response); // Log response
+
+      if (response.data && response.data.resultStatus === "Success") {
         setSnackbar({
           open: true,
-          message: 'Cập nhật flower basket thành công!',
+          message: 'Flower basket updated successfully!',
           severity: 'success'
         });
+        setOpenDialog(false);
+        setEditingBasket(null);
+        await fetchFlowerBaskets();
+      } else {
+        throw new Error(response.data?.messages?.[0] || 'Failed to update flower basket');
       }
     } catch (error) {
-      console.error('Error updating flower basket:', error.response?.data || error);
+      console.error('Error updating flower basket:', error);
       setSnackbar({
         open: true,
-        message: `Lỗi cập nhật flower basket: ${error.response?.data?.message || error.message}`,
+        message: error.response?.data?.messages?.[0] || error.message,
         severity: 'error'
       });
     }
@@ -370,7 +444,11 @@ const FlowerBasketManagement = () => {
                   >
                     <RemoveRedEye />
                   </IconButton>
-                  <IconButton color="primary" onClick={() => handleOpenDialog(basket)}>
+                  <IconButton 
+                    color="primary" 
+                    onClick={() => handleEdit(basket)}
+                    title="Edit"
+                  >
                     <Edit />
                   </IconButton>
                   <IconButton 
@@ -380,7 +458,7 @@ const FlowerBasketManagement = () => {
                       basketId: basket.flowerBasketId,
                       basketName: basket.flowerBasketName 
                     })}
-                    aria-label="delete flower basket"
+                    title="Delete"
                   >
                     <Delete />
                   </IconButton>
@@ -393,15 +471,27 @@ const FlowerBasketManagement = () => {
 
       <Dialog 
         open={openDialog} 
-        onClose={() => setOpenDialog(false)}
+        onClose={() => {
+          setOpenDialog(false);
+          setEditingBasket(null);
+          setNewBasket({
+            flowerBasketName: '',
+            maxQuantity: 0,
+            minQuantity: 0,
+            quantity: 0,
+            price: 0,
+            categoryId: '',
+            description: '',
+            image: null,
+            feature: true,
+            status: true
+          });
+        }}
         maxWidth="md"
         fullWidth
-        keepMounted
-        disablePortal
-        aria-labelledby="add-basket-dialog-title"
       >
-        <DialogTitle id="add-basket-dialog-title">
-          Add New Flower Basket
+        <DialogTitle>
+          {editingBasket ? `Edit Flower Basket: ${editingBasket.flowerBasketName}` : 'Add New Flower Basket'}
         </DialogTitle>
         <DialogContent>
           <Box 
@@ -523,6 +613,17 @@ const FlowerBasketManagement = () => {
                 />
               </Grid>
               <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={newBasket.status}
+                      onChange={(e) => setNewBasket({ ...newBasket, status: e.target.checked })}
+                    />
+                  }
+                  label="Active Status"
+                />
+              </Grid>
+              <Grid item xs={12}>
                 <Button
                   variant="contained"
                   component="label"
@@ -556,19 +657,31 @@ const FlowerBasketManagement = () => {
         <DialogActions>
           <Button 
             onClick={() => {
-              document.body.focus();
               setOpenDialog(false);
+              setEditingBasket(null);
+              setNewBasket({
+                flowerBasketName: '',
+                maxQuantity: 0,
+                minQuantity: 0,
+                quantity: 0,
+                price: 0,
+                categoryId: '',
+                description: '',
+                image: null,
+                feature: true,
+                status: true
+              });
             }}
             color="error"
           >
             Cancel
           </Button>
           <Button 
-            variant="contained" 
-            onClick={handleAddBasket}
-            aria-label="add flower basket"
+            variant="contained"
+            onClick={editingBasket ? handleUpdateBasket : handleAddBasket}
+            disabled={!newBasket.flowerBasketName || !newBasket.categoryId}
           >
-            Add
+            {editingBasket ? 'Update' : 'Add'}
           </Button>
         </DialogActions>
       </Dialog>
