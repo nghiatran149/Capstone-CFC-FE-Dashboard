@@ -103,7 +103,7 @@ const ProductManagement = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories');
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories/getCartegoryByProductType');
         setCategories(response.data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -433,8 +433,8 @@ const ProductManagement = () => {
               <TableCell>Discount</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Quantity</TableCell>
-              <TableCell>featured</TableCell>
               <TableCell>Sold</TableCell>
+              <TableCell>featured</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -462,9 +462,17 @@ const ProductManagement = () => {
                 <TableCell>{product.discount}%</TableCell>
                 <TableCell>{product.description}</TableCell>
                 <TableCell>{product.quantity}</TableCell>
-                <TableCell>{product.featured ? 'Active' : 'Inactive' }</TableCell>
                 <TableCell>{product.sold}</TableCell>
-                <TableCell>{product.status ? 'Active' : 'Inactive'}</TableCell>
+                <TableCell> <Chip 
+                    label={product.featured ? 'Yes' : 'No'}
+                    color={product.featured ? 'success' : 'default'}
+                    size="small"
+                  /></TableCell>
+                <TableCell> <Chip 
+                    label={product.status ? 'Active' : 'Inactive'}
+                    color={product.status ? 'success' : 'error'}
+                    size="small"
+                  /></TableCell>
                 <TableCell align="right">
                   <IconButton
                     onClick={() => {

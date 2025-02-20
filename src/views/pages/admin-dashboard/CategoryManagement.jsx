@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { Delete, Edit, Add } from "@mui/icons-material";
 
 const API_BASE_URL = "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api";
+
+const CATEGORY_TYPES = ['Product', 'Flower', 'Basket'];
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -12,7 +14,10 @@ const CategoryManagement = () => {
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const [confirmDialog, setConfirmDialog] = useState({ open: false, categoryId: null, categoryName: '' });
-    const [newCategory, setNewCategory] = useState("");
+    const [newCategory, setNewCategory] = useState({
+        name: "",
+        type: ""
+    });
 
     const fetchCategories = async () => {
         try {
@@ -33,11 +38,11 @@ const CategoryManagement = () => {
     const handleAddCategory = async () => {
         try {
             await axios.post(`${API_BASE_URL}/categories/create-category`, {
-                name: newCategory,
-                createAt: new Date().toISOString(),
-                updateAt: new Date().toISOString(),
+                name: newCategory.name,
+                type: newCategory.type
             });
-            setNewCategory("");
+            
+            setNewCategory({ name: "", type: "" });
             setOpenDialog(false);
             setSnackbar({ open: true, message: "Category added successfully!", severity: "success" });
             fetchCategories();
@@ -65,6 +70,7 @@ const CategoryManagement = () => {
         try {
             await axios.put(`${API_BASE_URL}/categories/${selectedCategory.categoryId}`, {
                 categoryName: selectedCategory.categoryName,
+                type: selectedCategory.type
             });
             setEditDialog(false);
             setSnackbar({ open: true, message: "Category updated successfully!", severity: "success" });
@@ -88,6 +94,7 @@ const CategoryManagement = () => {
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
+                            <TableCell>Type</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell align="right">Actions</TableCell>
                         </TableRow>
@@ -96,9 +103,37 @@ const CategoryManagement = () => {
                         {categories.map((category) => (
                             <TableRow key={category.categoryId}>
                                 <TableCell>{category.categoryName}</TableCell>
+                                <TableCell>
+                                    <Box
+                                        sx={{
+                                            display: 'inline-block',
+                                            px: 1.5,
+                                            py: 0.5,
+                                            borderRadius: 1,
+                                            backgroundColor: category.type === 'Product' ? '#e3f2fd' : 
+                                                            category.type === 'Flower' ? '#e8f5e9' : 
+                                                            category.type === 'Basket' ? '#fff3e0' : 'grey.100',
+                                            color: category.type === 'Product' ? '#1565c0' : 
+                                                   category.type === 'Flower' ? '#2e7d32' : 
+                                                   category.type === 'Basket' ? '#ef6c00' : 'text.primary'
+                                        }}
+                                    >
+                                        {category.type}
+                                    </Box>
+                                </TableCell>
                                 <TableCell>{category.status ? "Hoạt động" : "Không hoạt động"}</TableCell>
                                 <TableCell align="right">
-                                    <IconButton color="primary" onClick={() => { setSelectedCategory(category); setEditDialog(true); }}>
+                                    <IconButton 
+                                        color="primary" 
+                                        onClick={() => { 
+                                            setSelectedCategory({
+                                                categoryId: category.categoryId,
+                                                categoryName: category.categoryName,
+                                                type: category.type
+                                            }); 
+                                            setEditDialog(true); 
+                                        }}
+                                    >
                                         <Edit />
                                     </IconButton>
                                     <IconButton
@@ -106,7 +141,8 @@ const CategoryManagement = () => {
                                         onClick={() => setConfirmDialog({
                                             open: true,
                                             categoryId: category.categoryId,
-                                            categoryName: category.categoryName
+                                            categoryName: category.categoryName,
+                                            type: category.type
                                         })}
                                     >
                                         <Delete />
@@ -121,28 +157,101 @@ const CategoryManagement = () => {
             <Dialog open={openDialog} onClose={handleCloseDialog}>
                 <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Add New Category</DialogTitle>
                 <DialogContent>
-                    <TextField margin="dense" label="Name" fullWidth value={newCategory} onChange={(e) => setNewCategory(e.target.value)} />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, minWidth: 300 }}>
+                        <TextField 
+                            label="Name" 
+                            fullWidth 
+                            value={newCategory.name} 
+                            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                        />
+                        <FormControl fullWidth>
+                            <InputLabel>Type</InputLabel>
+                            <Select
+                                value={newCategory.type}
+                                label="Type"
+                                onChange={(e) => setNewCategory({ ...newCategory, type: e.target.value })}
+                            >
+                                {CATEGORY_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={handleCloseDialog}>Cancel</Button>
-                    <Button variant="contained" onClick={handleAddCategory}>Add</Button>
+                    <Button 
+                        sx={{ 
+                            backgroundColor: 'red', 
+                            color: 'white', 
+                            '&:hover': { backgroundColor: 'darkred' } 
+                        }} 
+                        onClick={() => {
+                            setNewCategory({ name: "", type: "" });
+                            handleCloseDialog();
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleAddCategory}
+                        disabled={!newCategory.name || !newCategory.type}
+                    >
+                        Add
+                    </Button>
                 </DialogActions>
             </Dialog>
 
             <Dialog open={editDialog} onClose={() => setEditDialog(false)}>
                 <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Edit Category</DialogTitle>
                 <DialogContent>
-                    <TextField
-                        margin="dense"
-                        label="Name"
-                        fullWidth
-                        value={selectedCategory?.categoryName || ""}
-                        onChange={(e) => setSelectedCategory({ ...selectedCategory, categoryName: e.target.value })}
-                    />
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1, minWidth: 300 }}>
+                        <TextField
+                            margin="dense"
+                            label="Name"
+                            fullWidth
+                            value={selectedCategory?.categoryName || ""}
+                            onChange={(e) => setSelectedCategory({ ...selectedCategory, categoryName: e.target.value })}
+                        />
+                        <FormControl fullWidth margin="dense">
+                            <InputLabel>Type</InputLabel>
+                            <Select
+                                value={selectedCategory?.type || ""}
+                                label="Type"
+                                onChange={(e) => setSelectedCategory({ ...selectedCategory, type: e.target.value })}
+                            >
+                                {CATEGORY_TYPES.map((type) => (
+                                    <MenuItem key={type} value={type}>
+                                        {type}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={() => setEditDialog(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={handleEditCategory}>Save</Button>
+                    <Button 
+                        sx={{ 
+                            backgroundColor: 'red', 
+                            color: 'white', 
+                            '&:hover': { backgroundColor: 'darkred' } 
+                        }} 
+                        onClick={() => {
+                            setSelectedCategory(null);
+                            setEditDialog(false);
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleEditCategory}
+                        disabled={!selectedCategory?.categoryName || !selectedCategory?.type}
+                    >
+                        Save
+                    </Button>
                 </DialogActions>
             </Dialog>
 
