@@ -77,7 +77,7 @@ const FlowerManagement = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories');
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories/GetCategoryByFlowerType');
         setCategories(response.data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
