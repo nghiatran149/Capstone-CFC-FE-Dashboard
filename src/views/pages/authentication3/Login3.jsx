@@ -53,17 +53,17 @@ const Login = () => {
         setSuccessMessage(data.messages[0]);
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('roleName', data.data.roleName);
-
+        console.log("User Role:", data?.data);
         const { roleName } = data.data;
         switch (roleName) {
           case 'Admin':
             navigate('/adminDashboard/store-overview');
             break;
-          case 'Store Manager':
+          case 'StoreManager':
             navigate('/storeDashboard/staff-management');
             break;
           case 'Florist':
-            navigate('/floristDashboard');
+            navigate('/floristDashboard/task-management');
             break;
           default:
             setError('You do not have access to this system.');

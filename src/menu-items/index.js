@@ -9,8 +9,22 @@ import floristDashboard from './floristDashboard';
 
 // ==============================|| MENU ITEMS ||============================== //
 
+const roleName = localStorage.getItem('roleName');
+
 const menuItems = {
-  items: [adminDashboard, storeDashboard, floristDashboard]
+  items: roleName === 'Admin' 
+    ? [adminDashboard] 
+    // : roleName === 'General Manager' 
+    // ? [generalDashboard]
+    // : roleName === 'Staff' 
+    // ? [staffDashboard] 
+    : roleName === 'StoreManager' 
+    ? [storeDashboard]
+    : [floristDashboard] 
 };
+
+// const menuItems = {
+//   items: [adminDashboard, storeDashboard, floristDashboard]
+// };
 
 export default menuItems;
