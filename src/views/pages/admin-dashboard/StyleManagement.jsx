@@ -47,13 +47,16 @@ const StyleManagement = () => {
     note: '',
     description: '',
     image: null,
-    status: true
+    status: true,
+    categoryId: '',
+    feature: false
   });
   const [viewDetail, setViewDetail] = useState({
     open: false,
     basket: null
   });
   const [imagePreview, setImagePreview] = useState(null);
+  const [categories, setCategories] = useState([]);
 
   // Fetch styles
   const fetchFlowerBaskets = async () => {
@@ -86,6 +89,19 @@ const StyleManagement = () => {
     fetchFlowerBaskets();
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories/GetCategoryByStyleType');
+        setCategories(response.data || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   const handleOpenDialog = (basket = null) => {
     if (basket) {
       setEditingBasket(basket);
@@ -94,7 +110,9 @@ const StyleManagement = () => {
         note: basket.note,
         description: basket.description,
         image: basket.image,
-        status: basket.status
+        status: basket.status,
+        categoryId: basket.categoryId || '',
+        feature: basket.feature || false
       });
     } else {
       setEditingBasket(null);
@@ -103,7 +121,9 @@ const StyleManagement = () => {
         note: '',
         description: '',
         image: null,
-        status: true
+        status: true,
+        categoryId: '',
+        feature: false
       });
     }
     setOpenDialog(true);
@@ -127,7 +147,9 @@ const StyleManagement = () => {
       note: basket.note || '',
       description: basket.description || '',
       image: null,
-      status: basket.status !== undefined ? basket.status : true
+      status: basket.status !== undefined ? basket.status : true,
+      categoryId: basket.categoryId || '',
+      feature: basket.feature || false
     });
     setImagePreview(basket.image); // Hiển thị ảnh hiện tại
     setOpenDialog(true);
@@ -135,10 +157,10 @@ const StyleManagement = () => {
 
   const handleAddBasket = async () => {
     try {
-      if (!newBasket.name || !newBasket.image) {
+      if (!newBasket.name || !newBasket.image || !newBasket.categoryId) {
         setSnackbar({
           open: true,
-          message: 'Name and Image are required',
+          message: 'Name, Image and Category are required',
           severity: 'error'
         });
         return;
@@ -149,7 +171,9 @@ const StyleManagement = () => {
       formData.append('Name', String(newBasket.name).trim());
       formData.append('Note', String(newBasket.note || '').trim());
       formData.append('Description', String(newBasket.description || '').trim());
-      formData.append('Status', newBasket.status);
+      formData.append('Status', String(Boolean(newBasket.status)));
+      formData.append('CategoryId', String(newBasket.categoryId));
+      formData.append('Feature', String(Boolean(newBasket.feature)));
       
       if (newBasket.image instanceof File) {
         formData.append('Image', newBasket.image);
@@ -157,14 +181,14 @@ const StyleManagement = () => {
         throw new Error('Please select an image');
       }
 
-      console.log('Request Details:', {
-        url: 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/style/CreateStyle',
-        method: 'POST',
-        headers: {
-          'accept': '*/*',
-          'Content-Type': 'multipart/form-data'
-        },
-        formData: Object.fromEntries(formData.entries())
+      console.log('Form data being sent:', {
+        Name: newBasket.name,
+        Note: newBasket.note,
+        Description: newBasket.description,
+        Status: newBasket.status,
+        CategoryId: newBasket.categoryId,
+        Feature: newBasket.feature,
+        hasImage: newBasket.image instanceof File
       });
 
       const response = await axios.post(
@@ -196,7 +220,8 @@ const StyleManagement = () => {
             note: '',
             description: '',
             image: null,
-            status: true
+            status: true,
+            categoryId: ''
           });
           setImagePreview(null);
           await fetchFlowerBaskets(); // Fetch updated data
@@ -229,10 +254,10 @@ const StyleManagement = () => {
 
   const handleUpdateBasket = async () => {
     try {
-      if (!newBasket.name) {
+      if (!newBasket.name || !newBasket.categoryId) {
         setSnackbar({
           open: true,
-          message: 'Name is required',
+          message: 'Name and Category are required',
           severity: 'error'
         });
         return;
@@ -245,7 +270,9 @@ const StyleManagement = () => {
       formData.append('Name', String(newBasket.name).trim());
       formData.append('Note', String(newBasket.note || '').trim());
       formData.append('Description', String(newBasket.description || '').trim());
-      formData.append('Status', newBasket.status.toString());
+      formData.append('Status', String(Boolean(newBasket.status)));
+      formData.append('CategoryId', String(newBasket.categoryId));
+      formData.append('Feature', String(Boolean(newBasket.feature)));
       
       // Chỉ thêm ảnh vào FormData nếu người dùng chọn ảnh mới
       if (newBasket.image instanceof File) {
@@ -284,7 +311,8 @@ const StyleManagement = () => {
           note: '',
           description: '',
           image: null,
-          status: true
+          status: true,
+          categoryId: ''
         });
         setImagePreview(null);
         await fetchFlowerBaskets();
@@ -398,8 +426,10 @@ const StyleManagement = () => {
             <TableRow>
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
+              <TableCell>Category</TableCell>
               <TableCell>Note</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>Featured</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -417,8 +447,16 @@ const StyleManagement = () => {
                   )}
                 </TableCell>
                 <TableCell>{style.name}</TableCell>
+                <TableCell>{style.categoryName}</TableCell>
                 <TableCell>{style.note}</TableCell>
                 <TableCell>{style.description}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={style.feature ? 'Yes' : 'No'}
+                    color={style.feature ? 'success' : 'default'}
+                    size="small"
+                  />
+                </TableCell>
                 <TableCell>
                   <Chip 
                     label={style.status ? 'Active' : 'Inactive'}
@@ -469,7 +507,8 @@ const StyleManagement = () => {
             note: '',
             description: '',
             image: null,
-            status: true
+            status: true,
+            categoryId: ''
           });
         }}
         maxWidth="md"
@@ -497,6 +536,25 @@ const StyleManagement = () => {
                 />
               </Grid>
               <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={newBasket.categoryId || ''}
+                    onChange={(e) => setNewBasket({ ...newBasket, categoryId: e.target.value })}
+                    label="Category"
+                  >
+                    <MenuItem value="">
+                      <em>Select a category</em>
+                    </MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category.categoryId} value={category.categoryId}>
+                        {category.categoryName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Note"
@@ -514,7 +572,7 @@ const StyleManagement = () => {
                   onChange={(e) => setNewBasket({ ...newBasket, description: e.target.value })}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -523,6 +581,16 @@ const StyleManagement = () => {
                     />
                   }
                   label="Active Status"
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={newBasket.feature}
+                      onChange={(e) => setNewBasket({ ...newBasket, feature: e.target.checked })}
+                    />
+                  }
+                  label="Featured"
                 />
               </Grid>
               <Grid item xs={12}>
@@ -566,7 +634,8 @@ const StyleManagement = () => {
                 note: '',
                 description: '',
                 image: null,
-                status: true
+                status: true,
+                categoryId: ''
               });
             }}
             color="error"
@@ -716,6 +785,10 @@ const StyleManagement = () => {
                               'N/A'
                             }
                           </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Category</TableCell>
+                          <TableCell>{viewDetail.basket.categoryName || 'N/A'}</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
