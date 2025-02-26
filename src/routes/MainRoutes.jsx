@@ -10,12 +10,18 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
 const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CategoryManagement')));
+const FlowerBasketCategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketCategoryManagement')));
+const FlowerCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerCategoryManagement')));
+const StyleCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/StyleCategoryManagement')));
+const AccessoryCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/AccessoryCategoryManagement')));
+
+
 const ProductManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/ProductManagement')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
 const FlowerManagement =  Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerManagement')));
 const FlowerBasketManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketManagement')));
-
+  
 const StyleManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/StyleManagement')));
 const AccessoryManagement =Loadable(lazy(() => import('views/pages/admin-dashboard/AccessoryManagement')));
 // Store Dashboard
@@ -88,6 +94,42 @@ const MainRoutes = {
         {
           path: 'category-management',
           element: <CategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flowerbasket-category-management',
+          element: <FlowerBasketCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flower-category-management',
+          element: <FlowerCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'style-category-management',
+          element: <StyleCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'accessory-category-management',
+          element: <AccessoryCategoryManagement />
         }
       ]
     },

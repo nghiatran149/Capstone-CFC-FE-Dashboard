@@ -49,7 +49,9 @@ const AccessoryManagement = () => {
     price: 0,
     description: '',
     image: null,
-    status: true
+    status: true,
+    categoryId: '',
+    feature: false
   });
   const [viewDetail, setViewDetail] = useState({
     open: false,
@@ -81,7 +83,8 @@ const AccessoryManagement = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories/GetCategoryByBasketType');
+        const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/categories/GetCategoryByAccessoryType');
+        console.log('Categories fetched:', response.data);
         setCategories(response.data || []);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -100,7 +103,9 @@ const AccessoryManagement = () => {
         price: basket.price,
         description: basket.description,
         image: basket.image,
-        status: basket.status
+        status: basket.status,
+        categoryId: basket.categoryId,
+        feature: basket.feature
       });
     } else {
       setEditingBasket(null);
@@ -110,7 +115,9 @@ const AccessoryManagement = () => {
         price: 0,
         description: '',
         image: null,
-        status: true
+        status: true,
+        categoryId: '',
+        feature: false
       });
     }
     setOpenDialog(true);
@@ -131,29 +138,29 @@ const AccessoryManagement = () => {
   };
 
   const handleEditClick = (accessory) => {
-    console.log('Edit accessory data:', accessory); // Thêm log để kiểm tra
+    console.log('Edit accessory data:', accessory); // Log để kiểm tra dữ liệu
     setEditingBasket(accessory);
     setNewBasket({
-      name: accessory.name,
-      note: accessory.note,
-      price: accessory.price,
-      description: accessory.description,
-      status: accessory.status,
-      image: null
+      name: accessory.name || '',
+      note: accessory.note || '',
+      price: accessory.price || 0,
+      description: accessory.description || '',
+      status: accessory.status ?? true,
+      image: null,
+      categoryId: accessory.categoryId || '', // Đảm bảo có giá trị mặc định
+      feature: accessory.feature ?? false
     });
-    // Kiểm tra và set URL ảnh đúng
-    const imageUrl = accessory.image || accessory.imageUrl || accessory.imageURL;
-    console.log('Setting image preview:', imageUrl); // Thêm log để kiểm tra
-    setImagePreview(imageUrl);
+    setImagePreview(accessory.image);
     setOpenDialog(true);
   };
 
   const handleAddBasket = async () => {
     try {
-      if (!newBasket.name || !newBasket.image) {
+      // Validate required fields
+      if (!newBasket.name || !newBasket.image || !newBasket.categoryId) {
         setSnackbar({
           open: true,
-          message: 'Name and Image are required',
+          message: 'Name, Image and Category are required',
           severity: 'error'
         });
         return;
@@ -161,21 +168,32 @@ const AccessoryManagement = () => {
 
       const formData = new FormData();
       
+      // Append all fields according to API requirements
       formData.append('Name', String(newBasket.name).trim());
       formData.append('Note', String(newBasket.note || '').trim());
-      formData.append('Price', newBasket.price ? Math.max(0, Number(newBasket.price)).toString() : '0');
+      formData.append('Price', String(Math.max(0, Number(newBasket.price || 0))));
+      formData.append('CategoryId', String(newBasket.categoryId));
       formData.append('Description', String(newBasket.description || '').trim());
-      formData.append('Status', Boolean(newBasket.status).toString());
-      
+      formData.append('Status', String(Boolean(newBasket.status)));
+      formData.append('Feature', String(Boolean(newBasket.feature)));
+
+      // Handle image
       if (newBasket.image instanceof File) {
         formData.append('Image', newBasket.image);
       } else {
-        throw new Error('Invalid image file');
+        formData.append('Image', '');
       }
 
-      console.log('Request Details:', {
-        url: 'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/accessory/CreateAccessory',
-        formData: Object.fromEntries(formData.entries())
+      // Log request data for debugging
+      console.log('Creating accessory with data:', {
+        Name: newBasket.name,
+        Note: newBasket.note,
+        Price: newBasket.price,
+        CategoryId: newBasket.categoryId,
+        Description: newBasket.description,
+        Status: newBasket.status,
+        Feature: newBasket.feature,
+        hasImage: newBasket.image instanceof File
       });
 
       const response = await axios.post(
@@ -205,7 +223,9 @@ const AccessoryManagement = () => {
           price: 0,
           description: '',
           image: null,
-          status: true
+          status: true,
+          categoryId: '',
+          feature: false
         });
         setImagePreview(null);
         await fetchAccessories();
@@ -249,6 +269,7 @@ const AccessoryManagement = () => {
       formData.append('Price', newBasket.price ? Math.max(0, Number(newBasket.price)).toString() : '0');
       formData.append('Description', String(newBasket.description || '').trim());
       formData.append('Status', Boolean(newBasket.status).toString());
+      formData.append('Feature', Boolean(newBasket.feature).toString());
       
       // Log trước khi append image
       console.log('Image to upload:', newBasket.image);
@@ -294,7 +315,9 @@ const AccessoryManagement = () => {
           price: 0,
           description: '',
           image: null,
-          status: true
+          status: true,
+          categoryId: '',
+          feature: false
         });
         setImagePreview(null);
         await fetchAccessories();
@@ -335,13 +358,13 @@ const AccessoryManagement = () => {
 
       if (response && response.data) {
         if (response.data.resultStatus === "Success" || response.status === 200) {
-          setSnackbar({
-            open: true,
+        setSnackbar({
+          open: true,
             message: 'Accessory deleted successfully!',
-            severity: 'success'
-          });
+          severity: 'success'
+        });
           await fetchAccessories();
-        } else {
+      } else {
           throw new Error(response.data.messages?.[0] || 'Failed to delete accessory');
         }
       } else {
@@ -404,9 +427,11 @@ const AccessoryManagement = () => {
             <TableRow>
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
+              <TableCell>Category</TableCell>
               <TableCell>Note</TableCell>
               <TableCell>Price</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>Featured</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
@@ -424,9 +449,18 @@ const AccessoryManagement = () => {
                   )}
                 </TableCell>
                 <TableCell>{accessory.name}</TableCell>
+                <TableCell>{accessory.categoryName}</TableCell>
+
                 <TableCell>{accessory.note}</TableCell>
                 <TableCell>{accessory.price ? accessory.price.toLocaleString() + ' VND' : 'N/A'}</TableCell>
                 <TableCell>{accessory.description}</TableCell>
+                <TableCell>
+                  <Chip 
+                    label={accessory.feature ? 'Yes' : 'No'}
+                    color={accessory.feature ? 'success' : 'default'}
+                    size="small"
+                  />
+                </TableCell>
                 <TableCell>
                   <Chip 
                     label={accessory.status ? 'Active' : 'Inactive'}
@@ -478,7 +512,9 @@ const AccessoryManagement = () => {
             price: 0,
             description: '',
             image: null,
-            status: true
+            status: true,
+            categoryId: '',
+            feature: false
           });
         }}
         maxWidth="md"
@@ -504,6 +540,25 @@ const AccessoryManagement = () => {
                   value={newBasket.name}
                   onChange={(e) => setNewBasket({ ...newBasket, name: e.target.value })}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth required>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={newBasket.categoryId || ''}
+                    onChange={(e) => setNewBasket({ ...newBasket, categoryId: e.target.value })}
+                    label="Category"
+                  >
+                    <MenuItem value="">
+                      <em>Select a category</em>
+                    </MenuItem>
+                    {categories.map((category) => (
+                      <MenuItem key={category.categoryId} value={category.categoryId}>
+                        {category.categoryName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={12}>
                 <TextField
@@ -536,7 +591,7 @@ const AccessoryManagement = () => {
                   onChange={(e) => setNewBasket({ ...newBasket, description: e.target.value })}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid item xs={12} sx={{ display: 'flex', gap: 2 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -546,19 +601,28 @@ const AccessoryManagement = () => {
                   }
                   label="Active Status"
                 />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={newBasket.feature}
+                      onChange={(e) => setNewBasket({ ...newBasket, feature: e.target.checked })}
+                    />
+                  }
+                  label="Featured"
+                />
               </Grid>
               <Grid item xs={12}>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
                   style={{ display: 'none' }}
                   id="image-upload"
-                />
+                  />
                 <label htmlFor="image-upload">
                   <Button variant="contained" component="span">
                     Choose Image
-                  </Button>
+                </Button>
                 </label>
                 
                 {(imagePreview || editingBasket?.image) && (
@@ -570,7 +634,7 @@ const AccessoryManagement = () => {
                           : (imagePreview || editingBasket?.image)
                       }
                       alt="Preview"
-                      style={{ 
+                      style={{
                         maxWidth: '200px', 
                         maxHeight: '200px',
                         objectFit: 'contain',
@@ -595,7 +659,9 @@ const AccessoryManagement = () => {
                 price: 0,
                 description: '',
                 image: null,
-                status: true
+                status: true,
+                categoryId: '',
+                feature: false
               });
             }}
             color="error"
@@ -718,6 +784,10 @@ const AccessoryManagement = () => {
                     <Table>
                       <TableBody>
                         <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Category</TableCell>
+                          <TableCell>{viewDetail.basket.categoryName || 'N/A'}</TableCell>
+                        </TableRow>
+                        <TableRow>
                           <TableCell sx={{ fontWeight: 'bold', width: '40%' }}>Note</TableCell>
                           <TableCell>{viewDetail.basket.note || 'N/A'}</TableCell>
                         </TableRow>
@@ -727,6 +797,16 @@ const AccessoryManagement = () => {
                             <Chip 
                               label={viewDetail.basket.status ? 'Active' : 'Inactive'}
                               color={viewDetail.basket.status ? 'success' : 'error'}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Featured</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={viewDetail.basket.feature ? 'Yes' : 'No'}
+                              color={viewDetail.basket.feature ? 'success' : 'default'}
                               size="small"
                             />
                           </TableCell>
