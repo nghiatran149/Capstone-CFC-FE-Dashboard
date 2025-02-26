@@ -25,10 +25,50 @@ const adminDashboard = {
     {
       id: 'category',
       title: 'Category Management',
-      type: 'item',
-      url: '/adminDashboard/category-management',
+      type: 'collapse',
       icon: IconCategory,
-      breadcrumbs: true
+      children: [
+        {
+          id: 'category',
+          title: 'Prouduct',
+          type: 'item',
+          url: '/adminDashboard/category-management',
+          icon: IconGift,
+          breadcrumbs: true
+        },
+        {
+          id: 'productcategory',
+          title: 'FlowerBasket',
+          type: 'item',
+          url: '/adminDashboard/flowerbasket-category-management',
+          icon: IconBasket,
+          breadcrumbs: true
+        },
+        {
+          id: 'flowercategory',
+          title: 'Flower',
+          type: 'item',
+          url: '/adminDashboard/flower-category-management',
+          icon: IconFlower,
+          breadcrumbs: true
+        },
+        {
+          id: 'stylecategory',
+          title: 'Style',
+          type: 'item',
+          url: '/adminDashboard/style-category-management',
+          icon: IconGiftCard,
+          breadcrumbs: true
+        },
+        {
+          id: 'accessorycategory',
+          title: 'Accessory',
+          type: 'item',
+          url: '/adminDashboard/accessory-category-management',
+          icon: IconDiamond,
+          breadcrumbs: true
+        }
+      ]
     },
     {
       id: 'product',
@@ -61,24 +101,24 @@ const adminDashboard = {
       icon: IconSettings,
       children: [
         {
-          id: 'flower',
-          title: 'Flower Management',
-          type: 'item',
-          url: '/adminDashboard/flower-management',
-          icon: IconFlower,
-          breadcrumbs: true
-        },
-        {
           id: 'flowerBasket',
-          title: 'Basket Management',
+          title: 'FlowerBasket',
           type: 'item',
           url: '/adminDashboard/flowerbasket-management',
           icon: IconBasket,
           breadcrumbs: true
         },
         {
+          id: 'flower',
+          title: 'Flower',
+          type: 'item',
+          url: '/adminDashboard/flower-management',
+          icon: IconFlower,
+          breadcrumbs: true
+        },
+        {
           id: 'style',
-          title: 'Style Management',
+          title: 'Style',
           type: 'item',
           url: '/adminDashboard/style-management',
           icon: IconGiftCard,
@@ -86,7 +126,7 @@ const adminDashboard = {
         },
         {
           id: 'accessory',
-          title: 'Accessory Management',
+          title: 'Accessory',
           type: 'item',
           url: '/adminDashboard/accessory-management',
           icon: IconDiamond,
