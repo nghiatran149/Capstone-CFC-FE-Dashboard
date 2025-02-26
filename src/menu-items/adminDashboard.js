@@ -1,11 +1,4 @@
-import { IconDashboard, IconUsersGroup, IconDeviceDesktopCog, IconFlower, IconGiftCard, IconCreditCardRefund, IconCategory, IconGift, IconMenuOrder, IconBasket } from '@tabler/icons-react';
-
-const icons = {
-  IconDashboard,
-  IconDeviceDesktopCog,
-  IconGiftCard,
-  IconCreditCardRefund
-};
+import { IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -46,22 +39,6 @@ const adminDashboard = {
       breadcrumbs: true
     },
     {
-      id: 'flower',
-      title: 'Flower Management',
-      type: 'item',
-      url: '/adminDashboard/flower-management',
-      icon: IconFlower,
-      breadcrumbs: true
-    },
-    {
-      id: 'flowerBasket',
-      title: 'Basket Management',
-      type: 'item',
-      url: '/adminDashboard/flowerbasket-management',
-      icon: IconBasket,
-      breadcrumbs: true
-    },
-    {
       id: 'promotion',
       title: 'Promotion Management',
       type: 'item',
@@ -77,7 +54,46 @@ const adminDashboard = {
       icon: IconCreditCardRefund,
       breadcrumbs: true
     },
-
+    {
+      id: 'custom',
+      title: 'Custom Management',
+      type: 'collapse',
+      icon: IconSettings,
+      children: [
+        {
+          id: 'flower',
+          title: 'Flower Management',
+          type: 'item',
+          url: '/adminDashboard/flower-management',
+          icon: IconFlower,
+          breadcrumbs: true
+        },
+        {
+          id: 'flowerBasket',
+          title: 'Basket Management',
+          type: 'item',
+          url: '/adminDashboard/flowerbasket-management',
+          icon: IconBasket,
+          breadcrumbs: true
+        },
+        {
+          id: 'style',
+          title: 'Style Management',
+          type: 'item',
+          url: '/adminDashboard/style-management',
+          icon: IconGiftCard,
+          breadcrumbs: true
+        },
+        {
+          id: 'accessory',
+          title: 'Accessory Management',
+          type: 'item',
+          url: '/adminDashboard/accessory-management',
+          icon: IconDiamond,
+          breadcrumbs: true
+        }
+      ]
+    }
   ]
 };
 
