@@ -31,7 +31,6 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
     if (!storeId) return;
 
     try {
-      // Fetch cả revenue và loss
       const [revenueResponse, lossResponse] = await Promise.all([
         axios.get(
           `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenueByStoreId?storeId=${storeId}`
@@ -44,8 +43,7 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
       if (revenueResponse.status === 200 && revenueResponse.data.data) {
         const revenueData = revenueResponse.data.data;
         const lossData = lossResponse.data.data;
-        
-        // Lấy dữ liệu Revenue từ API
+
         const revenueArray = [
           revenueData.january || 0,
           revenueData.february || 0,
@@ -61,7 +59,6 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
           revenueData.december || 0
         ];
 
-        // Lấy dữ liệu Loss từ API
         const lossArray = [
           lossData.january || 0,
           lossData.february || 0,
@@ -77,10 +74,8 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
           lossData.december || 0
         ];
 
-        // Tính Profit = Revenue - Loss
         const profitArray = revenueArray.map((revenue, index) => revenue - lossArray[index]);
 
-        // Tính tổng
         const totalRevenue = revenueArray.reduce((sum, val) => sum + val, 0);
         const totalLoss = lossArray.reduce((sum, val) => sum + val, 0);
         const totalProfit = totalRevenue - totalLoss;

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -18,7 +19,7 @@ import { gridSpacing } from 'store/constant';
 // chart data
 import baseChartData from './chart-data/total-growth-bar-chart';
 
-const TotalRevenueOfChain = ({ isLoading }) => {
+const TotalRevenueOfStore = ({ isLoading }) => {
   const theme = useTheme();
   const [chartData, setChartData] = useState(baseChartData);
   const [totals, setTotals] = useState({
@@ -26,15 +27,35 @@ const TotalRevenueOfChain = ({ isLoading }) => {
     loss: 0,
     profit: 0
   });
+  const [storeId, setStoreId] = useState('');
+
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const decodedToken = jwtDecode(token);
+      const storeIdFromToken = decodedToken.StoreId;
+      setStoreId(storeIdFromToken);
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }, []);
 
   const fetchData = async () => {
+    if (!storeId) return;
+
     try {
       const [revenueResponse, lossResponse] = await Promise.all([
         axios.get(
-          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenue`
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenueByStoreId?storeId=${storeId}`
         ),
         axios.get(
-          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetLoss`
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetLossByStoreId?storeId=${storeId}`
         )
       ]);
       
@@ -112,12 +133,12 @@ const TotalRevenueOfChain = ({ isLoading }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [storeId]);
 
   return (
     <>
       {isLoading ? (
-        <SkeletonTotalRevenueOfChain />
+        <SkeletonTotalRevenueOfStore />
       ) : (
         <MainCard>
           <Grid container spacing={gridSpacing}>
@@ -171,12 +192,12 @@ const TotalRevenueOfChain = ({ isLoading }) => {
   );
 };
 
-TotalRevenueOfChain.propTypes = {
+TotalRevenueOfStore.propTypes = {
   isLoading: PropTypes.bool
 };
 
-TotalRevenueOfChain.defaultProps = {
+TotalRevenueOfStore.defaultProps = {
   isLoading: false
 };
 
-export default TotalRevenueOfChain;
+export default TotalRevenueOfStore;
