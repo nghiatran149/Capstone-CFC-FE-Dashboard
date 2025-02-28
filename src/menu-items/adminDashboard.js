@@ -7,6 +7,14 @@ const adminDashboard = {
   type: 'group',
   children: [
     {
+      id: 'chain',
+      title: 'Chain Overview',
+      type: 'item',
+      url: '/adminDashboard/chain-overview',
+      icon: IconDashboard,
+      breadcrumbs: true
+    },
+    {
       id: 'store',
       title: 'Store Overview',
       type: 'item',
@@ -30,7 +38,7 @@ const adminDashboard = {
       children: [
         {
           id: 'category',
-          title: 'Prouduct',
+          title: 'Product',
           type: 'item',
           url: '/adminDashboard/category-management',
           icon: IconGift,

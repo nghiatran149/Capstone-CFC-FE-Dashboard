@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -18,7 +19,7 @@ import { gridSpacing } from 'store/constant';
 // chart data
 import baseChartData from './chart-data/total-growth-bar-chart';
 
-const TotalGrowthBarChart = ({ isLoading, storeId }) => {
+const TotalRevenueOfStore = ({ isLoading }) => {
   const theme = useTheme();
   const [chartData, setChartData] = useState(baseChartData);
   const [totals, setTotals] = useState({
@@ -26,6 +27,24 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
     loss: 0,
     profit: 0
   });
+  const [storeId, setStoreId] = useState('');
+
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const decodedToken = jwtDecode(token);
+      const storeIdFromToken = decodedToken.StoreId;
+      setStoreId(storeIdFromToken);
+    } catch (error) {
+      console.error('Error decoding token:', error);
+    }
+  }, []);
 
   const fetchData = async () => {
     if (!storeId) return;
@@ -119,7 +138,7 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
   return (
     <>
       {isLoading ? (
-        <SkeletonTotalGrowthBarChart />
+        <SkeletonTotalRevenueOfStore />
       ) : (
         <MainCard>
           <Grid container spacing={gridSpacing}>
@@ -173,14 +192,12 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
   );
 };
 
-TotalGrowthBarChart.propTypes = {
-  isLoading: PropTypes.bool,
-  storeId: PropTypes.string
+TotalRevenueOfStore.propTypes = {
+  isLoading: PropTypes.bool
 };
 
-TotalGrowthBarChart.defaultProps = {
-  isLoading: false,
-  storeId: ''
+TotalRevenueOfStore.defaultProps = {
+  isLoading: false
 };
 
-export default TotalGrowthBarChart;
+export default TotalRevenueOfStore;
