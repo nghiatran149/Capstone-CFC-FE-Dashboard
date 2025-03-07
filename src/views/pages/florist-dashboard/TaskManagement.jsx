@@ -116,7 +116,7 @@ const TaskManagement = () => {
                     }
                 }
             );
-            
+
             // Refresh the tasks list
             const updatedTasks = tasks.map(task =>
                 task.orderId === orderId ? { ...task, status: newStatus } : task
@@ -225,6 +225,8 @@ const TaskManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.flowerBasketResponse.flowerBasketId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Name</Typography>
                                             <Typography>{customProduct.flowerBasketResponse.flowerBasketName}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -266,6 +268,8 @@ const TaskManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.styleResponse.styleId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Style Name</Typography>
                                             <Typography>{customProduct.styleResponse.name}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -305,6 +309,8 @@ const TaskManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.accessoryResponse.accessoryId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Name</Typography>
                                             <Typography>{customProduct.accessoryResponse.name}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -337,6 +343,7 @@ const TaskManagement = () => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>ID</TableCell>
                                         <TableCell>Image</TableCell>
                                         <TableCell>Flower Name</TableCell>
                                         <TableCell>Color</TableCell>
@@ -349,6 +356,7 @@ const TaskManagement = () => {
                                 <TableBody>
                                     {customProduct.flowerCustomResponses.map((flower) => (
                                         <TableRow key={flower.flowerCustomId} hover>
+                                             <TableCell>{flower.flowerResponse.flowerId}</TableCell>
                                             <TableCell>
                                                 <Avatar
                                                     src={flower.flowerResponse.image}
@@ -359,7 +367,7 @@ const TaskManagement = () => {
                                             </TableCell>
                                             <TableCell>{flower.flowerResponse.flowerName}</TableCell>
                                             <TableCell>
-                                                <Chip 
+                                                <Chip
                                                     label={flower.flowerResponse.color}
                                                     size="small"
                                                     sx={{ borderRadius: 1 }}
@@ -396,6 +404,7 @@ const TaskManagement = () => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>Product ID</TableCell>
                                         <TableCell>Image</TableCell>
                                         <TableCell>Product Name</TableCell>
                                         <TableCell align="right">Quantity</TableCell>
@@ -407,6 +416,7 @@ const TaskManagement = () => {
                                 <TableBody>
                                     {order.orderDetails.map((detail) => (
                                         <TableRow key={detail.orderDetailId} hover>
+                                            <TableCell>{detail.productId}</TableCell>
                                             <TableCell>
                                                 <Avatar
                                                     src={detail.productImage}
@@ -439,12 +449,61 @@ const TaskManagement = () => {
         <Box sx={{ p: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h3">Florist Task Management</Typography>
-                <Select value={filteredStatus} onChange={handleFilterChange} displayEmpty>
-                    <MenuItem value="">All Statuses</MenuItem>
-                    <MenuItem value="Order Successfully">Completed</MenuItem>
-                    <MenuItem value="Failed">Failed</MenuItem>
-                    <MenuItem value="Arranging & Packing">In Progress</MenuItem>
-                </Select>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Chip
+                        label="All"
+                        color={filteredStatus === "" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("")}
+                        sx={{
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="2️⃣ Arranging & Packing"
+                        color={filteredStatus === "Arranging & Packing" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Arranging & Packing")}
+                        sx={{
+                            bgcolor: filteredStatus === "Arranging & Packing" ? undefined : '#fbcfe8',
+                            color: filteredStatus === "Arranging & Packing" ? undefined : '#9d174d',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="4️⃣ Awaiting Design Approval"
+                        color={filteredStatus === "Awaiting Design Approval" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Awaiting Design Approval")}
+                        sx={{
+                            bgcolor: filteredStatus === "Awaiting Design Approval" ? undefined : '#fef9c3',
+                            color: filteredStatus === "Awaiting Design Approval" ? undefined : '#854d0e',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="5️⃣ Flower Completed"
+                        color={filteredStatus === "Flower Completed" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Flower Completed")}
+                        sx={{
+                            bgcolor: filteredStatus === "Flower Completed" ? undefined : '#fed7aa',
+                            color: filteredStatus === "Flower Completed" ? undefined : '#9a3412',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="6️⃣ Received"
+                        color={filteredStatus === "Received" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Received")}
+                        sx={{
+                            bgcolor: filteredStatus === "Received" ? undefined : '#bfdbfe',
+                            color: filteredStatus === "Received" ? undefined : '#1e40af',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                </Box>
             </Box>
 
             {loading ? (
@@ -456,7 +515,7 @@ const TaskManagement = () => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                            <TableCell>Order ID</TableCell>
+                                <TableCell>Order ID</TableCell>
                                 <TableCell>Details</TableCell>
                                 <TableCell>Order Price</TableCell>
                                 <TableCell>Payment</TableCell>
@@ -471,20 +530,30 @@ const TaskManagement = () => {
                                 <TableRow key={task.orderId}>
                                     <TableCell>{task.orderId}</TableCell>
                                     <TableCell>
-                                        {task.productCustomResponse ? 
+                                        {task.productCustomResponse ?
                                             task.productCustomResponse.productName :
                                             task.orderDetails.map(detail => detail.productName).join(", ")}
                                     </TableCell>
                                     <TableCell>{formatPrice(task.orderPrice)}</TableCell>
-                                    <TableCell>{task.transfer? "100% transfer" : "50% deposit"}</TableCell>
+                                    <TableCell>{task.transfer ? "100% transfer" : "50% deposit"}</TableCell>
                                     <TableCell>{task.createAt}</TableCell>
                                     <TableCell>{formatDateTime(task.deliveryDateTime)}</TableCell>
                                     <TableCell>
                                         <Stack direction="row" spacing={1}>
-                                            <Chip 
+                                            <Chip
                                                 label={task.status}
-                                                color={task.status === 'Flower Completed' ? 'success' : 
-                                                       task.status === 'Delivered & Received' ? 'info' : 'warning'}
+                                                sx={{
+                                                    bgcolor: task.status === "Arranging & Packing" ? '#fbcfe8' :
+                                                        task.status === "Awaiting Design Approval" ? '#fef9c3' :
+                                                            task.status === "Flower Completed" ? '#fed7aa' :
+                                                                task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                    color: task.status === "Arranging & Packing" ? '#9d174d' :
+                                                        task.status === "Awaiting Design Approval" ? '#854d0e' :
+                                                            task.status === "Flower Completed" ? '#9a3412' :
+                                                                task.status === "Received" ? '#1e40af' : '#374151',
+                                                    fontWeight: 500,
+                                                    '& .MuiChip-label': { px: 2 }
+                                                }}
                                             />
                                             <Select
                                                 size="small"
@@ -494,9 +563,10 @@ const TaskManagement = () => {
                                                 displayEmpty
                                             >
                                                 <MenuItem value="" disabled>Change Status</MenuItem>
+                                                <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
                                                 <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
                                                 <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                <MenuItem value="Delivered & Received">6️⃣ Delivered & Received</MenuItem>
+                                                <MenuItem value="Received">6️⃣Received</MenuItem>
                                             </Select>
                                         </Stack>
                                     </TableCell>
@@ -513,9 +583,9 @@ const TaskManagement = () => {
             )}
 
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
-                <DialogTitle sx={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 'bold', 
+                <DialogTitle sx={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
                     textAlign: 'center',
                     background: 'linear-gradient(135deg, #f6f8fd 0%, #ffffff 100%)',
                     borderRadius: '12px 12px 0 0',
@@ -542,17 +612,17 @@ const TaskManagement = () => {
                                             </Box>
                                             <Box sx={{ textAlign: 'right' }}>
                                                 <Stack spacing={1} alignItems="flex-end">
-                                                    <Chip 
+                                                    <Chip
                                                         label={detailedOrder.status}
-                                                        color={detailedOrder.status === 'Flower Completed' ? 'success' : 
-                                                               detailedOrder.status === 'Delivered & Received' ? 'info' : 'warning'}
+                                                        color={detailedOrder.status === 'Flower Completed' ? 'success' :
+                                                            detailedOrder.status === 'Received' ? 'info' : 'warning'}
                                                         sx={{ mb: 1 }}
                                                     />
                                                     <Select
                                                         size="small"
                                                         value=""
                                                         onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
-                                                        sx={{ 
+                                                        sx={{
                                                             minWidth: 200,
                                                             mb: 1,
                                                             '& .MuiSelect-select': { py: 1 }
@@ -562,7 +632,7 @@ const TaskManagement = () => {
                                                         <MenuItem value="" disabled>Change Status</MenuItem>
                                                         <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
                                                         <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                        <MenuItem value="Delivered & Received">6️⃣ Delivered & Received</MenuItem>
+                                                        <MenuItem value="Received">6️⃣ Received</MenuItem>
                                                     </Select>
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
@@ -570,7 +640,7 @@ const TaskManagement = () => {
                                                 </Stack>
                                             </Box>
                                         </Box>
-                                        
+
                                         <Grid container spacing={4}>
                                             {/* Order Details Column */}
                                             <Grid item xs={12} md={6}>
@@ -693,7 +763,7 @@ const TaskManagement = () => {
                                         <Typography variant="h6" className="section-title">
                                             {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
                                         </Typography>
-                                        {detailedOrder.productCustomResponse 
+                                        {detailedOrder.productCustomResponse
                                             ? renderCustomOrderDetails(detailedOrder)
                                             : renderRegularOrderDetails(detailedOrder)
                                         }
@@ -704,11 +774,11 @@ const TaskManagement = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
-                    <Button 
+                    <Button
                         onClick={handleCloseDialog}
-                        variant="contained" 
+                        variant="contained"
                         color="secondary"
-                        sx={{ 
+                        sx={{
                             borderRadius: 2,
                             px: 4,
                             py: 1,

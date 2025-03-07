@@ -33,15 +33,37 @@ import { styled } from '@mui/material/styles';
 const getStatusColor = (status) => {
     switch (status) {
         case 'Order Successfully':
-            return 'green';
+            return '#d1fae5'; // Xanh nhạt (bg-green-200)
         case 'Arranging & Packing':
-            return '#FF69B4';
-        case 'Failed':
-            return 'red';
-        case 'Processing':
-            return '#FFA500';
+            return '#fbcfe8'; // Hồng nhạt (bg-pink-200)
+        case 'Awaiting Design Approval':
+            return '#fef9c3'; // Vàng nhạt (bg-yellow-200)
+        case 'Flower Completed':
+            return '#fed7aa'; // Cam nhạt (bg-orange-200)
+        case 'Received':
+            return '#bfdbfe'; // Xanh dương nhạt (bg-blue-200)
+
         default:
-            return 'black';
+            return '#e5e7eb'; // Xám nhạt (bg-gray-200)
+    }
+};
+
+const getStatusColorText = (status) => {
+    switch (status) {
+        case 'Order Successfully':
+            return 'text-green-800'; // Xanh đậm
+        case 'Arranging & Packing':
+            return 'text-pink-800'; // Hồng đậm
+        case 'Awaiting Design Approval':
+            return 'text-yellow-800'; // Vàng đậm
+        case 'Flower Completed':
+            return 'text-orange-800'; // Cam đậm
+        case 'Received':
+            return 'text-blue-800'; // Xanh dương đậm
+        case 'Processing':
+            return 'text-orange-900'; // Cam đậm hơn
+        default:
+            return 'text-gray-800'; // Xám đậm
     }
 };
 
@@ -318,6 +340,8 @@ const OrderManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.flowerBasketResponse.flowerBasketId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Name</Typography>
                                             <Typography>{customProduct.flowerBasketResponse.flowerBasketName}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -361,6 +385,8 @@ const OrderManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.styleResponse.styleId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Style Name</Typography>
                                             <Typography>{customProduct.styleResponse.name}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -402,6 +428,8 @@ const OrderManagement = () => {
                                 <Grid container spacing={2}>
                                     <Grid item xs={6}>
                                         <Stack spacing={1}>
+                                            <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                                            <Typography>{customProduct.accessoryResponse.accessoryId}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Name</Typography>
                                             <Typography>{customProduct.accessoryResponse.name}</Typography>
                                             <Typography variant="subtitle2" color="textSecondary">Category</Typography>
@@ -434,6 +462,7 @@ const OrderManagement = () => {
                             <Table size="small">
                                 <TableHead>
                                     <TableRow>
+                                        <TableCell>ID</TableCell>
                                         <TableCell>Image</TableCell>
                                         <TableCell>Flower Name</TableCell>
                                         <TableCell>Color</TableCell>
@@ -446,6 +475,8 @@ const OrderManagement = () => {
                                 <TableBody>
                                     {customProduct.flowerCustomResponses.map((flower) => (
                                         <TableRow key={flower.flowerCustomId} hover>
+                                            <TableCell>{flower.flowerResponse.flowerId}</TableCell>
+
                                             <TableCell>
                                                 <Avatar
                                                     src={flower.flowerResponse.image}
@@ -523,13 +554,73 @@ const OrderManagement = () => {
     return (
         <Box sx={{ p: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <h2>Order Management</h2>
-                <Select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                    <MenuItem value="All">All</MenuItem>
-                    <MenuItem value="Order Successfully">Completed</MenuItem>
-                    <MenuItem value="Failed">Failed</MenuItem>
-                    <MenuItem value="Processing">Processing</MenuItem>
-                </Select>
+                <Typography variant="h3">Order Management</Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Chip
+                        label="All"
+                        color={filterStatus === "All" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("All")}
+                        sx={{
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="1️⃣ Order Successfully"
+                        color={filterStatus === "Order Successfully" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Order Successfully")}
+                        sx={{
+                            bgcolor: filterStatus === "Order Successfully" ? undefined : '#d1fae5',
+                            color: filterStatus === "Order Successfully" ? undefined : '#065f46',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="2️⃣ Arranging & Packing"
+                        color={filterStatus === "Arranging & Packing" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Arranging & Packing")}
+                        sx={{
+                            bgcolor: filterStatus === "Arranging & Packing" ? undefined : '#fbcfe8',
+                            color: filterStatus === "Arranging & Packing" ? undefined : '#9d174d',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="3️⃣ Awaiting Design Approval"
+                        color={filterStatus === "Awaiting Design Approval" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Awaiting Design Approval")}
+                        sx={{
+                            bgcolor: filterStatus === "Awaiting Design Approval" ? undefined : '#fef9c3',
+                            color: filterStatus === "Awaiting Design Approval" ? undefined : '#854d0e',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="4️⃣ Flower Completed"
+                        color={filterStatus === "Flower Completed" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Flower Completed")}
+                        sx={{
+                            bgcolor: filterStatus === "Flower Completed" ? undefined : '#fed7aa',
+                            color: filterStatus === "Flower Completed" ? undefined : '#9a3412',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="5️⃣ Received"
+                        color={filterStatus === "Received" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Received")}
+                        sx={{
+                            bgcolor: filterStatus === "Received" ? undefined : '#bfdbfe',
+                            color: filterStatus === "Received" ? undefined : '#1e40af',
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                </Box>
             </Box>
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
@@ -562,10 +653,19 @@ const OrderManagement = () => {
                                     <TableCell>
                                         <Chip
                                             label={order.status}
-                                            style={{
-                                                backgroundColor: getStatusColor(order.status),
-                                                color: 'white',
-                                                fontWeight: "bold"
+                                            sx={{
+                                                bgcolor: order.status === "Order Successfully" ? '#d1fae5' :
+                                                    order.status === "Arranging & Packing" ? '#fbcfe8' :
+                                                        order.status === "Awaiting Design Approval" ? '#fef9c3' :
+                                                            order.status === "Flower Completed" ? '#fed7aa' :
+                                                                order.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                color: order.status === "Order Successfully" ? '#065f46' :
+                                                    order.status === "Arranging & Packing" ? '#9d174d' :
+                                                        order.status === "Awaiting Design Approval" ? '#854d0e' :
+                                                            order.status === "Flower Completed" ? '#9a3412' :
+                                                                order.status === "Received" ? '#1e40af' : '#374151',
+                                                fontWeight: 500,
+                                                '& .MuiChip-label': { px: 2 }
                                             }}
                                         />
                                     </TableCell>
