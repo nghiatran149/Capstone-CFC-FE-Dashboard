@@ -168,7 +168,7 @@ const ProductManagement = () => {
       formData.append('size', newProduct.size);
       formData.append('discount', newProduct.discount.toString());
       formData.append('description', newProduct.description);
-      formData.append('featured', 'true');
+      formData.append('featured', 'false');
       formData.append('categoryId', newProduct.categoryId);
       formData.append('status', 'true');
 
