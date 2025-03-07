@@ -174,7 +174,7 @@ const OrderManagement = () => {
 
     const handleAssignStaff = async () => {
         if (!selectedStaff || !detailedOrder) return;
-        
+
         setUpdatingStaff(true);
         try {
             const token = localStorage.getItem('accessToken');
@@ -187,7 +187,7 @@ const OrderManagement = () => {
                     }
                 }
             );
-            
+
             // Refresh order details
             const response = await axios.get(
                 `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${detailedOrder.orderId}`,
@@ -199,7 +199,7 @@ const OrderManagement = () => {
             );
             setDetailedOrder(response.data.data);
             setSelectedStaff('');
-            
+
             // Refresh orders list
             fetchOrders();
         } catch (error) {
@@ -222,7 +222,7 @@ const OrderManagement = () => {
             );
             setDetailedOrder(response.data.data);
             setSelectedOrder(order);
-            
+
             // Fetch staff list if no staff is assigned
             if (!response.data.data.staffId) {
                 fetchStaffList(order.orderId);
@@ -456,7 +456,7 @@ const OrderManagement = () => {
                                             </TableCell>
                                             <TableCell>{flower.flowerResponse.flowerName}</TableCell>
                                             <TableCell>
-                                                <Chip 
+                                                <Chip
                                                     label={flower.flowerResponse.color}
                                                     size="small"
                                                     sx={{ borderRadius: 1 }}
@@ -487,7 +487,7 @@ const OrderManagement = () => {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                             <TableCell>Product ID</TableCell>
+                            <TableCell>Product ID</TableCell>
                             <TableCell>Product Name</TableCell>
                             <TableCell>Image</TableCell>
                             <TableCell align="right">Quantity</TableCell>
@@ -502,9 +502,9 @@ const OrderManagement = () => {
                                 <TableCell>{detail.productId}</TableCell>
                                 <TableCell>{detail.productName}</TableCell>
                                 <TableCell>
-                                    <img 
-                                        src={detail.productImage} 
-                                        alt={detail.productName} 
+                                    <img
+                                        src={detail.productImage}
+                                        alt={detail.productName}
                                         style={{ width: '50px', height: '50px', objectFit: 'cover' }}
                                     />
                                 </TableCell>
@@ -554,13 +554,20 @@ const OrderManagement = () => {
                             {filteredOrders.map((order) => (
                                 <TableRow key={order.orderId}>
                                     <TableCell>{order.orderId}</TableCell>
-                                    <TableCell>{order.productCustomResponse ?[order.productCustomResponse.productName] :  order.orderDetails.map(detail => detail.productName)}</TableCell>
+                                    <TableCell>{order.productCustomResponse ? [order.productCustomResponse.productName] : order.orderDetails.map(detail => detail.productName)}</TableCell>
                                     <TableCell>{formatPrice(order.orderPrice)}</TableCell>
                                     <TableCell>{order.transfer ? "100% transfer" : "50% deposit"}</TableCell>
                                     <TableCell>{order.createAt}</TableCell>
                                     <TableCell>{formatDateTime(order.deliveryDateTime)}</TableCell>
-                                    <TableCell style={{ color: getStatusColor(order.status) }}>
-                                        {order.status}
+                                    <TableCell>
+                                        <Chip
+                                            label={order.status}
+                                            style={{
+                                                backgroundColor: getStatusColor(order.status),
+                                                color: 'white',
+                                                fontWeight: "bold"
+                                            }}
+                                        />
                                     </TableCell>
                                     <TableCell>
                                         <Button variant="outlined" onClick={() => handleViewDetails(order)}>
@@ -573,18 +580,18 @@ const OrderManagement = () => {
                     </Table>
                 </TableContainer>
             )}
-            <StyledDialog 
-                open={!!selectedOrder} 
+            <StyledDialog
+                open={!!selectedOrder}
                 onClose={() => {
                     setSelectedOrder(null);
                     setDetailedOrder(null);
-                }} 
-                maxWidth="lg" 
+                }}
+                maxWidth="lg"
                 fullWidth
             >
-                <DialogTitle sx={{ 
-                    fontSize: '1.5rem', 
-                    fontWeight: 'bold', 
+                <DialogTitle sx={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
                     textAlign: 'center',
                     background: 'linear-gradient(135deg, #f6f8fd 0%, #ffffff 100%)',
                     borderRadius: '12px 12px 0 0',
@@ -610,10 +617,10 @@ const OrderManagement = () => {
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ textAlign: 'right' }}>
-                                                <Chip 
+                                                <Chip
                                                     label={detailedOrder.status}
-                                                    color={detailedOrder.status === 'Order Successfully' ? 'success' : 
-                                                           detailedOrder.status === 'Failed' ? 'error' : 'warning'}
+                                                    color={detailedOrder.status === 'Order Successfully' ? 'success' :
+                                                        detailedOrder.status === 'Failed' ? 'error' : 'warning'}
                                                     sx={{ mb: 1 }}
                                                 />
                                                 <Typography variant="h5" color="primary">
@@ -621,7 +628,7 @@ const OrderManagement = () => {
                                                 </Typography>
                                             </Box>
                                         </Box>
-                                        
+
                                         <Grid container spacing={4}>
                                             {/* Order Details Column */}
                                             <Grid item xs={12} md={6}>
@@ -764,14 +771,57 @@ const OrderManagement = () => {
                                         </Typography>
                                     </OrderSection>
                                 </Grid>
-
+                                {/* Payment Notes */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">Payment Notes</Typography>
+                                        <Stack spacing={2}>
+                                            <InfoRow>
+                                                <Typography className="label">Payment ID</Typography>
+                                                <Typography className="value">{detailedOrder.paymentId}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Method</Typography>
+                                                <Typography className="value">
+                                                    <Chip
+                                                        label={detailedOrder.paymentMethod}
+                                                        color="info"
+                                                        size="small"
+                                                        sx={{ borderRadius: 1 }}
+                                                    />
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Price</Typography>
+                                                <Typography className="value" color="primary" fontWeight="500">
+                                                    {formatPrice(detailedOrder.paymentPrice)}
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Status</Typography>
+                                                <Typography className="value">
+                                                    <Chip
+                                                        label={detailedOrder.paymentStatus}
+                                                        color={detailedOrder.paymentStatus === 'Completed' ? 'success' : 'warning'}
+                                                        size="small"
+                                                        sx={{ borderRadius: 1 }}
+                                                    />
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Create At</Typography>
+                                                <Typography className="value">{formatDateTime(detailedOrder.paymentCreateAt)}</Typography>
+                                            </InfoRow>
+                                        </Stack>
+                                    </OrderSection>
+                                </Grid>
                                 {/* Product Details */}
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">
                                             {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
                                         </Typography>
-                                        {detailedOrder.productCustomResponse 
+                                        {detailedOrder.productCustomResponse
                                             ? renderCustomOrderDetails(detailedOrder)
                                             : renderRegularOrderDetails(detailedOrder)
                                         }
@@ -782,14 +832,14 @@ const OrderManagement = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
-                    <Button 
+                    <Button
                         onClick={() => {
                             setSelectedOrder(null);
                             setDetailedOrder(null);
-                        }} 
-                        variant="contained" 
+                        }}
+                        variant="contained"
                         color="secondary"
-                        sx={{ 
+                        sx={{
                             borderRadius: 2,
                             px: 4,
                             py: 1,

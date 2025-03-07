@@ -106,12 +106,27 @@ const TaskManagement = () => {
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             const token = localStorage.getItem('accessToken');
-            // Add API call to update status here when endpoint is available
-            setTasks(prevTasks =>
-                prevTasks.map(task =>
-                    task.orderId === orderId ? { ...task, status: newStatus } : task
-                )
+            const encodedStatus = encodeURIComponent(newStatus);
+            await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateStatusOrderByStaffId?orderId=${orderId}&Status=${encodedStatus}`,
+                null,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
             );
+            
+            // Refresh the tasks list
+            const updatedTasks = tasks.map(task =>
+                task.orderId === orderId ? { ...task, status: newStatus } : task
+            );
+            setTasks(updatedTasks);
+
+            // If the dialog is open and showing this order, update its status
+            if (detailedOrder && detailedOrder.orderId === orderId) {
+                setDetailedOrder(prev => ({ ...prev, status: newStatus }));
+            }
         } catch (error) {
             console.error('Error updating status:', error);
         }
@@ -441,10 +456,12 @@ const TaskManagement = () => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Order ID</TableCell>
-                                <TableCell>Product Details</TableCell>
+                            <TableCell>Order ID</TableCell>
+                                <TableCell>Details</TableCell>
                                 <TableCell>Order Price</TableCell>
-                                <TableCell>Delivery Date</TableCell>
+                                <TableCell>Payment</TableCell>
+                                <TableCell>Create Time</TableCell>
+                                <TableCell>RecipientTime</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
@@ -459,13 +476,29 @@ const TaskManagement = () => {
                                             task.orderDetails.map(detail => detail.productName).join(", ")}
                                     </TableCell>
                                     <TableCell>{formatPrice(task.orderPrice)}</TableCell>
+                                    <TableCell>{task.transfer? "100% transfer" : "50% deposit"}</TableCell>
+                                    <TableCell>{task.createAt}</TableCell>
                                     <TableCell>{formatDateTime(task.deliveryDateTime)}</TableCell>
                                     <TableCell>
-                                        <Chip 
-                                            label={task.status}
-                                            color={task.status === 'Order Successfully' ? 'success' : 
-                                                   task.status === 'Failed' ? 'error' : 'warning'}
-                                        />
+                                        <Stack direction="row" spacing={1}>
+                                            <Chip 
+                                                label={task.status}
+                                                color={task.status === 'Flower Completed' ? 'success' : 
+                                                       task.status === 'Delivered & Received' ? 'info' : 'warning'}
+                                            />
+                                            <Select
+                                                size="small"
+                                                value=""
+                                                onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
+                                                sx={{ minWidth: 150 }}
+                                                displayEmpty
+                                            >
+                                                <MenuItem value="" disabled>Change Status</MenuItem>
+                                                <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
+                                                <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                                                <MenuItem value="Delivered & Received">6️⃣ Delivered & Received</MenuItem>
+                                            </Select>
+                                        </Stack>
                                     </TableCell>
                                     <TableCell>
                                         <Button variant="outlined" onClick={() => handleOpenDialog(task)}>
@@ -508,15 +541,33 @@ const TaskManagement = () => {
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ textAlign: 'right' }}>
-                                                <Chip 
-                                                    label={detailedOrder.status}
-                                                    color={detailedOrder.status === 'Order Successfully' ? 'success' : 
-                                                           detailedOrder.status === 'Failed' ? 'error' : 'warning'}
-                                                    sx={{ mb: 1 }}
-                                                />
-                                                <Typography variant="h5" color="primary">
-                                                    {formatPrice(detailedOrder.orderPrice)}
-                                                </Typography>
+                                                <Stack spacing={1} alignItems="flex-end">
+                                                    <Chip 
+                                                        label={detailedOrder.status}
+                                                        color={detailedOrder.status === 'Flower Completed' ? 'success' : 
+                                                               detailedOrder.status === 'Delivered & Received' ? 'info' : 'warning'}
+                                                        sx={{ mb: 1 }}
+                                                    />
+                                                    <Select
+                                                        size="small"
+                                                        value=""
+                                                        onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
+                                                        sx={{ 
+                                                            minWidth: 200,
+                                                            mb: 1,
+                                                            '& .MuiSelect-select': { py: 1 }
+                                                        }}
+                                                        displayEmpty
+                                                    >
+                                                        <MenuItem value="" disabled>Change Status</MenuItem>
+                                                        <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
+                                                        <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                                                        <MenuItem value="Delivered & Received">6️⃣ Delivered & Received</MenuItem>
+                                                    </Select>
+                                                    <Typography variant="h5" color="primary">
+                                                        {formatPrice(detailedOrder.orderPrice)}
+                                                    </Typography>
+                                                </Stack>
                                             </Box>
                                         </Box>
                                         
@@ -588,6 +639,51 @@ const TaskManagement = () => {
                                         <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                                             {detailedOrder.note}
                                         </Typography>
+                                    </OrderSection>
+                                </Grid>
+
+                                {/* Payment Notes */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">Payment Notes</Typography>
+                                        <Stack spacing={2}>
+                                            <InfoRow>
+                                                <Typography className="label">Payment ID</Typography>
+                                                <Typography className="value">{detailedOrder.paymentId}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Method</Typography>
+                                                <Typography className="value">
+                                                    <Chip
+                                                        label={detailedOrder.paymentMethod}
+                                                        color="info"
+                                                        size="small"
+                                                        sx={{ borderRadius: 1 }}
+                                                    />
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Price</Typography>
+                                                <Typography className="value" color="primary" fontWeight="500">
+                                                    {formatPrice(detailedOrder.paymentPrice)}
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Payment Status</Typography>
+                                                <Typography className="value">
+                                                    <Chip
+                                                        label={detailedOrder.paymentStatus}
+                                                        color={detailedOrder.paymentStatus === 'Completed' ? 'success' : 'warning'}
+                                                        size="small"
+                                                        sx={{ borderRadius: 1 }}
+                                                    />
+                                                </Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Create At</Typography>
+                                                <Typography className="value">{formatDateTime(detailedOrder.paymentCreateAt)}</Typography>
+                                            </InfoRow>
+                                        </Stack>
                                     </OrderSection>
                                 </Grid>
 
