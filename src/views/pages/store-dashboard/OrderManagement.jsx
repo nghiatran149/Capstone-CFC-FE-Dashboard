@@ -34,6 +34,8 @@ const getStatusColor = (status) => {
     switch (status) {
         case 'Order Successfully':
             return 'green';
+        case 'Arranging & Packing':
+            return '#FF69B4';
         case 'Failed':
             return 'red';
         case 'Processing':
@@ -118,6 +120,9 @@ const OrderManagement = () => {
     const [filterStatus, setFilterStatus] = useState('All');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [detailedOrder, setDetailedOrder] = useState(null);
+    const [staffList, setStaffList] = useState([]);
+    const [selectedStaff, setSelectedStaff] = useState('');
+    const [updatingStaff, setUpdatingStaff] = useState(false);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -150,6 +155,83 @@ const OrderManagement = () => {
         fetchOrders();
     }, []);
 
+    const fetchStaffList = async (orderId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetStaffByOrderId?OrderId=${orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setStaffList(response.data.data);
+        } catch (error) {
+            console.error('Error fetching staff list:', error);
+        }
+    };
+
+    const handleAssignStaff = async () => {
+        if (!selectedStaff || !detailedOrder) return;
+        
+        setUpdatingStaff(true);
+        try {
+            const token = localStorage.getItem('accessToken');
+            await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateOrderByStoreId?orderId=${detailedOrder.orderId}&StaffId=${selectedStaff}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            
+            // Refresh order details
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${detailedOrder.orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setDetailedOrder(response.data.data);
+            setSelectedStaff('');
+            
+            // Refresh orders list
+            fetchOrders();
+        } catch (error) {
+            console.error('Error assigning staff:', error);
+        } finally {
+            setUpdatingStaff(false);
+        }
+    };
+
+    const handleViewDetails = async (order) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${order.orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setDetailedOrder(response.data.data);
+            setSelectedOrder(order);
+            
+            // Fetch staff list if no staff is assigned
+            if (!response.data.data.staffId) {
+                fetchStaffList(order.orderId);
+            }
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+        }
+    };
+
     const filteredOrders =
         filterStatus === 'All'
             ? orders
@@ -172,24 +254,6 @@ const OrderManagement = () => {
             }));
         }
         return [];
-    };
-
-    const handleViewDetails = async (order) => {
-        try {
-            const token = localStorage.getItem('accessToken');
-            const response = await axios.get(
-                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${order.orderId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-            setDetailedOrder(response.data.data);
-            setSelectedOrder(order);
-        } catch (error) {
-            console.error('Error fetching order details:', error);
-        }
     };
 
     const renderCustomOrderDetails = (order) => {
@@ -619,11 +683,13 @@ const OrderManagement = () => {
                                     </OrderSection>
                                 </Grid>
 
-                                {/* Staff Information */}
-                                {detailedOrder.staffId && (
-                                    <Grid item xs={12}>
-                                        <OrderSection>
-                                            <Typography variant="h6" className="section-title">Staff Information</Typography>
+                                {/* Staff Information or Staff Selection */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">
+                                            {detailedOrder.staffId ? 'Staff Information' : 'Assign Staff'}
+                                        </Typography>
+                                        {detailedOrder.staffId ? (
                                             <Grid container spacing={4}>
                                                 <Grid item xs={12} md={6}>
                                                     <Stack spacing={2}>
@@ -650,9 +716,44 @@ const OrderManagement = () => {
                                                     </Stack>
                                                 </Grid>
                                             </Grid>
-                                        </OrderSection>
-                                    </Grid>
-                                )}
+                                        ) : (
+                                            <Box>
+                                                <Grid container spacing={2} alignItems="center">
+                                                    <Grid item xs={12} md={8}>
+                                                        <Select
+                                                            fullWidth
+                                                            value={selectedStaff}
+                                                            onChange={(e) => setSelectedStaff(e.target.value)}
+                                                            displayEmpty
+                                                        >
+                                                            <MenuItem value="" disabled>Select a staff member</MenuItem>
+                                                            {staffList.map((staff) => (
+                                                                <MenuItem key={staff.employeeId} value={staff.employeeId}>
+                                                                    {staff.fullName} - {staff.email}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </Grid>
+                                                    <Grid item xs={12} md={4}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={handleAssignStaff}
+                                                            disabled={!selectedStaff || updatingStaff}
+                                                            fullWidth
+                                                        >
+                                                            {updatingStaff ? (
+                                                                <CircularProgress size={24} color="inherit" />
+                                                            ) : (
+                                                                'Assign Staff'
+                                                            )}
+                                                        </Button>
+                                                    </Grid>
+                                                </Grid>
+                                            </Box>
+                                        )}
+                                    </OrderSection>
+                                </Grid>
 
                                 {/* Order Notes */}
                                 <Grid item xs={12}>
