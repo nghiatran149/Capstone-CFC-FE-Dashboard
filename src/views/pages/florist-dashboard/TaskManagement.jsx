@@ -26,6 +26,8 @@ import {
     Stack,
     Chip,
     Avatar,
+    TextField,
+    Checkbox,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
@@ -72,6 +74,13 @@ const TaskManagement = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
     const [detailedOrder, setDetailedOrder] = useState(null);
+    const [shippers, setShippers] = useState([]);
+    const [selectedShipper, setSelectedShipper] = useState('');
+    const [pickupLocation, setPickupLocation] = useState('');
+    const [note, setNote] = useState('');
+    const [freeShip, setFreeShip] = useState(true);
+    const [fee, setFee] = useState(0);
+    const [assigningDelivery, setAssigningDelivery] = useState(false);
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -132,8 +141,65 @@ const TaskManagement = () => {
         }
     };
 
-    const handleFilterChange = (event) => {
-        setFilteredStatus(event.target.value);
+    const fetchShippers = async (orderId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetDeliveryForOrderId?OrderId=${orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setShippers(response.data.data);
+        } catch (error) {
+            console.error('Error fetching shippers:', error);
+        }
+    };
+
+    const handleAssignShipper = async () => {
+        if (!selectedShipper || !detailedOrder) return;
+
+        setAssigningDelivery(true);
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.post(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/CreateDelivery?OrderId=${detailedOrder.orderId}`,
+                {
+                    freeShip,
+                    fee,
+                    pickupLocation,
+                    shipperId: selectedShipper,
+                    note,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            // Refresh order details
+            const updatedOrderResponse = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${detailedOrder.orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setDetailedOrder(updatedOrderResponse.data.data);
+            setSelectedShipper('');
+            setPickupLocation('');
+            setNote('');
+            setFreeShip(true);
+            setFee(0);
+        } catch (error) {
+            console.error('Error assigning delivery:', error);
+        } finally {
+            setAssigningDelivery(false);
+        }
     };
 
     const handleOpenDialog = async (task) => {
@@ -150,6 +216,25 @@ const TaskManagement = () => {
             setDetailedOrder(response.data.data);
             setSelectedTask(task);
             setOpenDialog(true);
+
+            // Fetch shippers if delivery is true
+            if (task.delivery) {
+                fetchShippers(task.orderId);
+                // Fetch delivery details
+                const deliveryResponse = await axios.get(
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/GetDeliveryByOrderId?OrderId=${task.orderId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                // Set delivery details to detailedOrder
+                setDetailedOrder(prev => ({
+                    ...prev,
+                    deliveryDetails: deliveryResponse.data.data // Thêm thông tin giao hàng vào detailedOrder
+                }));
+            }
         } catch (error) {
             console.error('Error fetching order details:', error);
         }
@@ -356,7 +441,7 @@ const TaskManagement = () => {
                                 <TableBody>
                                     {customProduct.flowerCustomResponses.map((flower) => (
                                         <TableRow key={flower.flowerCustomId} hover>
-                                             <TableCell>{flower.flowerResponse.flowerId}</TableCell>
+                                            <TableCell>{flower.flowerResponse.flowerId}</TableCell>
                                             <TableCell>
                                                 <Avatar
                                                     src={flower.flowerResponse.image}
@@ -445,6 +530,27 @@ const TaskManagement = () => {
         );
     };
 
+    const renderStatusChange = (task) => {
+        if (task.status !== "Delivery") {
+            return (
+                <Select
+                    size="small"
+                    value=""
+                    onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
+                    sx={{ minWidth: 150 }}
+                    displayEmpty
+                >
+                    <MenuItem value="" disabled>Change Status</MenuItem>
+                    <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
+                    <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
+                    <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                    <MenuItem value="Received">6️⃣ Received</MenuItem>
+                </Select>
+            );
+        }
+        return null;
+    };
+
     return (
         <Box sx={{ p: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -493,6 +599,17 @@ const TaskManagement = () => {
                         }}
                     />
                     <Chip
+                        label="5️⃣ Delivery"
+                        color={filteredStatus === "Delivery" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Delivery")}
+                        sx={{
+                            bgcolor: filteredStatus === "Delivery" ? undefined : '#d8b4fe', // Màu nền tím nhạt
+                            color: filteredStatus === "Delivery" ? undefined : '#6b21a8', // Màu chữ tím đậm
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
                         label="6️⃣ Received"
                         color={filteredStatus === "Received" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Received")}
@@ -519,6 +636,7 @@ const TaskManagement = () => {
                                 <TableCell>Details</TableCell>
                                 <TableCell>Order Price</TableCell>
                                 <TableCell>Payment</TableCell>
+                                <TableCell>Delivery</TableCell>
                                 <TableCell>Create Time</TableCell>
                                 <TableCell>RecipientTime</TableCell>
                                 <TableCell>Status</TableCell>
@@ -536,6 +654,7 @@ const TaskManagement = () => {
                                     </TableCell>
                                     <TableCell>{formatPrice(task.orderPrice)}</TableCell>
                                     <TableCell>{task.transfer ? "100% transfer" : "50% deposit"}</TableCell>
+                                    <TableCell>{task.delivery ? "Shipping" : "Pickup"}</TableCell>
                                     <TableCell>{task.createAt}</TableCell>
                                     <TableCell>{formatDateTime(task.deliveryDateTime)}</TableCell>
                                     <TableCell>
@@ -546,28 +665,18 @@ const TaskManagement = () => {
                                                     bgcolor: task.status === "Arranging & Packing" ? '#fbcfe8' :
                                                         task.status === "Awaiting Design Approval" ? '#fef9c3' :
                                                             task.status === "Flower Completed" ? '#fed7aa' :
+                                                            task.status === "Delivery" ? '#d8b4fe' :
                                                                 task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             task.status === "Flower Completed" ? '#9a3412' :
+                                                            task.status === "Delivery" ? '#1e40af' :
                                                                 task.status === "Received" ? '#1e40af' : '#374151',
                                                     fontWeight: 500,
                                                     '& .MuiChip-label': { px: 2 }
                                                 }}
                                             />
-                                            <Select
-                                                size="small"
-                                                value=""
-                                                onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
-                                                sx={{ minWidth: 150 }}
-                                                displayEmpty
-                                            >
-                                                <MenuItem value="" disabled>Change Status</MenuItem>
-                                                <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
-                                                <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                                                <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                <MenuItem value="Received">6️⃣Received</MenuItem>
-                                            </Select>
+                                            {renderStatusChange(task)}
                                         </Stack>
                                     </TableCell>
                                     <TableCell>
@@ -658,6 +767,12 @@ const TaskManagement = () => {
                                                             {formatDateTime(detailedOrder.deliveryDateTime)}
                                                         </Typography>
                                                     </InfoRow>
+                                                    <InfoRow>
+                                                        <Typography className="label">Delivery Method</Typography>
+                                                        <Typography className="value">
+                                                            {detailedOrder.delivery ? "Shipping" : "Pickup"}
+                                                        </Typography>
+                                                    </InfoRow>
                                                     {detailedOrder.promotionName && (
                                                         <InfoRow>
                                                             <Typography className="label">Promotion</Typography>
@@ -701,7 +816,71 @@ const TaskManagement = () => {
                                         </Grid>
                                     </OrderSection>
                                 </Grid>
-
+                                {/* Delivery Notes */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">Delivery Notes</Typography>
+                                        <Stack spacing={2}>
+                                            {/* {detailedOrder.delivery && (
+                                                <InfoRow>
+                                                    <Typography className="label">Assign Shipper</Typography>
+                                                    <Box className="value" sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                                                        <Select
+                                                            fullWidth
+                                                            size="small"
+                                                            value={selectedShipper}
+                                                            onChange={(e) => setSelectedShipper(e.target.value)}
+                                                            displayEmpty
+                                                            sx={{ maxWidth: 300 }}
+                                                        >
+                                                            <MenuItem value="" disabled>Select a shipper</MenuItem>
+                                                            {shippers.map((shipper) => (
+                                                                <MenuItem key={shipper.employeeId} value={shipper.employeeId}>
+                                                                    {shipper.fullName} - {shipper.phone}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                        <Button
+                                                            variant="contained"
+                                                            onClick={handleAssignShipper}
+                                                            disabled={!selectedShipper || assigningDelivery}
+                                                            sx={{ minWidth: 120 }}
+                                                        >
+                                                            {assigningDelivery ? (
+                                                                <CircularProgress size={24} color="inherit" />
+                                                            ) : (
+                                                                'Assign Shipper'
+                                                            )}
+                                                        </Button>
+                                                    </Box>
+                                                </InfoRow>
+                                            )} */}
+                                            {detailedOrder.shipperId && (
+                                                <InfoRow>
+                                                    <Typography className="label">Current Shipper</Typography>
+                                                    <Box className="value">
+                                                        <Typography>{detailedOrder.shipperName}</Typography>
+                                                        <Typography variant="body2" color="textSecondary">
+                                                            Phone: {detailedOrder.shipperPhone}
+                                                        </Typography>
+                                                    </Box>
+                                                </InfoRow>
+                                            )}
+                                            <InfoRow>
+                                                <Typography className="label">Delivery Address</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryAddress ?? "N/A")}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Delivery District</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryDistrict ?? "N/A")}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Delivery City</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryCity ?? "N/A")}</Typography>
+                                            </InfoRow>
+                                        </Stack>
+                                    </OrderSection>
+                                </Grid>
                                 {/* Order Notes */}
                                 <Grid item xs={12}>
                                     <OrderSection>
@@ -769,6 +948,126 @@ const TaskManagement = () => {
                                         }
                                     </OrderSection>
                                 </Grid>
+
+                                {/* Assign Shipper Section */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">Assign Shipper</Typography>
+                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery" ? (
+                                            <Stack spacing={2}>
+                                                <InfoRow>
+                                                    <Typography className="label">Select Shipper</Typography>
+                                                    <Select
+                                                        fullWidth
+                                                        size="small"
+                                                        value={selectedShipper}
+                                                        onChange={(e) => setSelectedShipper(e.target.value)}
+                                                        displayEmpty
+                                                    >
+                                                        <MenuItem value="" disabled>Select a shipper</MenuItem>
+                                                        {shippers.map((shipper) => (
+                                                            <MenuItem key={shipper.employeeId} value={shipper.employeeId}>
+                                                                {shipper.fullName} - {shipper.phone}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Pickup Location</Typography>
+                                                    <TextField
+                                                        fullWidth
+                                                        value={pickupLocation}
+                                                        onChange={(e) => setPickupLocation(e.target.value)}
+                                                    />
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Note</Typography>
+                                                    <TextField
+                                                        fullWidth
+                                                        value={note}
+                                                        onChange={(e) => setNote(e.target.value)}
+                                                    />
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Free Shipping</Typography>
+                                                    <Checkbox
+                                                        checked={freeShip}
+                                                        onChange={(e) => setFreeShip(e.target.checked)}
+                                                    />
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Fee</Typography>
+                                                    <TextField
+                                                        type="number"
+                                                        fullWidth
+                                                        value={fee}
+                                                        onChange={(e) => setFee(Number(e.target.value))}
+                                                    />
+                                                </InfoRow>
+                                                <Button
+                                                    variant="contained"
+                                                    onClick={handleAssignShipper}
+                                                    disabled={!selectedShipper || assigningDelivery}
+                                                >
+                                                    {assigningDelivery ? <CircularProgress size={24} /> : 'Assign Shipper'}
+                                                </Button>
+                                            </Stack>
+                                        ) : (
+                                            <Typography variant="body1">This order is not eligible for assigning a shipper.</Typography>
+                                        )}
+                                    </OrderSection>
+                                </Grid>
+
+                                {/* Delivery Details */}
+                                {detailedOrder.deliveryDetails && (
+                                    <Grid item xs={12}>
+                                        <OrderSection>
+                                            <Typography variant="h6" className="section-title">Delivery Details</Typography>
+                                            <Stack spacing={2}>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery ID</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Shipper Name</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperName}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">shipper Email</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperEmail}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">shipper Email</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperPhone}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Pickup Location</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.pickupLocation}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Location</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryLocation}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Note</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Time</Typography>
+                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.deliveryTime)}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Time Done</Typography>
+                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.timeDone?? "N/A")}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Image</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage??"N/A"}</Typography>
+                                                </InfoRow>
+                                            </Stack>
+                                        </OrderSection>
+                                    </Grid>
+                                )}
                             </Grid>
                         </Box>
                     )}
