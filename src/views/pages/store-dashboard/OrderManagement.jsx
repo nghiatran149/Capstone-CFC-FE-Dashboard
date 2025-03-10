@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+
 import { jwtDecode } from "jwt-decode";
 import {
     Box,
@@ -142,6 +143,7 @@ const OrderManagement = () => {
     const [filterStatus, setFilterStatus] = useState('All');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [detailedOrder, setDetailedOrder] = useState(null);
+    
     const [staffList, setStaffList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [updatingStaff, setUpdatingStaff] = useState(false);
@@ -194,6 +196,22 @@ const OrderManagement = () => {
         }
     };
 
+    const fetchShippers = async (orderId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetDeliveryForOrderId?OrderId=${orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            setShippers(response.data.data);
+        } catch (error) {
+            console.error('Error fetching shippers:', error);
+        }
+    };
     const handleAssignStaff = async () => {
         if (!selectedStaff || !detailedOrder) return;
 
@@ -249,8 +267,38 @@ const OrderManagement = () => {
             if (!response.data.data.staffId) {
                 fetchStaffList(order.orderId);
             }
+
+            // Fetch delivery details if the order status is "Delivery"
+            if (response.data.data.status === "Delivery") {
+                fetchDeliveryDetails(order.orderId);
+            }
         } catch (error) {
             console.error('Error fetching order details:', error);
+        }
+    };
+
+    const fetchDeliveryDetails = async (orderId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/GetDeliveryByOrderId?OrderId=${orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.data.data) {
+                setDetailedOrder(prev => ({
+                    ...prev,
+                    deliveryDetails: response.data.data
+                }));
+            } else {
+                console.error('No delivery details found in response');
+            }
+        } catch (error) {
+            console.error('Error fetching delivery details:', error);
         }
     };
 
@@ -610,7 +658,19 @@ const OrderManagement = () => {
                         }}
                     />
                     <Chip
-                        label="5️⃣ Received"
+                        label="5️⃣ Delivery"
+                        color={filterStatus === "Delivery" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Delivery")}
+                        sx={{
+                            bgcolor: filterStatus === "Delivery" ? undefined : '#d8b4fe', // Màu nền tím nhạt
+                            color: filterStatus === "Delivery" ? undefined : '#6b21a8', // Màu chữ tím đậm
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+
+                    <Chip
+                        label="6️⃣ Received"
                         color={filterStatus === "Received" ? "primary" : "default"}
                         onClick={() => setFilterStatus("Received")}
                         sx={{
@@ -658,11 +718,15 @@ const OrderManagement = () => {
                                                     order.status === "Arranging & Packing" ? '#fbcfe8' :
                                                         order.status === "Awaiting Design Approval" ? '#fef9c3' :
                                                             order.status === "Flower Completed" ? '#fed7aa' :
+                                                            order.status === "Delivery" ? '#d8b4fe' :
+
                                                                 order.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                 color: order.status === "Order Successfully" ? '#065f46' :
                                                     order.status === "Arranging & Packing" ? '#9d174d' :
                                                         order.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             order.status === "Flower Completed" ? '#9a3412' :
+                                                            order.status === "Delivery" ? '#1e40af' :
+
                                                                 order.status === "Received" ? '#1e40af' : '#374151',
                                                 fontWeight: 500,
                                                 '& .MuiChip-label': { px: 2 }
@@ -744,6 +808,12 @@ const OrderManagement = () => {
                                                         <Typography className="label">Delivery Date</Typography>
                                                         <Typography className="value">
                                                             {formatDateTime(detailedOrder.deliveryDateTime)}
+                                                        </Typography>
+                                                    </InfoRow>
+                                                    <InfoRow>
+                                                        <Typography className="label">Delivery Method</Typography>
+                                                        <Typography className="value">
+                                                            {detailedOrder.delivery ? "Shipping" : "Pickup"}
                                                         </Typography>
                                                     </InfoRow>
                                                     {detailedOrder.promotionName && (
@@ -861,7 +931,28 @@ const OrderManagement = () => {
                                         )}
                                     </OrderSection>
                                 </Grid>
+                                {/* Delivery Notes */}
 
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">Delivery Notes</Typography>
+                                        <Stack spacing={2}>
+                                            <InfoRow>
+                                                <Typography className="label">Delivery Address</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryAddress ?? "N/A")}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Delivery District</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryDistrict ?? "N/A")}</Typography>
+                                            </InfoRow>
+                                            <InfoRow>
+                                                <Typography className="label">Delivery City</Typography>
+                                                <Typography className="value">{(detailedOrder.deliveryCity ?? "N/A")}</Typography>
+                                            </InfoRow>
+
+                                        </Stack>
+                                    </OrderSection>
+                                </Grid>
                                 {/* Order Notes */}
                                 <Grid item xs={12}>
                                     <OrderSection>
@@ -927,6 +1018,48 @@ const OrderManagement = () => {
                                         }
                                     </OrderSection>
                                 </Grid>
+                                {/* Delivery Details */}
+                                {detailedOrder.deliveryDetails && (
+                                    <Grid item xs={12}>
+                                        <OrderSection>
+                                            <Typography variant="h6" className="section-title">Delivery Details</Typography>
+                                            <Stack spacing={2}>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery ID</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Shipper Name</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperName}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Shipper Email</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperEmail}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Shipper Phone</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.shipperPhone}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Pickup Location</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.pickupLocation}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Location</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryLocation}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Time</Typography>
+                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.deliveryTime)}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
+                                                    <Typography className="label">Delivery Note</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
+                                                </InfoRow>
+                                            </Stack>
+                                        </OrderSection>
+                                    </Grid>
+                                )}
                             </Grid>
                         </Box>
                     )}
