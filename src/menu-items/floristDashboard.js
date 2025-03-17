@@ -1,6 +1,7 @@
-import { IconChecklist } from '@tabler/icons-react';
+import { IconCalendarWeek, IconChecklist } from '@tabler/icons-react';
 
 const icons = {
+  IconCalendarWeek,
   IconChecklist,
 };
 
@@ -10,6 +11,14 @@ const floristDashboard = {
   caption: 'Management Dashboard for Florist',
   type: 'group',
   children: [
+    {
+      id: 'task',
+      title: 'Task Schedule',
+      type: 'item',
+      url: '/floristDashboard/task-schedule',
+      icon: IconCalendarWeek,
+      breadcrumbs: true
+    },
     {
       id: 'task',
       title: 'Task Management',
