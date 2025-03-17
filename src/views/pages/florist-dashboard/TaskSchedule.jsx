@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 import {
   Typography,
   Paper,
@@ -18,43 +20,37 @@ import {
 } from '@mui/icons-material';
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isSameDay, getHours } from 'date-fns';
 
-// Dữ liệu mẫu
-const sampleOrders = [
-    { id: 1, title: 'Order #1234', createdAt: '2025-03-17T08:30:00', customer: 'Nguyễn Văn A', status: 'pending', description: 'Đơn hàng máy tính xách tay' },
-    { id: 2, title: 'Order #1235', createdAt: '2025-03-17T08:45:00', customer: 'Trần Thị B', status: 'completed', description: 'Đơn hàng điện thoại' },
-    { id: 3, title: 'Order #1236', createdAt: '2025-03-17T14:45:00', customer: 'Lê Văn C', status: 'processing', description: 'Đơn hàng phụ kiện' },
-    { id: 4, title: 'Order #1237', createdAt: '2025-03-18T09:20:00', customer: 'Phạm Thị D', status: 'pending', description: 'Đơn hàng thiết bị gia dụng' },
-    { id: 5, title: 'Order #1238', createdAt: '2025-03-18T09:30:00', customer: 'Hoàng Văn E', status: 'completed', description: 'Đơn hàng thời trang' },
-    { id: 6, title: 'Order #1239', createdAt: '2025-03-20T16:30:00', customer: 'Ngô Thị F', status: 'processing', description: 'Đơn hàng đồ chơi' },
-    { id: 7, title: 'Order #1240', createdAt: '2025-03-20T16:45:00', customer: 'Đinh Văn G', status: 'pending', description: 'Đơn hàng sách' },
-  ];
-
-// Hàm chuyển đổi trạng thái thành tiếng Việt
-const translateStatus = (status) => {
-  switch (status) {
-    case 'pending': return 'Chờ xử lý';
-    case 'processing': return 'Đang xử lý';
-    case 'completed': return 'Hoàn thành';
-    default: return status;
-  }
-};
-
-// Các khung giờ trong ngày (chỉ hiển thị từ 6:00 đến 22:00)
-const timeSlots = Array.from({ length: 17 }, (_, i) => i + 6).map(hour => ({
+// TIME (8:00 TO 22:00)
+const timeSlots = Array.from({ length: 14 }, (_, i) => i + 8).map(hour => ({
   hour,
   label: `${hour}:00 - ${hour + 1}:00`,
 }));
 
-const statusColors = {
-  pending: 'bg-yellow-100 border-yellow-400 text-yellow-800',
-  processing: 'bg-blue-100 border-blue-400 text-blue-800',
-  completed: 'bg-green-100 border-green-400 text-green-800',
+// ORDER COLOR DỰA THEO STATUS NHƯNG ĐANG LỖI
+const getStatusColor = (status) => {
+  const statusLower = status.toLowerCase();
+
+  switch (statusLower) {
+    case 'arranging & packing':
+      return 'bg-yellow-100 border-yellow-400 text-yellow-800';
+    case 'awaiting design approval':
+      return 'bg-blue-100 border-blue-400 text-blue-800';
+    case 'flower completed':
+      return 'bg-green-100 border-green-400 text-green-800';
+    case 'canceled':
+      return 'bg-red-100 border-red-400 text-red-800';
+    case 'delivery':
+      return 'bg-purple-100 border-purple-400 text-purple-800';
+    default:
+      return 'bg-gray-100 border-gray-400 text-gray-800'; // Màu mặc định
+  }
 };
 
+// CSS UI
 const containerStyle = {
   display: 'table',
   width: '100%',
-  borderCollapse: 'collapse', // Giữ lại đường kẻ ô
+  borderCollapse: 'collapse',
 };
 
 const rowStyle = {
@@ -63,7 +59,7 @@ const rowStyle = {
 
 const cellStyle = {
   display: 'table-cell',
-  border: '1px solid #ccc', // Giữ lại đường kẻ ô
+  border: '1px solid #ccc',
   padding: '4px',
   textAlign: 'center',
   height: '60px',
@@ -71,15 +67,61 @@ const cellStyle = {
 };
 
 const orderStyle = {
-  marginBottom: '4px', // Thêm khoảng cách dưới mỗi order
+  marginBottom: '4px',
 };
 
-function TaskSchedulePage() {
+
+function TaskSchedule() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
-  const [orders, setOrders] = useState(sampleOrders);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          console.error('No token found');
+          // setOrders(sampleOrders);
+          setLoading(false);
+          return;
+        }
+
+        const decodedToken = jwtDecode(token);
+        const staffId = decodedToken.Id;
+
+        const response = await axios.get(
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByStaffId?StaffId=${staffId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        const formattedOrders = response.data.data.map(order => ({
+          id: order.orderId,
+          title: `Order #${order.orderId}`,
+          createdAt: order.createAt,
+          customer: order.customerId,
+          status: order.status.toLowerCase(),
+          description: order.note || 'Không có mô tả'
+        }));
+
+        setOrders(formattedOrders);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        // setOrders(sampleOrders);
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   useEffect(() => {
     if (orders.length > 0 && !selectedDate) {
@@ -106,26 +148,84 @@ function TaskSchedulePage() {
     setSelectedDate(new Date());
   };
 
-  const handleOrderClick = (order) => {
-    setSelectedOrder(order);
-    setDialogOpen(true);
+  const handleOrderClick = async (order) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await axios.get(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${order.id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      const detailedOrder = response.data.data;
+      setSelectedOrder({
+        ...order,
+        details: detailedOrder
+      });
+      setDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      setSelectedOrder(order);
+      setDialogOpen(true);
+    }
   };
 
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
 
+
   const getOrdersForTimeSlot = (day, hour) => {
     return orders.filter(order => {
       const orderDate = parseISO(order.createdAt);
       const orderHour = getHours(orderDate);
-
-      // Kiểm tra nếu cùng ngày tháng năm và cùng giờ
       const sameDay = format(orderDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
-
       return sameDay && orderHour === hour;
     });
   };
+
+
+  const handleStatusChange = async (orderId, newStatus) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const encodedStatus = encodeURIComponent(newStatus);
+      await axios.put(
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateStatusOrderByStaffId?orderId=${orderId}&Status=${encodedStatus}`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const updatedOrders = orders.map(order =>
+        order.id === orderId ? { ...order, status: newStatus.toLowerCase() } : order
+      );
+      setOrders(updatedOrders);
+
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder(prev => ({ ...prev, status: newStatus.toLowerCase() }));
+      }
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="sr-only">Loading...</span>
+          </div>
+          <p className="mt-2">Loading Data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -201,10 +301,10 @@ function TaskSchedulePage() {
                     {slotOrders.map((order) => (
                       <Paper
                         key={order.id}
-                        className={`p-1 border-l-4 cursor-pointer ${statusColors[order.status]}`}
+                        className={`p-1 border-l-4 cursor-pointer ${getStatusColor(order.status)}`}
                         elevation={1}
-                        onClick={() => handleOrderClick(order)} // Thêm sự kiện onClick
-                        style={orderStyle} // Áp dụng style order
+                        onClick={() => handleOrderClick(order)}
+                        style={orderStyle}
                       >
                         <div className="flex justify-between items-center">
                           <Typography variant="body2" className="font-bold truncate">
@@ -225,7 +325,7 @@ function TaskSchedulePage() {
         </div>
       </div>
 
-      {/* Chi tiết order dialog */}
+      {/* ORDER DETAILS DIALOG */}
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         {selectedOrder && (
           <>
@@ -234,28 +334,62 @@ function TaskSchedulePage() {
                 {selectedOrder.title}
               </Typography>
               <Typography variant="caption" className="block mt-1">
-                Tạo lúc: {format(parseISO(selectedOrder.createdAt), 'HH:mm - dd/MM/yyyy')}
+                Create At: {format(parseISO(selectedOrder.createdAt), 'HH:mm - dd/MM/yyyy')}
               </Typography>
             </DialogTitle>
             <DialogContent dividers>
               <div className="mb-3">
-                <Typography variant="subtitle2" className="font-medium">Khách hàng:</Typography>
-                <Typography variant="body2">{selectedOrder.customer}</Typography>
+                <Typography variant="subtitle2" className="font-medium">Customer:</Typography>
+                <Typography variant="body2">
+                  {selectedOrder.details?.customerId || selectedOrder.customer}
+                </Typography>
               </div>
               <div className="mb-3">
-                <Typography variant="subtitle2" className="font-medium">Mô tả:</Typography>
-                <Typography variant="body2">{selectedOrder.description}</Typography>
+                <Typography variant="subtitle2" className="font-medium">Description:</Typography>
+                <Typography variant="body2">
+                  {selectedOrder.details?.note || selectedOrder.description}
+                </Typography>
               </div>
               <div className="mb-2">
-                <Typography variant="subtitle2" className="font-medium">Trạng thái:</Typography>
-                <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${statusColors[selectedOrder.status]
-                  }`}>
-                  {translateStatus(selectedOrder.status)}
+                <Typography variant="subtitle2" className="font-medium">Status:</Typography>
+                <div className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${getStatusColor(selectedOrder.status)}`}>
+                  {selectedOrder.status}
                 </div>
               </div>
+              {selectedOrder.details && (
+                <>
+                  <div className="mb-3">
+                    <Typography variant="subtitle2" className="font-medium">Payment:</Typography>
+                    <Typography variant="body2">
+                      {selectedOrder.details.transfer ? "100% chuyển khoản" : "50% đặt cọc"}
+                    </Typography>
+                  </div>
+                  <div className="mb-3">
+                    <Typography variant="subtitle2" className="font-medium">Shipping Method:</Typography>
+                    <Typography variant="body2">
+                      {selectedOrder.details.delivery ? "Giao hàng" : "Nhận tại cửa hàng"}
+                    </Typography>
+                  </div>
+                  <div className="mb-3">
+                    <Typography variant="subtitle2" className="font-medium">Shipping Date:</Typography>
+                    <Typography variant="body2">
+                      {format(parseISO(selectedOrder.details.deliveryDateTime), 'HH:mm - dd/MM/yyyy')}
+                    </Typography>
+                  </div>
+                </>
+              )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDialog}>Đóng</Button>
+              <Button onClick={handleCloseDialog}>Close</Button>
+              {/* {selectedOrder.status !== "completed" && (
+                                <Button
+                                    onClick={() => handleStatusChange(selectedOrder.id, "completed")}
+                                    variant="contained"
+                                    color="primary"
+                                >
+                                    Đánh dấu hoàn thành
+                                </Button>
+                            )} */}
             </DialogActions>
           </>
         )}
@@ -264,4 +398,4 @@ function TaskSchedulePage() {
   );
 }
 
-export default TaskSchedulePage;
+export default TaskSchedule;
