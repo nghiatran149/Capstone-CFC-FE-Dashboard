@@ -34,6 +34,7 @@ const OrderManagement = Loadable(lazy(() => import('views/pages/store-dashboard/
 
 
 // Florist Dashboard
+const TaskSchedule = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskSchedule')));
 const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
 
 const MainRoutes = {
@@ -239,6 +240,15 @@ const MainRoutes = {
     },
 
     // Florist Dashboard
+    {
+      path: '/floristDashboard',
+      children: [
+        {
+          path: 'task-schedule',
+          element: <TaskSchedule />
+        }
+      ]
+    },
     {
       path: '/floristDashboard',
       children: [
