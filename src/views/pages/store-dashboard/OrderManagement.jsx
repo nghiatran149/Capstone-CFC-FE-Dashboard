@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
 import { jwtDecode } from "jwt-decode";
 import {
     Box,
@@ -24,7 +23,6 @@ import {
     Card,
     CardContent,
     CardMedia,
-    Divider,
     Stack,
     Chip,
     Avatar,
@@ -44,6 +42,12 @@ const getStatusColor = (status) => {
         case 'Received':
             return '#bfdbfe'; // Xanh dương nhạt (bg-blue-200)
 
+        case 'Request refund':
+            return '#fbcfe8';
+        case 'Accept refund':
+            return '#d1fae5';
+        case 'Refuse refund':
+            return 'red';
         default:
             return '#e5e7eb'; // Xám nhạt (bg-gray-200)
     }
@@ -62,7 +66,13 @@ const getStatusColorText = (status) => {
         case 'Received':
             return 'text-blue-800'; // Xanh dương đậm
         case 'Processing':
-            return 'text-orange-900'; // Cam đậm hơn
+            return 'text-orange-900';
+        case 'Request refund':
+            return 'text-pink-800';
+        case 'Accept refund':
+            return 'text-green-800';
+        case 'Refuse refund':
+            return 'text-green-800';// Cam đậm hơn
         default:
             return 'text-gray-800'; // Xám đậm
     }
@@ -139,14 +149,20 @@ const InfoRow = styled(Box)(({ theme }) => ({
 
 const OrderManagement = () => {
     const [orders, setOrders] = useState([]);
+    const [refundOrders, setRefundOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('All');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [detailedOrder, setDetailedOrder] = useState(null);
-    
+
     const [staffList, setStaffList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [updatingStaff, setUpdatingStaff] = useState(false);
+
+    const [feedbackData, setFeedbackData] = useState(null);
+    const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
+    const [replyText, setReplyText] = useState('');
+    const [hasReplied, setHasReplied] = useState(false);
 
     useEffect(() => {
         const fetchOrders = async () => {
@@ -176,8 +192,38 @@ const OrderManagement = () => {
             }
         };
 
+
         fetchOrders();
+
+        const fetchRefundOrders = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+                const decodedToken = jwtDecode(token);
+                const storeId = decodedToken.StoreId;
+
+                const response = await axios.get(
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStore?StoreId=${storeId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                console.log('Refund Orders API Response:', response.data);
+                setRefundOrders(response.data.data);
+            } catch (error) {
+                console.error('Error fetching refund orders:', error);
+            }
+        };
+
+
+        fetchRefundOrders();
     }, []);
+
 
     const fetchStaffList = async (orderId) => {
         try {
@@ -276,7 +322,24 @@ const OrderManagement = () => {
             console.error('Error fetching order details:', error);
         }
     };
+    const handleFeedback = async (orderId) => {
+        try {
+            // Fetch the feedback details for the order
+            const feedbackResponse = await fetch(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/GetFeedBackByOrderId?OrderId=${orderId}`);
+            const feedbackData = await feedbackResponse.json();
 
+            if (feedbackResponse.status === 200) {
+                // Assuming you have a state to hold feedback data
+                setFeedbackData(feedbackData); // Set feedback data
+                setIsFeedbackModalVisible(true); // Show feedback details modal
+            } else {
+                message.error('Failed to load feedback');
+            }
+        } catch (error) {
+            console.error('Error handling feedback:', error);
+            message.error('Failed to process feedback');
+        }
+    };
     const fetchDeliveryDetails = async (orderId) => {
         try {
             const token = localStorage.getItem('accessToken');
@@ -599,6 +662,57 @@ const OrderManagement = () => {
         );
     };
 
+    const handleReply = async () => {
+        if (!replyText) return;
+
+        try {
+            const feedbackId = feedbackData.feedbackId;
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/UpdateFeedBackByStoreId?feedbackId=${feedbackId}`,
+                {
+                    responseFeedBackStore: replyText
+                }
+            );
+
+            if (response.status === 200) {
+                setHasReplied(true);
+                setReplyText('');
+                message.success('Reply sent successfully!');
+            } else {
+                message.error('Failed to send reply');
+            }
+        } catch (error) {
+            console.error('Error sending reply:', error);
+            message.error('Failed to send reply');
+        }
+    };
+
+    const handleUpdateStatus = async (orderId, status) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/UpdateStatusFeedback?OrderId=${orderId}&status=${status}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                message.success('Status updated successfully!');
+                // Optionally refresh the orders or feedback data here
+                fetchOrders(); // Refresh orders if needed
+            } else {
+                message.error('Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            message.error('Failed to update status');
+        }
+    };
+
     return (
         <Box sx={{ p: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -696,7 +810,7 @@ const OrderManagement = () => {
                                 <TableCell>Order Price</TableCell>
                                 <TableCell>Payment</TableCell>
                                 <TableCell>Create Time</TableCell>
-                                <TableCell>RecipientTime</TableCell>
+                                <TableCell>Recipient Time</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
@@ -714,20 +828,8 @@ const OrderManagement = () => {
                                         <Chip
                                             label={order.status}
                                             sx={{
-                                                bgcolor: order.status === "Order Successfully" ? '#d1fae5' :
-                                                    order.status === "Arranging & Packing" ? '#fbcfe8' :
-                                                        order.status === "Awaiting Design Approval" ? '#fef9c3' :
-                                                            order.status === "Flower Completed" ? '#fed7aa' :
-                                                            order.status === "Delivery" ? '#d8b4fe' :
-
-                                                                order.status === "Received" ? '#bfdbfe' : '#e5e7eb',
-                                                color: order.status === "Order Successfully" ? '#065f46' :
-                                                    order.status === "Arranging & Packing" ? '#9d174d' :
-                                                        order.status === "Awaiting Design Approval" ? '#854d0e' :
-                                                            order.status === "Flower Completed" ? '#9a3412' :
-                                                            order.status === "Delivery" ? '#1e40af' :
-
-                                                                order.status === "Received" ? '#1e40af' : '#374151',
+                                                bgcolor: getStatusColor(order.status),
+                                                color: getStatusColorText(order.status),
                                                 fontWeight: 500,
                                                 '& .MuiChip-label': { px: 2 }
                                             }}
@@ -737,6 +839,21 @@ const OrderManagement = () => {
                                         <Button variant="outlined" onClick={() => handleViewDetails(order)}>
                                             View Details
                                         </Button>
+                                        {(order.status === "Received" || order.status === "Request refund" || order.status === "Accept refund" || order.status === "Refuse refund") && (
+                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ ml: 1 }}>
+                                                Feedback
+                                            </Button>
+                                        )}
+                                        {order.status === "Request refund" && (
+                                            <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')} sx={{ ml: 1 }}>
+                                                Accept Refund
+                                            </Button>
+                                        )}
+                                        {order.status === "Request refund" && (
+                                            <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')} sx={{ ml: 1 }}>
+                                                Refuse Refund
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -744,6 +861,77 @@ const OrderManagement = () => {
                     </Table>
                 </TableContainer>
             )}
+
+            <Box mt={4}>
+                <Typography variant="h3">Refund Order Manager</Typography>
+                {loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Order ID</TableCell>
+                                    <TableCell>Order Price</TableCell>
+                                    <TableCell>Customer ID</TableCell>
+                                    <TableCell>Phone</TableCell>
+                                    <TableCell>Create Time</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {refundOrders.map((order) => (
+                                    <TableRow key={order.orderId}>
+                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>{formatPrice(order.orderPrice)}</TableCell>
+                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.phone}</TableCell>
+                                        <TableCell>{formatDateTime(order.createAt)}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={order.status}
+                                                sx={{
+                                                    bgcolor: getStatusColor(order.status),
+                                                    color: getStatusColorText(order.status),
+                                                    fontWeight: 500,
+                                                    '& .MuiChip-label': { px: 2 }
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button variant="outlined" onClick={() => handleViewDetails(order)}>
+                                                View Details
+                                            </Button>
+                                            {/* {(order.status === "Received" || order.status === "Request refund" || order.status === "Accept refund" || order.status === "Refuse refund") && (
+                                                <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ ml: 1 }}>
+                                                    Feedback
+                                                </Button>
+                                            )} */}
+                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ mr: 1 }}>
+                                                Feedback
+                                            </Button>
+                                            {order.status === "Request refund" && (
+                                                <>
+                                                    <Button variant="contained" color="success" onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')} sx={{ mr: 1 }}>
+                                                        Accept Refund
+                                                    </Button>
+                                                    <Button variant="contained" color="error" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')}>
+                                                        Refuse Refund
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </Box>
+
             <StyledDialog
                 open={!!selectedOrder}
                 onClose={() => {
@@ -1064,21 +1252,149 @@ const OrderManagement = () => {
                         </Box>
                     )}
                 </DialogContent>
-                <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
+                <DialogActions sx={{ padding: 2 }}>
                     <Button
-                        onClick={() => {
-                            setSelectedOrder(null);
-                            setDetailedOrder(null);
-                        }}
-                        variant="contained"
-                        color="secondary"
+                        onClick={() => setIsFeedbackModalVisible(false)}
+                        color="primary"
                         sx={{
-                            borderRadius: 2,
-                            px: 4,
-                            py: 1,
-                            boxShadow: '0 4px 12px 0 rgba(0,0,0,0.1)',
+                            background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                            color: 'white',
+                            '&:hover': {
+                                background: 'linear-gradient(45deg, #FF0080 40%, #FF8C00 100%)',
+                            }
                         }}
                     >
+                        Close
+                    </Button>
+                </DialogActions>
+            </StyledDialog>
+
+            <StyledDialog
+                open={isFeedbackModalVisible}
+                onClose={() => setIsFeedbackModalVisible(false)}
+                maxWidth="lg"
+                fullWidth
+                sx={{
+                    borderRadius: '12px',
+                    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        fontSize: '1.5rem',
+                        padding: '16px',
+                        marginBottom: '16px',
+                        borderRadius: '4px 4px 0 0',
+                    }}
+                >
+                    Feedback Information
+                </DialogTitle>
+                <DialogContent sx={{ padding: 3 }}>
+                    {feedbackData && (
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                                    Feedback ID: {feedbackData.feedbackId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Customer ID: {feedbackData.customerId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Order ID: {feedbackData.orderId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Feedback: {feedbackData.feedbackByCustomer}
+                                </Typography>
+                            </Grid>
+
+                            {/* Video Section */}
+                            {feedbackData.feedBackVideoByCustomer && (
+                                <Grid item xs={12}>
+                                    <Typography variant="body1" color="textSecondary">Video:</Typography>
+                                    <Box sx={{ mt: 1 }}>
+                                        <video width="100%" controls>
+                                            <source src={feedbackData.feedBackVideoByCustomer} type="video/mp4" />
+                                            <track kind="captions" srcLang="en" label="English" />
+                                            Your browser does not support HTML5 video.
+                                        </video>
+                                    </Box>
+                                </Grid>
+                            )}
+
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Request Refund: {feedbackData.requestRefundByCustomer ? 'Yes' : 'No'}
+                                </Typography>
+                            </Grid>
+
+                            {/* Display Rating with Color */}
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Rating:
+                                    <Box component="span" sx={{ color: 'gold', marginLeft: 1 }}>
+                                        {'★'.repeat(feedbackData.rating)}
+                                    </Box>
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Status: {feedbackData.status}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Created At: {formatDateTime(feedbackData.createAt)}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Update At: {formatDateTime(feedbackData.updateAt)}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Reply by Store: {feedbackData.responseFeedBackStore ?? 'No reply yet'}
+                                </Typography>
+                            </Grid>
+
+                            {/* Conditional Reply Input */}
+                            {feedbackData.status === "Sent By Customer" && !hasReplied && (
+                                <Grid item xs={12}>
+                                    <Box mt={2}>
+                                        <Typography variant="body1" color="textSecondary">Reply to Customer:</Typography>
+                                        <textarea
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            rows="4"
+                                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                        />
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleReply}
+                                            sx={{ mt: 1, background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)', color: 'white' }}
+                                        >
+                                            Send Reply
+                                        </Button>
+                                    </Box>
+                                </Grid>
+                            )}
+                        </Grid>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsFeedbackModalVisible(false)} color="primary">
                         Close
                     </Button>
                 </DialogActions>

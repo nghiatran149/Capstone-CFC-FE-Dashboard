@@ -96,7 +96,7 @@ const adminDashboard = {
     },
     {
       id: 'refund',
-      title: 'Refund Management',
+      title: 'WithdrawMoney Management',
       type: 'item',
       url: '/adminDashboard/refund-management',
       icon: IconCreditCardRefund,
