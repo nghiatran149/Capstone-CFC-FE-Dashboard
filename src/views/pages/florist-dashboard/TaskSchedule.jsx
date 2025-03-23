@@ -11,7 +11,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Box,
+  Chip
 } from '@mui/material';
 import {
   ChevronLeft as ChevronLeftIcon,
@@ -26,24 +28,9 @@ const timeSlots = Array.from({ length: 14 }, (_, i) => i + 8).map(hour => ({
   label: `${hour}:00 - ${hour + 1}:00`,
 }));
 
-// ORDER COLOR DỰA THEO STATUS NHƯNG ĐANG LỖI
+
 const getStatusColor = (status) => {
   const statusLower = status.toLowerCase();
-
-  switch (statusLower) {
-    case 'arranging & packing':
-      return 'bg-yellow-100 border-yellow-400 text-yellow-800';
-    case 'awaiting design approval':
-      return 'bg-blue-100 border-blue-400 text-blue-800';
-    case 'flower completed':
-      return 'bg-green-100 border-green-400 text-green-800';
-    case 'canceled':
-      return 'bg-red-100 border-red-400 text-red-800';
-    case 'delivery':
-      return 'bg-purple-100 border-purple-400 text-purple-800';
-    default:
-      return 'bg-gray-100 border-gray-400 text-gray-800'; // Màu mặc định
-  }
 };
 
 // CSS UI
@@ -70,6 +57,60 @@ const orderStyle = {
   marginBottom: '4px',
 };
 
+// Status Color
+const StatusLegend = () => {
+  const statusChips = [
+    { 
+      label: "2️⃣ Arranging & Packing", 
+      bgcolor: '#fbcfe8', 
+      color: '#9d174d' 
+    },
+    { 
+      label: "4️⃣ Awaiting Design Approval", 
+      bgcolor: '#fef9c3', 
+      color: '#854d0e' 
+    },
+    { 
+      label: "5️⃣ Flower Completed", 
+      bgcolor: '#fed7aa', 
+      color: '#9a3412' 
+    },
+    { 
+      label: "5️⃣ Delivery", 
+      bgcolor: '#d8b4fe', 
+      color: '#6b21a8' 
+    },
+    { 
+      label: "6️⃣ Received", 
+      bgcolor: '#bfdbfe', 
+      color: '#1e40af' 
+    },
+    { 
+      label: "❌ Canceled", 
+      bgcolor: '#fecaca', 
+      color: '#b91c1c' 
+    }
+  ];
+
+  return (
+    <Box sx={{ mb: 1, p: 2, border: '1px solid #e0e0e0', borderRadius: 1, bgcolor: 'white' }}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {statusChips.map((chip) => (
+          <Chip
+            key={chip.label}
+            label={chip.label}
+            sx={{
+              bgcolor: chip.bgcolor,
+              color: chip.color,
+              fontWeight: 500,
+              '&:hover': { opacity: 0.9 }
+            }}
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+};
 
 function TaskSchedule() {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -85,7 +126,6 @@ function TaskSchedule() {
         const token = localStorage.getItem('accessToken');
         if (!token) {
           console.error('No token found');
-          // setOrders(sampleOrders);
           setLoading(false);
           return;
         }
@@ -115,7 +155,6 @@ function TaskSchedule() {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching orders:', error);
-        // setOrders(sampleOrders);
         setLoading(false);
       }
     };
@@ -176,7 +215,6 @@ function TaskSchedule() {
     setDialogOpen(false);
   };
 
-
   const getOrdersForTimeSlot = (day, hour) => {
     return orders.filter(order => {
       const orderDate = parseISO(order.createdAt);
@@ -185,7 +223,6 @@ function TaskSchedule() {
       return sameDay && orderHour === hour;
     });
   };
-
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
@@ -255,6 +292,9 @@ function TaskSchedule() {
       </AppBar>
 
       <div className="flex-grow overflow-auto p-4">
+        {/* Status Color */}
+        <StatusLegend />
+        
         <div style={containerStyle}>
           <div style={rowStyle}>
             {/* Cột thời gian */}
@@ -381,15 +421,6 @@ function TaskSchedule() {
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseDialog}>Close</Button>
-              {/* {selectedOrder.status !== "completed" && (
-                                <Button
-                                    onClick={() => handleStatusChange(selectedOrder.id, "completed")}
-                                    variant="contained"
-                                    color="primary"
-                                >
-                                    Đánh dấu hoàn thành
-                                </Button>
-                            )} */}
             </DialogActions>
           </>
         )}
