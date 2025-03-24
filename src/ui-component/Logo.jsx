@@ -7,9 +7,9 @@ const Logo = () => {
   
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <img src={logo} alt="Logo" width="50" />
+      <img src={logo} alt="Logo" width="180" height="50" />
 
-      <svg
+      {/* <svg
         width="260"
         height="40"
         viewBox="0 0 220 40"
@@ -27,7 +27,7 @@ const Logo = () => {
         >
           Custom Flower Chain
         </text>
-      </svg>
+      </svg> */}
     </Box>
   );
 };
