@@ -23,6 +23,7 @@
     "@fontsource/inter": "^5.0.16",
     "@fontsource/poppins": "^5.0.8",
     "@fontsource/roboto": "^5.0.8",
+    "@microsoft/signalr": "^8.0.7",
     "@mui/icons-material": "^5.15.10",
     "@mui/lab": "^5.0.0-alpha.165",
     "@mui/material": "^5.15.10",
