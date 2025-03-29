@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { HubConnectionBuilder, HttpTransportType } from "@microsoft/signalr";
+import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
+import ChatModal from "chat/ChatModal";
 import {
     Box,
     Button,
@@ -81,6 +83,76 @@ const TaskManagement = () => {
     const [freeShip, setFreeShip] = useState(true);
     const [fee, setFee] = useState(0);
     const [assigningDelivery, setAssigningDelivery] = useState(false);
+    const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+    const [hasNewMessage, setHasNewMessage] = useState(false);
+    const [connection, setConnection] = useState(null);
+
+    // Thiết lập kết nối SignalR
+    useEffect(() => {
+        const newConnection = new HubConnectionBuilder()
+            .withUrl(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/chatHub`, {
+                skipNegotiation: true, // ⚡ Bắt buộc nếu chỉ dùng WebSockets
+                transport: HttpTransportType.WebSockets,
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        const startConnection = async () => {
+            try {
+                await newConnection.start();
+                console.log("✅ SignalR Connected!");
+                setConnection(newConnection);
+            } catch (error) {
+                console.error("❌ SignalR Connection Error:", error);
+            }
+        };
+
+        startConnection();
+
+        newConnection.onclose(() => console.log("⚠️ SignalR connection closed."));
+        newConnection.onreconnecting(() => console.log("🔄 SignalR reconnecting..."));
+        newConnection.onreconnected(() => console.log("✅ SignalR reconnected."));
+
+        return () => {
+            if (newConnection.state === "Connected") {
+                newConnection.stop().then(() => console.log("🔌 SignalR Disconnected."));
+            }
+        };
+    }, []);
+
+    // Lắng nghe tin nhắn mới
+    useEffect(() => {
+        if (!connection) return;
+
+        connection.on('ReceiveMessage', (message) => {
+            console.log("Received message:", message);
+            console.log("Message Sender ID:", message.senderId);
+            console.log("Selected Task Customer ID:", selectedTask?.customerId);
+
+            // Kiểm tra nếu tin nhắn mới là từ customerId
+            if (message.senderId === selectedTask?.customerId) {
+                console.log("New message from customer:", message);
+                setHasNewMessage(true); // Cập nhật trạng thái có tin nhắn mới
+            }
+        });
+
+        return () => {
+            connection.off('ReceiveMessage');
+        };
+    }, [connection, selectedTask]);
+
+    const handleOpenChatDialog = (task) => {
+        console.log("Opening chat for task:", task);
+        setSelectedTask(task);
+        setIsChatModalOpen(true);
+        setHasNewMessage(false); // Reset trạng thái chấm xanh khi mở chat
+    };
+
+    const handleCloseChatDialog = () => {
+        setIsChatModalOpen(false);
+        setSelectedTask(null);
+        setHasNewMessage(false); // Reset trạng thái chấm xanh khi đóng chat
+    };
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -519,6 +591,7 @@ const TaskManagement = () => {
                                                     {formatPrice(detail.productTotalPrice)}
                                                 </Typography>
                                             </TableCell>
+
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -665,13 +738,13 @@ const TaskManagement = () => {
                                                     bgcolor: task.status === "Arranging & Packing" ? '#fbcfe8' :
                                                         task.status === "Awaiting Design Approval" ? '#fef9c3' :
                                                             task.status === "Flower Completed" ? '#fed7aa' :
-                                                            task.status === "Delivery" ? '#d8b4fe' :
-                                                                task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                                task.status === "Delivery" ? '#d8b4fe' :
+                                                                    task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             task.status === "Flower Completed" ? '#9a3412' :
-                                                            task.status === "Delivery" ? '#1e40af' :
-                                                                task.status === "Received" ? '#1e40af' : '#374151',
+                                                                task.status === "Delivery" ? '#1e40af' :
+                                                                    task.status === "Received" ? '#1e40af' : '#374151',
                                                     fontWeight: 500,
                                                     '& .MuiChip-label': { px: 2 }
                                                 }}
@@ -683,6 +756,30 @@ const TaskManagement = () => {
                                         <Button variant="outlined" onClick={() => handleOpenDialog(task)}>
                                             View Details
                                         </Button>
+                                        <Button
+                                            onClick={() => handleOpenChatDialog({
+                                                orderId: task.orderId,
+                                                customerId: task.customerId,
+                                                employeeId: task.staffId
+                                            })}
+                                            style={{ position: 'relative' }}
+                                        >
+                                            Chat
+                                            {hasNewMessage && (
+                                                <div
+                                                    style={{
+                                                        position: 'absolute',
+                                                        top: 0,
+                                                        right: 0,
+                                                        width: '10px',
+                                                        height: '10px',
+                                                        backgroundColor: 'green',
+                                                        borderRadius: '50%',
+                                                    }}
+                                                />
+                                            )}
+                                        </Button>
+
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -1058,11 +1155,11 @@ const TaskManagement = () => {
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery Time Done</Typography>
-                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.timeDone?? "N/A")}</Typography>
+                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.timeDone ?? "N/A")}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery Image</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage??"N/A"}</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage ?? "N/A"}</Typography>
                                                 </InfoRow>
                                             </Stack>
                                         </OrderSection>
@@ -1088,6 +1185,12 @@ const TaskManagement = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+            {/* Render ChatModal */}
+            <ChatModal
+                isOpen={isChatModalOpen}
+                onClose={handleCloseChatDialog}
+                task={selectedTask}
+            />
         </Box>
     );
 };
