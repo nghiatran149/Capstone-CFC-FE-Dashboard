@@ -80,10 +80,13 @@ const ProfileSection = () => {
           borderRadius: '27px',
           transition: 'all .2s ease-in-out',
           borderColor: theme.palette.primary.light,
-          backgroundColor: theme.palette.primary.light,
+          backgroundColor: `#ffe0f0 !important`,
+          '& svg': {
+            stroke: '#ff54b1',
+          },
           '&[aria-controls="menu-list-grow"], &:hover': {
-            borderColor: theme.palette.primary.main,
-            background: `${theme.palette.primary.main}!important`,
+            borderColor: '#ff94cc',
+            background: `#ff94cc !important`,
             color: theme.palette.primary.light,
             '& svg': {
               stroke: theme.palette.primary.light
@@ -162,23 +165,52 @@ const ProfileSection = () => {
                       }}
                     >
                       <ListItemButton
-                        sx={{ borderRadius: `${customization.borderRadius}px` }}
+                        sx={{
+                          borderRadius: `${customization.borderRadius}px`,
+                          '&:hover': {
+                            backgroundColor: '#ffe0f0',
+
+                          }
+                        }}
                         onClick={handleProfile}
                       >
                         <ListItemIcon>
                           <IconUser stroke={1.5} size="1.3rem" />
                         </ListItemIcon>
-                        <ListItemText primary={<Typography variant="body2">Profile</Typography>} />
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" sx={{ color: 'inherit' }}>
+                              Profile
+                            </Typography>
+                          }
+                        />
                       </ListItemButton>
+
                       <ListItemButton
-                        sx={{ borderRadius: `${customization.borderRadius}px` }}
+                        sx={{
+                          borderRadius: `${customization.borderRadius}px`,
+                          color: 'red',
+                          '& svg': { stroke: 'red' },
+                          '&:hover': {
+                            backgroundColor: '#ffe0f0',
+                            color: 'red',
+                            '& svg': { stroke: 'red' }
+                          }
+                        }}
                         onClick={handleLogout}
                       >
                         <ListItemIcon>
                           <IconLogout stroke={1.5} size="1.3rem" />
                         </ListItemIcon>
-                        <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" sx={{ color: 'inherit' }}>
+                              Logout
+                            </Typography>
+                          }
+                        />
                       </ListItemButton>
+
                     </List>
                   </Box>
                 </MainCard>

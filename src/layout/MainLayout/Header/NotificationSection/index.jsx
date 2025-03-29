@@ -104,11 +104,11 @@ const NotificationSection = () => {
               ...theme.typography.commonAvatar,
               ...theme.typography.mediumAvatar,
               transition: 'all .2s ease-in-out',
-              background: theme.palette.secondary.light,
-              color: theme.palette.secondary.dark,
+              background: '#ff94cc',
+              color: '#FFF',
               '&[aria-controls="menu-list-grow"],&:hover': {
-                background: theme.palette.secondary.dark,
-                color: theme.palette.secondary.light
+                background: '#ff69b4',
+                color: '#FFF'
               }
             }}
             ref={anchorRef}
@@ -154,14 +154,24 @@ const NotificationSection = () => {
                               size="small"
                               label="01"
                               sx={{
-                                color: theme.palette.background.default,
-                                bgcolor: theme.palette.warning.dark
+                                color: '#FFFFFF',
+                                bgcolor: '#FF1493'
                               }}
                             />
                           </Stack>
                         </Grid>
                         <Grid item>
-                          <Typography component={Link} to="#" variant="subtitle2" color="primary">
+                          <Typography 
+                            component={Link} 
+                            to="#" 
+                            variant="subtitle2" 
+                            sx={{ 
+                              color: '#FF1493',
+                              '&:hover': {
+                                color: '#8B008B'
+                              }
+                            }}
+                          >
                             Mark as all read
                           </Typography>
                         </Grid>
@@ -180,6 +190,19 @@ const NotificationSection = () => {
                                 onChange={handleChange}
                                 SelectProps={{
                                   native: true
+                                }}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    '& fieldset': {
+                                      borderColor: '#FF69B4', // Hot pink border
+                                    },
+                                    '&:hover fieldset': {
+                                      borderColor: '#8B008B', // Dark magenta border on hover
+                                    },
+                                    '&.Mui-focused fieldset': {
+                                      borderColor: '#FF1493', // Deep pink border when focused
+                                    }
+                                  }
                                 }}
                               >
                                 {status.map((option) => (
@@ -200,7 +223,12 @@ const NotificationSection = () => {
                   </Grid>
                   <Divider />
                   <CardActions sx={{ p: 1.25, justifyContent: 'center' }}>
-                    <Button size="small" disableElevation>
+                    <Button 
+                      disableElevation
+                      sx={{
+                        color: '#FF1493'
+                      }}
+                    >
                       View All
                     </Button>
                   </CardActions>
