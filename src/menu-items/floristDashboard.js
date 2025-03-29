@@ -12,7 +12,7 @@ const floristDashboard = {
   type: 'group',
   children: [
     {
-      id: 'task',
+      id: 'schedule',
       title: 'Task Schedule',
       type: 'item',
       url: '/floristDashboard/task-schedule',
