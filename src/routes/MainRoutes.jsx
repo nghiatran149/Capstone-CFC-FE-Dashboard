@@ -8,18 +8,33 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
 // Admin Dashboard
 const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
+const ChainOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/ChainOverview')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
-const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CategoryManagement')));
-const ProductManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/ProductManagement')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
 
+const CategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CategoryManagement')));
+const FlowerBasketCategoryManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketCategoryManagement')));
+const FlowerCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerCategoryManagement')));
+const StyleCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/StyleCategoryManagement')));
+const AccessoryCategoryManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/AccessoryCategoryManagement')));
+const ProductManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/ProductManagement')));
+const FlowerManagement =  Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerManagement')));
+const FlowerBasketManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketManagement')));
+const StyleManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/StyleManagement')));
+const AccessoryManagement =Loadable(lazy(() => import('views/pages/admin-dashboard/AccessoryManagement')));
+
+
 // Store Dashboard
 const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
+const StoreRevenue = Loadable(lazy(() => import('views/pages/store-dashboard/StoreRevenue')));
 const FloristManagement = Loadable(lazy(() => import('views/pages/store-dashboard/FloristManagement')));
 const CouriverManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CouriverManagement')));
+const OrderManagement = Loadable(lazy(() => import('views/pages/store-dashboard/OrderManagement')));
+
 
 // Florist Dashboard
+const TaskSchedule = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskSchedule')));
 const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
 
 const MainRoutes = {
@@ -47,6 +62,15 @@ const MainRoutes = {
         {
           path: 'store-overview',
           element: <StoreOverview />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'chain-overview',
+          element: <ChainOverview />
         }
       ]
     },
@@ -90,13 +114,94 @@ const MainRoutes = {
       path: '/adminDashboard',
       children: [
         {
+          path: 'flowerbasket-category-management',
+          element: <FlowerBasketCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flower-category-management',
+          element: <FlowerCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'style-category-management',
+          element: <StyleCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'accessory-category-management',
+          element: <AccessoryCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
           path: 'product-management',
           element: <ProductManagement />
         }
       ]
     },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flower-management',
+          element: <FlowerManagement/>
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'style-management',
+          element: <StyleManagement/>
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'accessory-management',
+          element: <AccessoryManagement/>
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'flowerbasket-management',
+          element: <FlowerBasketManagement/>
+        }
+      ]
+    },
 
     // Store Dashboard
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'store-revenue',
+          element: <StoreRevenue />
+        }
+      ]
+    },
     {
       path: '/storeDashboard',
       children: [
@@ -124,8 +229,26 @@ const MainRoutes = {
         }
       ]
     },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'order-management',
+          element: <OrderManagement />
+        }
+      ]
+    },
 
     // Florist Dashboard
+    {
+      path: '/floristDashboard',
+      children: [
+        {
+          path: 'task-schedule',
+          element: <TaskSchedule />
+        }
+      ]
+    },
     {
       path: '/floristDashboard',
       children: [

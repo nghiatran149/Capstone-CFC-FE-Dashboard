@@ -53,17 +53,17 @@ const Login = () => {
         setSuccessMessage(data.messages[0]);
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('roleName', data.data.roleName);
-
+        console.log("User Role:", data?.data);
         const { roleName } = data.data;
         switch (roleName) {
           case 'Admin':
             navigate('/adminDashboard/store-overview');
             break;
-          case 'Store Manager':
-            navigate('/storeDashboard/staff-management');
+          case 'StoreManager':
+            navigate('/storeDashboard/store-revenue');
             break;
           case 'Florist':
-            navigate('/floristDashboard');
+            navigate('/floristDashboard/task-management');
             break;
           default:
             setError('You do not have access to this system.');
@@ -136,7 +136,7 @@ const Login = () => {
                     <Divider />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography component={Link} to="/pages/register/register3" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                    <Typography component={Link} to="/register" variant="subtitle1" sx={{ textDecoration: 'none' }}>
                       Don&apos;t have an account?
                     </Typography>
                   </Grid>

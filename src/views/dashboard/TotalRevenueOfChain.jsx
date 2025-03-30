@@ -18,7 +18,7 @@ import { gridSpacing } from 'store/constant';
 // chart data
 import baseChartData from './chart-data/total-growth-bar-chart';
 
-const TotalGrowthBarChart = ({ isLoading, storeId }) => {
+const TotalRevenueOfChain = ({ isLoading }) => {
   const theme = useTheme();
   const [chartData, setChartData] = useState(baseChartData);
   const [totals, setTotals] = useState({
@@ -28,15 +28,13 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
   });
 
   const fetchData = async () => {
-    if (!storeId) return;
-
     try {
       const [revenueResponse, lossResponse] = await Promise.all([
         axios.get(
-          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenueByStoreId?storeId=${storeId}`
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetRevenue`
         ),
         axios.get(
-          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetLossByStoreId?storeId=${storeId}`
+          `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Revenue/GetLoss`
         )
       ]);
       
@@ -114,12 +112,12 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
 
   useEffect(() => {
     fetchData();
-  }, [storeId]);
+  }, []);
 
   return (
     <>
       {isLoading ? (
-        <SkeletonTotalGrowthBarChart />
+        <SkeletonTotalRevenueOfChain />
       ) : (
         <MainCard>
           <Grid container spacing={gridSpacing}>
@@ -173,14 +171,12 @@ const TotalGrowthBarChart = ({ isLoading, storeId }) => {
   );
 };
 
-TotalGrowthBarChart.propTypes = {
-  isLoading: PropTypes.bool,
-  storeId: PropTypes.string
+TotalRevenueOfChain.propTypes = {
+  isLoading: PropTypes.bool
 };
 
-TotalGrowthBarChart.defaultProps = {
-  isLoading: false,
-  storeId: ''
+TotalRevenueOfChain.defaultProps = {
+  isLoading: false
 };
 
-export default TotalGrowthBarChart;
+export default TotalRevenueOfChain;

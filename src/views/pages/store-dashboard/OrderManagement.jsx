@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { HubConnectionBuilder, HttpTransportType } from "@microsoft/signalr";
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
-import ChatModal from "chat/ChatModal";
 import {
     Box,
-    Button,
     Table,
     TableBody,
     TableCell,
@@ -13,25 +10,73 @@ import {
     TableHead,
     TableRow,
     Paper,
-    Typography,
+    Button,
     Select,
     MenuItem,
     Dialog,
     DialogTitle,
     DialogContent,
     DialogActions,
+    Typography,
+    CircularProgress,
+    Grid,
     Card,
     CardContent,
     CardMedia,
-    CircularProgress,
-    Grid,
     Stack,
     Chip,
     Avatar,
-    TextField,
-    Checkbox,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
+
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'Order Successfully':
+            return '#d1fae5'; // Xanh nhạt (bg-green-200)
+        case 'Arranging & Packing':
+            return '#fbcfe8'; // Hồng nhạt (bg-pink-200)
+        case 'Awaiting Design Approval':
+            return '#fef9c3'; // Vàng nhạt (bg-yellow-200)
+        case 'Flower Completed':
+            return '#fed7aa'; // Cam nhạt (bg-orange-200)
+        case 'Received':
+            return '#bfdbfe'; // Xanh dương nhạt (bg-blue-200)
+
+        case 'Request refund':
+            return '#fbcfe8';
+        case 'Accept refund':
+            return '#d1fae5';
+        case 'Refuse refund':
+            return 'red';
+        default:
+            return '#e5e7eb'; // Xám nhạt (bg-gray-200)
+    }
+};
+
+const getStatusColorText = (status) => {
+    switch (status) {
+        case 'Order Successfully':
+            return 'text-green-800'; // Xanh đậm
+        case 'Arranging & Packing':
+            return 'text-pink-800'; // Hồng đậm
+        case 'Awaiting Design Approval':
+            return 'text-yellow-800'; // Vàng đậm
+        case 'Flower Completed':
+            return 'text-orange-800'; // Cam đậm
+        case 'Received':
+            return 'text-blue-800'; // Xanh dương đậm
+        case 'Processing':
+            return 'text-orange-900';
+        case 'Request refund':
+            return 'text-pink-800';
+        case 'Accept refund':
+            return 'text-green-800';
+        case 'Refuse refund':
+            return 'text-green-800';// Cam đậm hơn
+        default:
+            return 'text-gray-800'; // Xám đậm
+    }
+};
 
 const formatDateTime = (dateTimeStr) => {
     return new Date(dateTimeStr).toLocaleString();
@@ -40,6 +85,39 @@ const formatDateTime = (dateTimeStr) => {
 const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
+
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+    '& .MuiDialog-paper': {
+        borderRadius: 16,
+        padding: theme.spacing(2),
+    }
+}));
+
+const OrderInfoCard = styled(Card)(({ theme }) => ({
+    background: 'linear-gradient(135deg, #f6f8fd 0%, #ffffff 100%)',
+    borderRadius: 12,
+    boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
+    marginBottom: theme.spacing(3),
+}));
+
+const DetailSection = styled(Box)(({ theme }) => ({
+    padding: theme.spacing(2),
+    background: '#ffffff',
+    borderRadius: 8,
+    boxShadow: '0 2px 8px 0 rgba(0,0,0,0.05)',
+    marginBottom: theme.spacing(2),
+}));
+
+const ImageContainer = styled(Box)(({ theme }) => ({
+    position: 'relative',
+    '& img': {
+        borderRadius: 8,
+        transition: 'transform 0.3s ease',
+        '&:hover': {
+            transform: 'scale(1.05)',
+        },
+    },
+}));
 
 const OrderSection = styled(Box)(({ theme }) => ({
     padding: theme.spacing(3),
@@ -69,93 +147,25 @@ const InfoRow = styled(Box)(({ theme }) => ({
     }
 }));
 
-const TaskManagement = () => {
-    const [tasks, setTasks] = useState([]);
+const OrderManagement = () => {
+    const [orders, setOrders] = useState([]);
+    const [refundOrders, setRefundOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filteredStatus, setFilteredStatus] = useState("");
-    const [openDialog, setOpenDialog] = useState(false);
-    const [selectedTask, setSelectedTask] = useState(null);
+    const [filterStatus, setFilterStatus] = useState('All');
+    const [selectedOrder, setSelectedOrder] = useState(null);
     const [detailedOrder, setDetailedOrder] = useState(null);
-    const [shippers, setShippers] = useState([]);
-    const [selectedShipper, setSelectedShipper] = useState('');
-    const [pickupLocation, setPickupLocation] = useState('');
-    const [note, setNote] = useState('');
-    const [freeShip, setFreeShip] = useState(true);
-    const [fee, setFee] = useState(0);
-    const [assigningDelivery, setAssigningDelivery] = useState(false);
-    const [isChatModalOpen, setIsChatModalOpen] = useState(false);
-    const [hasNewMessage, setHasNewMessage] = useState(false);
-    const [connection, setConnection] = useState(null);
 
-    // Thiết lập kết nối SignalR
-    useEffect(() => {
-        const newConnection = new HubConnectionBuilder()
-            .withUrl(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/chatHub`, {
-                skipNegotiation: true, // ⚡ Bắt buộc nếu chỉ dùng WebSockets
-                transport: HttpTransportType.WebSockets,
-            })
-            .withAutomaticReconnect()
-            .build();
+    const [staffList, setStaffList] = useState([]);
+    const [selectedStaff, setSelectedStaff] = useState('');
+    const [updatingStaff, setUpdatingStaff] = useState(false);
 
-        const startConnection = async () => {
-            try {
-                await newConnection.start();
-                console.log("✅ SignalR Connected!");
-                setConnection(newConnection);
-            } catch (error) {
-                console.error("❌ SignalR Connection Error:", error);
-            }
-        };
-
-        startConnection();
-
-        newConnection.onclose(() => console.log("⚠️ SignalR connection closed."));
-        newConnection.onreconnecting(() => console.log("🔄 SignalR reconnecting..."));
-        newConnection.onreconnected(() => console.log("✅ SignalR reconnected."));
-
-        return () => {
-            if (newConnection.state === "Connected") {
-                newConnection.stop().then(() => console.log("🔌 SignalR Disconnected."));
-            }
-        };
-    }, []);
-
-    // Lắng nghe tin nhắn mới
-    useEffect(() => {
-        if (!connection) return;
-
-        connection.on('ReceiveMessage', (message) => {
-            console.log("Received message:", message);
-            console.log("Message Sender ID:", message.senderId);
-            console.log("Selected Task Customer ID:", selectedTask?.customerId);
-
-            // Kiểm tra nếu tin nhắn mới là từ customerId
-            if (message.senderId === selectedTask?.customerId) {
-                console.log("New message from customer:", message);
-                setHasNewMessage(true); // Cập nhật trạng thái có tin nhắn mới
-            }
-        });
-
-        return () => {
-            connection.off('ReceiveMessage');
-        };
-    }, [connection, selectedTask]);
-
-    const handleOpenChatDialog = (task) => {
-        console.log("Opening chat for task:", task);
-        setSelectedTask(task);
-        setIsChatModalOpen(true);
-        setHasNewMessage(false); // Reset trạng thái chấm xanh khi mở chat
-    };
-
-    const handleCloseChatDialog = () => {
-        setIsChatModalOpen(false);
-        setSelectedTask(null);
-        setHasNewMessage(false); // Reset trạng thái chấm xanh khi đóng chat
-    };
+    const [feedbackData, setFeedbackData] = useState(null);
+    const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
+    const [replyText, setReplyText] = useState('');
+    const [hasReplied, setHasReplied] = useState(false);
 
     useEffect(() => {
-        const fetchTasks = async () => {
+        const fetchOrders = async () => {
             try {
                 const token = localStorage.getItem('accessToken');
                 if (!token) {
@@ -163,53 +173,72 @@ const TaskManagement = () => {
                     return;
                 }
                 const decodedToken = jwtDecode(token);
-                const staffId = decodedToken.Id;
+                const storeId = decodedToken.StoreId;
 
                 const response = await axios.get(
-                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByStaffId?StaffId=${staffId}`,
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByStore?StoreId=${storeId}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
                     }
                 );
-                setTasks(response.data.data);
+                console.log('API Response:', response.data);
+                setOrders(response.data.data);
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching tasks:', error);
+                console.error('Error fetching orders:', error);
                 setLoading(false);
             }
         };
 
-        fetchTasks();
+
+        fetchOrders();
+
+        const fetchRefundOrders = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+                const decodedToken = jwtDecode(token);
+                const storeId = decodedToken.StoreId;
+
+                const response = await axios.get(
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStore?StoreId=${storeId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                console.log('Refund Orders API Response:', response.data);
+                setRefundOrders(response.data.data);
+            } catch (error) {
+                console.error('Error fetching refund orders:', error);
+            }
+        };
+
+
+        fetchRefundOrders();
     }, []);
 
-    const handleStatusChange = async (orderId, newStatus) => {
+
+    const fetchStaffList = async (orderId) => {
         try {
             const token = localStorage.getItem('accessToken');
-            const encodedStatus = encodeURIComponent(newStatus);
-            await axios.put(
-                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateStatusOrderByStaffId?orderId=${orderId}&Status=${encodedStatus}`,
-                null,
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetStaffByOrderId?OrderId=${orderId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 }
             );
-
-            // Refresh the tasks list
-            const updatedTasks = tasks.map(task =>
-                task.orderId === orderId ? { ...task, status: newStatus } : task
-            );
-            setTasks(updatedTasks);
-
-            // If the dialog is open and showing this order, update its status
-            if (detailedOrder && detailedOrder.orderId === orderId) {
-                setDetailedOrder(prev => ({ ...prev, status: newStatus }));
-            }
+            setStaffList(response.data.data);
         } catch (error) {
-            console.error('Error updating status:', error);
+            console.error('Error fetching staff list:', error);
         }
     };
 
@@ -229,22 +258,15 @@ const TaskManagement = () => {
             console.error('Error fetching shippers:', error);
         }
     };
+    const handleAssignStaff = async () => {
+        if (!selectedStaff || !detailedOrder) return;
 
-    const handleAssignShipper = async () => {
-        if (!selectedShipper || !detailedOrder) return;
-
-        setAssigningDelivery(true);
+        setUpdatingStaff(true);
         try {
             const token = localStorage.getItem('accessToken');
-            const response = await axios.post(
-                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/CreateDelivery?OrderId=${detailedOrder.orderId}`,
-                {
-                    freeShip,
-                    fee,
-                    pickupLocation,
-                    shipperId: selectedShipper,
-                    note,
-                },
+            await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateOrderByStoreId?orderId=${detailedOrder.orderId}&StaffId=${selectedStaff}`,
+                {},
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -253,7 +275,7 @@ const TaskManagement = () => {
             );
 
             // Refresh order details
-            const updatedOrderResponse = await axios.get(
+            const response = await axios.get(
                 `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${detailedOrder.orderId}`,
                 {
                     headers: {
@@ -261,24 +283,23 @@ const TaskManagement = () => {
                     }
                 }
             );
-            setDetailedOrder(updatedOrderResponse.data.data);
-            setSelectedShipper('');
-            setPickupLocation('');
-            setNote('');
-            setFreeShip(true);
-            setFee(0);
+            setDetailedOrder(response.data.data);
+            setSelectedStaff('');
+
+            // Refresh orders list
+            fetchOrders();
         } catch (error) {
-            console.error('Error assigning delivery:', error);
+            console.error('Error assigning staff:', error);
         } finally {
-            setAssigningDelivery(false);
+            setUpdatingStaff(false);
         }
     };
 
-    const handleOpenDialog = async (task) => {
+    const handleViewDetails = async (order) => {
         try {
             const token = localStorage.getItem('accessToken');
             const response = await axios.get(
-                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${task.orderId}`,
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByOrderId?OrderId=${order.orderId}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
@@ -286,41 +307,87 @@ const TaskManagement = () => {
                 }
             );
             setDetailedOrder(response.data.data);
-            setSelectedTask(task);
-            setOpenDialog(true);
+            setSelectedOrder(order);
 
-            // Fetch shippers if delivery is true
-            if (task.delivery) {
-                fetchShippers(task.orderId);
-                // Fetch delivery details
-                const deliveryResponse = await axios.get(
-                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/GetDeliveryByOrderId?OrderId=${task.orderId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-                // Set delivery details to detailedOrder
-                setDetailedOrder(prev => ({
-                    ...prev,
-                    deliveryDetails: deliveryResponse.data.data // Thêm thông tin giao hàng vào detailedOrder
-                }));
+            // Fetch staff list if no staff is assigned
+            if (!response.data.data.staffId) {
+                fetchStaffList(order.orderId);
+            }
+
+            // Fetch delivery details if the order status is "Delivery"
+            if (response.data.data.status === "Delivery") {
+                fetchDeliveryDetails(order.orderId);
             }
         } catch (error) {
             console.error('Error fetching order details:', error);
         }
     };
+    const handleFeedback = async (orderId) => {
+        try {
+            // Fetch the feedback details for the order
+            const feedbackResponse = await fetch(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/GetFeedBackByOrderId?OrderId=${orderId}`);
+            const feedbackData = await feedbackResponse.json();
 
-    const handleCloseDialog = () => {
-        setOpenDialog(false);
-        setSelectedTask(null);
-        setDetailedOrder(null);
+            if (feedbackResponse.status === 200) {
+                // Assuming you have a state to hold feedback data
+                setFeedbackData(feedbackData); // Set feedback data
+                setIsFeedbackModalVisible(true); // Show feedback details modal
+            } else {
+                message.error('Failed to load feedback');
+            }
+        } catch (error) {
+            console.error('Error handling feedback:', error);
+            message.error('Failed to process feedback');
+        }
+    };
+    const fetchDeliveryDetails = async (orderId) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Delivery/GetDeliveryByOrderId?OrderId=${orderId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.data.data) {
+                setDetailedOrder(prev => ({
+                    ...prev,
+                    deliveryDetails: response.data.data
+                }));
+            } else {
+                console.error('No delivery details found in response');
+            }
+        } catch (error) {
+            console.error('Error fetching delivery details:', error);
+        }
     };
 
-    const filteredTasks = filteredStatus
-        ? tasks.filter((task) => task.status === filteredStatus)
-        : tasks;
+    const filteredOrders =
+        filterStatus === 'All'
+            ? orders
+            : orders.filter((order) => order.status === filterStatus);
+
+    const getOrderItems = (order) => {
+        if (order.productCustomResponse) {
+            return [
+                {
+                    name: order.productCustomResponse.productName,
+                    quantity: order.productCustomResponse.quantity,
+                    price: order.orderPrice
+                }
+            ];
+        } else if (order.orderDetails) {
+            return order.orderDetails.map(detail => ({
+                name: detail.productName,
+                quantity: detail.quantity,
+                price: detail.productTotalPrice
+            }));
+        }
+        return [];
+    };
 
     const renderCustomOrderDetails = (order) => {
         const customProduct = order.productCustomResponse;
@@ -367,15 +434,17 @@ const TaskManagement = () => {
                 <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
                     <Grid container>
                         <Grid item xs={12} md={4}>
-                            <CardMedia
-                                component="img"
-                                image={customProduct.flowerBasketResponse.image}
-                                alt={customProduct.flowerBasketResponse.flowerBasketName}
-                                sx={{ height: 250, objectFit: 'cover' }}
-                            />
+                            <ImageContainer>
+                                <CardMedia
+                                    component="img"
+                                    image={customProduct.flowerBasketResponse.image}
+                                    alt={customProduct.flowerBasketResponse.flowerBasketName}
+                                    sx={{ height: 250, objectFit: 'cover' }}
+                                />
+                            </ImageContainer>
                         </Grid>
                         <Grid item xs={12} md={8}>
-                            <CardContent>
+                            <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                                 <Typography variant="h6" gutterBottom color="primary">
                                     Flower Basket Details
                                 </Typography>
@@ -410,12 +479,14 @@ const TaskManagement = () => {
                 <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
                     <Grid container>
                         <Grid item xs={12} md={4}>
-                            <CardMedia
-                                component="img"
-                                image={customProduct.styleResponse.image}
-                                alt={customProduct.styleResponse.name}
-                                sx={{ height: 250, objectFit: 'cover' }}
-                            />
+                            <ImageContainer>
+                                <CardMedia
+                                    component="img"
+                                    image={customProduct.styleResponse.image}
+                                    alt={customProduct.styleResponse.name}
+                                    sx={{ height: 250, objectFit: 'cover' }}
+                                />
+                            </ImageContainer>
                         </Grid>
                         <Grid item xs={12} md={8}>
                             <CardContent>
@@ -451,12 +522,14 @@ const TaskManagement = () => {
                 <Card sx={{ mb: 3, borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
                     <Grid container>
                         <Grid item xs={12} md={4}>
-                            <CardMedia
-                                component="img"
-                                image={customProduct.accessoryResponse.image}
-                                alt={customProduct.accessoryResponse.name}
-                                sx={{ height: 250, objectFit: 'cover' }}
-                            />
+                            <ImageContainer>
+                                <CardMedia
+                                    component="img"
+                                    image={customProduct.accessoryResponse.image}
+                                    alt={customProduct.accessoryResponse.name}
+                                    sx={{ height: 250, objectFit: 'cover' }}
+                                />
+                            </ImageContainer>
                         </Grid>
                         <Grid item xs={12} md={8}>
                             <CardContent>
@@ -514,6 +587,7 @@ const TaskManagement = () => {
                                     {customProduct.flowerCustomResponses.map((flower) => (
                                         <TableRow key={flower.flowerCustomId} hover>
                                             <TableCell>{flower.flowerResponse.flowerId}</TableCell>
+
                                             <TableCell>
                                                 <Avatar
                                                     src={flower.flowerResponse.image}
@@ -551,151 +625,177 @@ const TaskManagement = () => {
 
     const renderRegularOrderDetails = (order) => {
         return (
-            <Box sx={{ mt: 2 }}>
-                <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
-                    <CardContent>
-                        <Typography variant="h6" gutterBottom color="primary" sx={{ borderBottom: '2px solid #FFE7EF', pb: 1 }}>
-                            Product List
-                        </Typography>
-                        <TableContainer>
-                            <Table size="small">
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Product ID</TableCell>
-                                        <TableCell>Image</TableCell>
-                                        <TableCell>Product Name</TableCell>
-                                        <TableCell align="right">Quantity</TableCell>
-                                        <TableCell align="right">Price</TableCell>
-                                        <TableCell align="right">Discount</TableCell>
-                                        <TableCell align="right">Total</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {order.orderDetails.map((detail) => (
-                                        <TableRow key={detail.orderDetailId} hover>
-                                            <TableCell>{detail.productId}</TableCell>
-                                            <TableCell>
-                                                <Avatar
-                                                    src={detail.productImage}
-                                                    alt={detail.productName}
-                                                    variant="rounded"
-                                                    sx={{ width: 50, height: 50 }}
-                                                />
-                                            </TableCell>
-                                            <TableCell>{detail.productName}</TableCell>
-                                            <TableCell align="right">{detail.quantity}</TableCell>
-                                            <TableCell align="right">{formatPrice(detail.price)}</TableCell>
-                                            <TableCell align="right">{detail.discount}%</TableCell>
-                                            <TableCell align="right">
-                                                <Typography color="primary" fontWeight="medium">
-                                                    {formatPrice(detail.productTotalPrice)}
-                                                </Typography>
-                                            </TableCell>
-
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </CardContent>
-                </Card>
-            </Box>
+            <TableContainer component={Paper}>
+                <Table size="small">
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Product ID</TableCell>
+                            <TableCell>Product Name</TableCell>
+                            <TableCell>Image</TableCell>
+                            <TableCell align="right">Quantity</TableCell>
+                            <TableCell align="right">Price</TableCell>
+                            <TableCell align="right">Discount</TableCell>
+                            <TableCell align="right">Total</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {order.orderDetails.map((detail) => (
+                            <TableRow key={detail.orderDetailId}>
+                                <TableCell>{detail.productId}</TableCell>
+                                <TableCell>{detail.productName}</TableCell>
+                                <TableCell>
+                                    <img
+                                        src={detail.productImage}
+                                        alt={detail.productName}
+                                        style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                                    />
+                                </TableCell>
+                                <TableCell align="right">{detail.quantity}</TableCell>
+                                <TableCell align="right">{formatPrice(detail.price)}</TableCell>
+                                <TableCell align="right">{detail.discount}%</TableCell>
+                                <TableCell align="right">{formatPrice(detail.productTotalPrice)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         );
     };
 
-    const renderStatusChange = (task) => {
-        if (task.status !== "Delivery") {
-            return (
-                <Select
-                    size="small"
-                    value=""
-                    onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
-                    sx={{ minWidth: 150 }}
-                    displayEmpty
-                >
-                    <MenuItem value="" disabled>Change Status</MenuItem>
-                    <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
-                    <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                    <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                    <MenuItem value="Received">6️⃣ Received</MenuItem>
-                </Select>
+    const handleReply = async () => {
+        if (!replyText) return;
+
+        try {
+            const feedbackId = feedbackData.feedbackId;
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/UpdateFeedBackByStoreId?feedbackId=${feedbackId}`,
+                {
+                    responseFeedBackStore: replyText
+                }
             );
+
+            if (response.status === 200) {
+                setHasReplied(true);
+                setReplyText('');
+                message.success('Reply sent successfully!');
+            } else {
+                message.error('Failed to send reply');
+            }
+        } catch (error) {
+            console.error('Error sending reply:', error);
+            message.error('Failed to send reply');
         }
-        return null;
+    };
+
+    const handleUpdateStatus = async (orderId, status) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/feedback/UpdateStatusFeedback?OrderId=${orderId}&status=${status}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (response.status === 200) {
+                message.success('Status updated successfully!');
+                // Optionally refresh the orders or feedback data here
+                fetchOrders(); // Refresh orders if needed
+            } else {
+                message.error('Failed to update status');
+            }
+        } catch (error) {
+            console.error('Error updating status:', error);
+            message.error('Failed to update status');
+        }
     };
 
     return (
         <Box sx={{ p: 4 }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h3">Florist Task Management</Typography>
+                <Typography variant="h3">Order Management</Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
                         label="All"
-                        color={filteredStatus === "" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("")}
+                        color={filterStatus === "All" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("All")}
                         sx={{
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="1️⃣ Order Successfully"
+                        color={filterStatus === "Order Successfully" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Order Successfully")}
+                        sx={{
+                            bgcolor: filterStatus === "Order Successfully" ? undefined : '#d1fae5',
+                            color: filterStatus === "Order Successfully" ? undefined : '#065f46',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
                     <Chip
                         label="2️⃣ Arranging & Packing"
-                        color={filteredStatus === "Arranging & Packing" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("Arranging & Packing")}
+                        color={filterStatus === "Arranging & Packing" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Arranging & Packing")}
                         sx={{
-                            bgcolor: filteredStatus === "Arranging & Packing" ? undefined : '#fbcfe8',
-                            color: filteredStatus === "Arranging & Packing" ? undefined : '#9d174d',
+                            bgcolor: filterStatus === "Arranging & Packing" ? undefined : '#fbcfe8',
+                            color: filterStatus === "Arranging & Packing" ? undefined : '#9d174d',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
                     <Chip
-                        label="4️⃣ Awaiting Design Approval"
-                        color={filteredStatus === "Awaiting Design Approval" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("Awaiting Design Approval")}
+                        label="3️⃣ Awaiting Design Approval"
+                        color={filterStatus === "Awaiting Design Approval" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Awaiting Design Approval")}
                         sx={{
-                            bgcolor: filteredStatus === "Awaiting Design Approval" ? undefined : '#fef9c3',
-                            color: filteredStatus === "Awaiting Design Approval" ? undefined : '#854d0e',
+                            bgcolor: filterStatus === "Awaiting Design Approval" ? undefined : '#fef9c3',
+                            color: filterStatus === "Awaiting Design Approval" ? undefined : '#854d0e',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
                     <Chip
-                        label="5️⃣ Flower Completed"
-                        color={filteredStatus === "Flower Completed" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("Flower Completed")}
+                        label="4️⃣ Flower Completed"
+                        color={filterStatus === "Flower Completed" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Flower Completed")}
                         sx={{
-                            bgcolor: filteredStatus === "Flower Completed" ? undefined : '#fed7aa',
-                            color: filteredStatus === "Flower Completed" ? undefined : '#9a3412',
+                            bgcolor: filterStatus === "Flower Completed" ? undefined : '#fed7aa',
+                            color: filterStatus === "Flower Completed" ? undefined : '#9a3412',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
                     <Chip
                         label="5️⃣ Delivery"
-                        color={filteredStatus === "Delivery" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("Delivery")}
+                        color={filterStatus === "Delivery" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Delivery")}
                         sx={{
-                            bgcolor: filteredStatus === "Delivery" ? undefined : '#d8b4fe', // Màu nền tím nhạt
-                            color: filteredStatus === "Delivery" ? undefined : '#6b21a8', // Màu chữ tím đậm
+                            bgcolor: filterStatus === "Delivery" ? undefined : '#d8b4fe', // Màu nền tím nhạt
+                            color: filterStatus === "Delivery" ? undefined : '#6b21a8', // Màu chữ tím đậm
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
+
                     <Chip
                         label="6️⃣ Received"
-                        color={filteredStatus === "Received" ? "primary" : "default"}
-                        onClick={() => setFilteredStatus("Received")}
+                        color={filterStatus === "Received" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Received")}
                         sx={{
-                            bgcolor: filteredStatus === "Received" ? undefined : '#bfdbfe',
-                            color: filteredStatus === "Received" ? undefined : '#1e40af',
+                            bgcolor: filterStatus === "Received" ? undefined : '#bfdbfe',
+                            color: filterStatus === "Received" ? undefined : '#1e40af',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
                 </Box>
             </Box>
-
             {loading ? (
                 <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                     <CircularProgress />
@@ -709,77 +809,51 @@ const TaskManagement = () => {
                                 <TableCell>Details</TableCell>
                                 <TableCell>Order Price</TableCell>
                                 <TableCell>Payment</TableCell>
-                                <TableCell>Delivery</TableCell>
                                 <TableCell>Create Time</TableCell>
-                                <TableCell>RecipientTime</TableCell>
+                                <TableCell>Recipient Time</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {filteredTasks.map((task) => (
-                                <TableRow key={task.orderId}>
-                                    <TableCell>{task.orderId}</TableCell>
+                            {filteredOrders.map((order) => (
+                                <TableRow key={order.orderId}>
+                                    <TableCell>{order.orderId}</TableCell>
+                                    <TableCell>{order.productCustomResponse ? [order.productCustomResponse.productName] : order.orderDetails.map(detail => detail.productName)}</TableCell>
+                                    <TableCell>{formatPrice(order.orderPrice)}</TableCell>
+                                    <TableCell>{order.transfer ? "100% transfer" : "50% deposit"}</TableCell>
+                                    <TableCell>{order.createAt}</TableCell>
+                                    <TableCell>{formatDateTime(order.deliveryDateTime)}</TableCell>
                                     <TableCell>
-                                        {task.productCustomResponse ?
-                                            task.productCustomResponse.productName :
-                                            task.orderDetails.map(detail => detail.productName).join(", ")}
-                                    </TableCell>
-                                    <TableCell>{formatPrice(task.orderPrice)}</TableCell>
-                                    <TableCell>{task.transfer ? "100% transfer" : "50% deposit"}</TableCell>
-                                    <TableCell>{task.delivery ? "Shipping" : "Pickup"}</TableCell>
-                                    <TableCell>{task.createAt}</TableCell>
-                                    <TableCell>{formatDateTime(task.deliveryDateTime)}</TableCell>
-                                    <TableCell>
-                                        <Stack direction="row" spacing={1}>
-                                            <Chip
-                                                label={task.status}
-                                                sx={{
-                                                    bgcolor: task.status === "Arranging & Packing" ? '#fbcfe8' :
-                                                        task.status === "Awaiting Design Approval" ? '#fef9c3' :
-                                                            task.status === "Flower Completed" ? '#fed7aa' :
-                                                                task.status === "Delivery" ? '#d8b4fe' :
-                                                                    task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
-                                                    color: task.status === "Arranging & Packing" ? '#9d174d' :
-                                                        task.status === "Awaiting Design Approval" ? '#854d0e' :
-                                                            task.status === "Flower Completed" ? '#9a3412' :
-                                                                task.status === "Delivery" ? '#1e40af' :
-                                                                    task.status === "Received" ? '#1e40af' : '#374151',
-                                                    fontWeight: 500,
-                                                    '& .MuiChip-label': { px: 2 }
-                                                }}
-                                            />
-                                            {renderStatusChange(task)}
-                                        </Stack>
+                                        <Chip
+                                            label={order.status}
+                                            sx={{
+                                                bgcolor: getStatusColor(order.status),
+                                                color: getStatusColorText(order.status),
+                                                fontWeight: 500,
+                                                '& .MuiChip-label': { px: 2 }
+                                            }}
+                                        />
                                     </TableCell>
                                     <TableCell>
-                                        <Button variant="outlined" onClick={() => handleOpenDialog(task)}>
+                                        <Button variant="outlined" onClick={() => handleViewDetails(order)}>
                                             View Details
                                         </Button>
-                                        <Button
-                                            onClick={() => handleOpenChatDialog({
-                                                orderId: task.orderId,
-                                                customerId: task.customerId,
-                                                employeeId: task.staffId
-                                            })}
-                                            style={{ position: 'relative' }}
-                                        >
-                                            Chat
-                                            {hasNewMessage && (
-                                                <div
-                                                    style={{
-                                                        position: 'absolute',
-                                                        top: 0,
-                                                        right: 0,
-                                                        width: '10px',
-                                                        height: '10px',
-                                                        backgroundColor: 'green',
-                                                        borderRadius: '50%',
-                                                    }}
-                                                />
-                                            )}
-                                        </Button>
-
+                                        {(order.status === "Received" || order.status === "Request refund" || order.status === "Accept refund" || order.status === "Refuse refund") && (
+                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ ml: 1 }}>
+                                                Feedback
+                                            </Button>
+                                        )}
+                                        {order.status === "Request refund" && (
+                                            <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')} sx={{ ml: 1 }}>
+                                                Accept Refund
+                                            </Button>
+                                        )}
+                                        {order.status === "Request refund" && (
+                                            <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')} sx={{ ml: 1 }}>
+                                                Refuse Refund
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -788,7 +862,85 @@ const TaskManagement = () => {
                 </TableContainer>
             )}
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
+            <Box mt={4}>
+                <Typography variant="h3">Refund Order Manager</Typography>
+                {loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Order ID</TableCell>
+                                    <TableCell>Order Price</TableCell>
+                                    <TableCell>Customer ID</TableCell>
+                                    <TableCell>Phone</TableCell>
+                                    <TableCell>Create Time</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {refundOrders.map((order) => (
+                                    <TableRow key={order.orderId}>
+                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>{formatPrice(order.orderPrice)}</TableCell>
+                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.phone}</TableCell>
+                                        <TableCell>{formatDateTime(order.createAt)}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={order.status}
+                                                sx={{
+                                                    bgcolor: getStatusColor(order.status),
+                                                    color: getStatusColorText(order.status),
+                                                    fontWeight: 500,
+                                                    '& .MuiChip-label': { px: 2 }
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button variant="outlined" onClick={() => handleViewDetails(order)}>
+                                                View Details
+                                            </Button>
+                                            {/* {(order.status === "Received" || order.status === "Request refund" || order.status === "Accept refund" || order.status === "Refuse refund") && (
+                                                <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ ml: 1 }}>
+                                                    Feedback
+                                                </Button>
+                                            )} */}
+                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ mr: 1 }}>
+                                                Feedback
+                                            </Button>
+                                            {order.status === "Request refund" && (
+                                                <>
+                                                    <Button variant="contained" color="success" onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')} sx={{ mr: 1 }}>
+                                                        Accept Refund
+                                                    </Button>
+                                                    <Button variant="contained" color="error" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')}>
+                                                        Refuse Refund
+                                                    </Button>
+                                                </>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </Box>
+
+            <StyledDialog
+                open={!!selectedOrder}
+                onClose={() => {
+                    setSelectedOrder(null);
+                    setDetailedOrder(null);
+                }}
+                maxWidth="lg"
+                fullWidth
+            >
                 <DialogTitle sx={{
                     fontSize: '1.5rem',
                     fontWeight: 'bold',
@@ -817,33 +969,15 @@ const TaskManagement = () => {
                                                 </Typography>
                                             </Box>
                                             <Box sx={{ textAlign: 'right' }}>
-                                                <Stack spacing={1} alignItems="flex-end">
-                                                    <Chip
-                                                        label={detailedOrder.status}
-                                                        color={detailedOrder.status === 'Flower Completed' ? 'success' :
-                                                            detailedOrder.status === 'Received' ? 'info' : 'warning'}
-                                                        sx={{ mb: 1 }}
-                                                    />
-                                                    <Select
-                                                        size="small"
-                                                        value=""
-                                                        onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
-                                                        sx={{
-                                                            minWidth: 200,
-                                                            mb: 1,
-                                                            '& .MuiSelect-select': { py: 1 }
-                                                        }}
-                                                        displayEmpty
-                                                    >
-                                                        <MenuItem value="" disabled>Change Status</MenuItem>
-                                                        <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                                                        <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                        <MenuItem value="Received">6️⃣ Received</MenuItem>
-                                                    </Select>
-                                                    <Typography variant="h5" color="primary">
-                                                        {formatPrice(detailedOrder.orderPrice)}
-                                                    </Typography>
-                                                </Stack>
+                                                <Chip
+                                                    label={detailedOrder.status}
+                                                    color={detailedOrder.status === 'Order Successfully' ? 'success' :
+                                                        detailedOrder.status === 'Failed' ? 'error' : 'warning'}
+                                                    sx={{ mb: 1 }}
+                                                />
+                                                <Typography variant="h5" color="primary">
+                                                    {formatPrice(detailedOrder.orderPrice)}
+                                                </Typography>
                                             </Box>
                                         </Box>
 
@@ -913,56 +1047,84 @@ const TaskManagement = () => {
                                         </Grid>
                                     </OrderSection>
                                 </Grid>
+
+                                {/* Staff Information or Staff Selection */}
+                                <Grid item xs={12}>
+                                    <OrderSection>
+                                        <Typography variant="h6" className="section-title">
+                                            {detailedOrder.staffId ? 'Staff Information' : 'Assign Staff'}
+                                        </Typography>
+                                        {detailedOrder.staffId ? (
+                                            <Grid container spacing={4}>
+                                                <Grid item xs={12} md={6}>
+                                                    <Stack spacing={2}>
+                                                        <InfoRow>
+                                                            <Typography className="label">Staff ID</Typography>
+                                                            <Typography className="value">{detailedOrder.staffId}</Typography>
+                                                        </InfoRow>
+                                                        <InfoRow>
+                                                            <Typography className="label">Name</Typography>
+                                                            <Typography className="value">{detailedOrder.staffFullName}</Typography>
+                                                        </InfoRow>
+                                                    </Stack>
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Stack spacing={2}>
+                                                        <InfoRow>
+                                                            <Typography className="label">Email</Typography>
+                                                            <Typography className="value">{detailedOrder.staffEmail}</Typography>
+                                                        </InfoRow>
+                                                        <InfoRow>
+                                                            <Typography className="label">Phone</Typography>
+                                                            <Typography className="value">{detailedOrder.staffPhone}</Typography>
+                                                        </InfoRow>
+                                                    </Stack>
+                                                </Grid>
+                                            </Grid>
+                                        ) : (
+                                            <Box>
+                                                <Grid container spacing={2} alignItems="center">
+                                                    <Grid item xs={12} md={8}>
+                                                        <Select
+                                                            fullWidth
+                                                            value={selectedStaff}
+                                                            onChange={(e) => setSelectedStaff(e.target.value)}
+                                                            displayEmpty
+                                                        >
+                                                            <MenuItem value="" disabled>Select a staff member</MenuItem>
+                                                            {staffList.map((staff) => (
+                                                                <MenuItem key={staff.employeeId} value={staff.employeeId}>
+                                                                    {staff.fullName} - {staff.email}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Select>
+                                                    </Grid>
+                                                    <Grid item xs={12} md={4}>
+                                                        <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={handleAssignStaff}
+                                                            disabled={!selectedStaff || updatingStaff}
+                                                            fullWidth
+                                                        >
+                                                            {updatingStaff ? (
+                                                                <CircularProgress size={24} color="inherit" />
+                                                            ) : (
+                                                                'Assign Staff'
+                                                            )}
+                                                        </Button>
+                                                    </Grid>
+                                                </Grid>
+                                            </Box>
+                                        )}
+                                    </OrderSection>
+                                </Grid>
                                 {/* Delivery Notes */}
+
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">Delivery Notes</Typography>
                                         <Stack spacing={2}>
-                                            {/* {detailedOrder.delivery && (
-                                                <InfoRow>
-                                                    <Typography className="label">Assign Shipper</Typography>
-                                                    <Box className="value" sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                                                        <Select
-                                                            fullWidth
-                                                            size="small"
-                                                            value={selectedShipper}
-                                                            onChange={(e) => setSelectedShipper(e.target.value)}
-                                                            displayEmpty
-                                                            sx={{ maxWidth: 300 }}
-                                                        >
-                                                            <MenuItem value="" disabled>Select a shipper</MenuItem>
-                                                            {shippers.map((shipper) => (
-                                                                <MenuItem key={shipper.employeeId} value={shipper.employeeId}>
-                                                                    {shipper.fullName} - {shipper.phone}
-                                                                </MenuItem>
-                                                            ))}
-                                                        </Select>
-                                                        <Button
-                                                            variant="contained"
-                                                            onClick={handleAssignShipper}
-                                                            disabled={!selectedShipper || assigningDelivery}
-                                                            sx={{ minWidth: 120 }}
-                                                        >
-                                                            {assigningDelivery ? (
-                                                                <CircularProgress size={24} color="inherit" />
-                                                            ) : (
-                                                                'Assign Shipper'
-                                                            )}
-                                                        </Button>
-                                                    </Box>
-                                                </InfoRow>
-                                            )} */}
-                                            {detailedOrder.shipperId && (
-                                                <InfoRow>
-                                                    <Typography className="label">Current Shipper</Typography>
-                                                    <Box className="value">
-                                                        <Typography>{detailedOrder.shipperName}</Typography>
-                                                        <Typography variant="body2" color="textSecondary">
-                                                            Phone: {detailedOrder.shipperPhone}
-                                                        </Typography>
-                                                    </Box>
-                                                </InfoRow>
-                                            )}
                                             <InfoRow>
                                                 <Typography className="label">Delivery Address</Typography>
                                                 <Typography className="value">{(detailedOrder.deliveryAddress ?? "N/A")}</Typography>
@@ -975,6 +1137,7 @@ const TaskManagement = () => {
                                                 <Typography className="label">Delivery City</Typography>
                                                 <Typography className="value">{(detailedOrder.deliveryCity ?? "N/A")}</Typography>
                                             </InfoRow>
+
                                         </Stack>
                                     </OrderSection>
                                 </Grid>
@@ -987,7 +1150,6 @@ const TaskManagement = () => {
                                         </Typography>
                                     </OrderSection>
                                 </Grid>
-
                                 {/* Payment Notes */}
                                 <Grid item xs={12}>
                                     <OrderSection>
@@ -1032,7 +1194,6 @@ const TaskManagement = () => {
                                         </Stack>
                                     </OrderSection>
                                 </Grid>
-
                                 {/* Product Details */}
                                 <Grid item xs={12}>
                                     <OrderSection>
@@ -1045,76 +1206,6 @@ const TaskManagement = () => {
                                         }
                                     </OrderSection>
                                 </Grid>
-
-                                {/* Assign Shipper Section */}
-                                <Grid item xs={12}>
-                                    <OrderSection>
-                                        <Typography variant="h6" className="section-title">Assign Shipper</Typography>
-                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery" ? (
-                                            <Stack spacing={2}>
-                                                <InfoRow>
-                                                    <Typography className="label">Select Shipper</Typography>
-                                                    <Select
-                                                        fullWidth
-                                                        size="small"
-                                                        value={selectedShipper}
-                                                        onChange={(e) => setSelectedShipper(e.target.value)}
-                                                        displayEmpty
-                                                    >
-                                                        <MenuItem value="" disabled>Select a shipper</MenuItem>
-                                                        {shippers.map((shipper) => (
-                                                            <MenuItem key={shipper.employeeId} value={shipper.employeeId}>
-                                                                {shipper.fullName} - {shipper.phone}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </InfoRow>
-                                                <InfoRow>
-                                                    <Typography className="label">Pickup Location</Typography>
-                                                    <TextField
-                                                        fullWidth
-                                                        value={pickupLocation}
-                                                        onChange={(e) => setPickupLocation(e.target.value)}
-                                                    />
-                                                </InfoRow>
-                                                <InfoRow>
-                                                    <Typography className="label">Note</Typography>
-                                                    <TextField
-                                                        fullWidth
-                                                        value={note}
-                                                        onChange={(e) => setNote(e.target.value)}
-                                                    />
-                                                </InfoRow>
-                                                <InfoRow>
-                                                    <Typography className="label">Free Shipping</Typography>
-                                                    <Checkbox
-                                                        checked={freeShip}
-                                                        onChange={(e) => setFreeShip(e.target.checked)}
-                                                    />
-                                                </InfoRow>
-                                                <InfoRow>
-                                                    <Typography className="label">Fee</Typography>
-                                                    <TextField
-                                                        type="number"
-                                                        fullWidth
-                                                        value={fee}
-                                                        onChange={(e) => setFee(Number(e.target.value))}
-                                                    />
-                                                </InfoRow>
-                                                <Button
-                                                    variant="contained"
-                                                    onClick={handleAssignShipper}
-                                                    disabled={!selectedShipper || assigningDelivery}
-                                                >
-                                                    {assigningDelivery ? <CircularProgress size={24} /> : 'Assign Shipper'}
-                                                </Button>
-                                            </Stack>
-                                        ) : (
-                                            <Typography variant="body1">This order is not eligible for assigning a shipper.</Typography>
-                                        )}
-                                    </OrderSection>
-                                </Grid>
-
                                 {/* Delivery Details */}
                                 {detailedOrder.deliveryDetails && (
                                     <Grid item xs={12}>
@@ -1130,11 +1221,11 @@ const TaskManagement = () => {
                                                     <Typography className="value">{detailedOrder.deliveryDetails.shipperName}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
-                                                    <Typography className="label">shipper Email</Typography>
+                                                    <Typography className="label">Shipper Email</Typography>
                                                     <Typography className="value">{detailedOrder.deliveryDetails.shipperEmail}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
-                                                    <Typography className="label">shipper Email</Typography>
+                                                    <Typography className="label">Shipper Phone</Typography>
                                                     <Typography className="value">{detailedOrder.deliveryDetails.shipperPhone}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
@@ -1146,20 +1237,12 @@ const TaskManagement = () => {
                                                     <Typography className="value">{detailedOrder.deliveryDetails.deliveryLocation}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
-                                                    <Typography className="label">Delivery Note</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
-                                                </InfoRow>
-                                                <InfoRow>
                                                     <Typography className="label">Delivery Time</Typography>
                                                     <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.deliveryTime)}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
-                                                    <Typography className="label">Delivery Time Done</Typography>
-                                                    <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.timeDone ?? "N/A")}</Typography>
-                                                </InfoRow>
-                                                <InfoRow>
-                                                    <Typography className="label">Delivery Image</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage ?? "N/A"}</Typography>
+                                                    <Typography className="label">Delivery Note</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
                                                 </InfoRow>
                                             </Stack>
                                         </OrderSection>
@@ -1169,30 +1252,155 @@ const TaskManagement = () => {
                         </Box>
                     )}
                 </DialogContent>
-                <DialogActions sx={{ p: 3, justifyContent: 'center' }}>
+                <DialogActions sx={{ padding: 2 }}>
                     <Button
-                        onClick={handleCloseDialog}
-                        variant="contained"
-                        color="secondary"
+                        onClick={() => setIsFeedbackModalVisible(false)}
+                        color="primary"
                         sx={{
-                            borderRadius: 2,
-                            px: 4,
-                            py: 1,
-                            boxShadow: '0 4px 12px 0 rgba(0,0,0,0.1)',
+                            background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                            color: 'white',
+                            '&:hover': {
+                                background: 'linear-gradient(45deg, #FF0080 40%, #FF8C00 100%)',
+                            }
                         }}
                     >
                         Close
                     </Button>
                 </DialogActions>
-            </Dialog>
-            {/* Render ChatModal */}
-            <ChatModal
-                isOpen={isChatModalOpen}
-                onClose={handleCloseChatDialog}
-                task={selectedTask}
-            />
+            </StyledDialog>
+
+            <StyledDialog
+                open={isFeedbackModalVisible}
+                onClose={() => setIsFeedbackModalVisible(false)}
+                maxWidth="lg"
+                fullWidth
+                sx={{
+                    borderRadius: '12px',
+                    boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
+                }}
+            >
+                <DialogTitle
+                    sx={{
+                        background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        fontSize: '1.5rem',
+                        padding: '16px',
+                        marginBottom: '16px',
+                        borderRadius: '4px 4px 0 0',
+                    }}
+                >
+                    Feedback Information
+                </DialogTitle>
+                <DialogContent sx={{ padding: 3 }}>
+                    {feedbackData && (
+                        <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                                <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
+                                    Feedback ID: {feedbackData.feedbackId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Customer ID: {feedbackData.customerId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Order ID: {feedbackData.orderId}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Feedback: {feedbackData.feedbackByCustomer}
+                                </Typography>
+                            </Grid>
+
+                            {/* Video Section */}
+                            {feedbackData.feedBackVideoByCustomer && (
+                                <Grid item xs={12}>
+                                    <Typography variant="body1" color="textSecondary">Video:</Typography>
+                                    <Box sx={{ mt: 1 }}>
+                                        <video width="100%" controls>
+                                            <source src={feedbackData.feedBackVideoByCustomer} type="video/mp4" />
+                                            <track kind="captions" srcLang="en" label="English" />
+                                            Your browser does not support HTML5 video.
+                                        </video>
+                                    </Box>
+                                </Grid>
+                            )}
+
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Request Refund: {feedbackData.requestRefundByCustomer ? 'Yes' : 'No'}
+                                </Typography>
+                            </Grid>
+
+                            {/* Display Rating with Color */}
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Rating:
+                                    <Box component="span" sx={{ color: 'gold', marginLeft: 1 }}>
+                                        {'★'.repeat(feedbackData.rating)}
+                                    </Box>
+                                </Typography>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Status: {feedbackData.status}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Created At: {formatDateTime(feedbackData.createAt)}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Update At: {formatDateTime(feedbackData.updateAt)}
+                                </Typography>
+                            </Grid>
+                            <Grid item xs={12}>
+                                <Typography variant="body1" color="textSecondary">
+                                    Reply by Store: {feedbackData.responseFeedBackStore ?? 'No reply yet'}
+                                </Typography>
+                            </Grid>
+
+                            {/* Conditional Reply Input */}
+                            {feedbackData.status === "Sent By Customer" && !hasReplied && (
+                                <Grid item xs={12}>
+                                    <Box mt={2}>
+                                        <Typography variant="body1" color="textSecondary">Reply to Customer:</Typography>
+                                        <textarea
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            rows="4"
+                                            style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+                                        />
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={handleReply}
+                                            sx={{ mt: 1, background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)', color: 'white' }}
+                                        >
+                                            Send Reply
+                                        </Button>
+                                    </Box>
+                                </Grid>
+                            )}
+                        </Grid>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setIsFeedbackModalVisible(false)} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </StyledDialog>
         </Box>
     );
 };
 
-export default TaskManagement;
+export default OrderManagement;

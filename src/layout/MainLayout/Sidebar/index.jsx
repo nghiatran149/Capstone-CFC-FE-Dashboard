@@ -78,6 +78,28 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
             borderRight: 'none',
             [theme.breakpoints.up('md')]: {
               top: '88px'
+            },
+            '& .MuiListItem-root': {
+              transition: 'all .2s ease-in-out',
+              '&:hover': {
+                background: '#ffe0f0',
+                color: theme.palette.text.primary,
+              },
+              '&.Mui-selected, &.Mui-selected:hover': {
+                background: '#ffe0f0',
+                color: theme.palette.text.primary,
+              }
+            },
+            '& .MuiListItemButton-root': {
+              transition: 'all .2s ease-in-out',
+              '&:hover': {
+                background: '#ffe0f0',
+                color: theme.palette.text.primary,
+              },
+              '&.Mui-selected, &.Mui-selected:hover': {
+                background: '#ffe0f0',
+                color: theme.palette.text.primary,
+              }
             }
           }
         }}

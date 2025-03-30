@@ -18,16 +18,13 @@ import Popper from '@mui/material/Popper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-// third-party
-import PerfectScrollbar from 'react-perfect-scrollbar';
-
 // project imports
 import MainCard from 'ui-component/cards/MainCard';
 import Transitions from 'ui-component/extended/Transitions';
 import User1 from 'assets/images/users/user-round.svg';
 
 // assets
-import { IconLogout, IconSettings } from '@tabler/icons-react';
+import { IconLogout, IconSettings, IconUser } from '@tabler/icons-react';
 
 const ProfileSection = () => {
   const theme = useTheme();
@@ -58,6 +55,11 @@ const ProfileSection = () => {
     navigate('/login');
   };
 
+  const handleProfile = () => {
+    navigate('/profile');
+    setOpen(false);
+  };
+
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -78,10 +80,13 @@ const ProfileSection = () => {
           borderRadius: '27px',
           transition: 'all .2s ease-in-out',
           borderColor: theme.palette.primary.light,
-          backgroundColor: theme.palette.primary.light,
+          backgroundColor: `#ffe0f0 !important`,
+          '& svg': {
+            stroke: '#ff54b1',
+          },
           '&[aria-controls="menu-list-grow"], &:hover': {
-            borderColor: theme.palette.primary.main,
-            background: `${theme.palette.primary.main}!important`,
+            borderColor: '#ff94cc',
+            background: `#ff94cc !important`,
             color: theme.palette.primary.light,
             '& svg': {
               stroke: theme.palette.primary.light
@@ -138,7 +143,7 @@ const ProfileSection = () => {
                 <MainCard border={false} elevation={16} content={false} boxShadow shadow={theme.shadows[16]}>
                   <Box sx={{ p: 2, pb: 0 }}>
                     <Stack>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 2 }}>
                         <Typography variant="h4">Good Morning,</Typography>
                         <Typography component="span" variant="h4" sx={{ fontWeight: 400 }}>
                           {role}
@@ -147,36 +152,67 @@ const ProfileSection = () => {
                     </Stack>
                     <Divider />
                   </Box>
-                  <PerfectScrollbar style={{ height: '100%', maxHeight: 'calc(100vh - 250px)', overflowX: 'hidden' }}>
-                    <Box sx={{ p: 2, pt: 0 }}>
-                      <List
-                        component="nav"
+                  <Box sx={{ p: 2, pt: 0, maxHeight: 'auto', overflow: 'hidden' }}>
+                    <List
+                      component="nav"
+                      sx={{
+                        width: '100%',
+                        backgroundColor: theme.palette.background.paper,
+                        borderRadius: '10px',
+                        '& .MuiListItemButton-root': {
+                          mt: 0.5
+                        }
+                      }}
+                    >
+                      <ListItemButton
                         sx={{
-                          width: '100%',
-                          maxWidth: 350,
-                          minWidth: 300,
-                          backgroundColor: theme.palette.background.paper,
-                          borderRadius: '10px',
-                          [theme.breakpoints.down('md')]: {
-                            minWidth: '100%'
-                          },
-                          '& .MuiListItemButton-root': {
-                            mt: 0.5
+                          borderRadius: `${customization.borderRadius}px`,
+                          '&:hover': {
+                            backgroundColor: '#ffe0f0',
+
                           }
                         }}
+                        onClick={handleProfile}
                       >
-                        <ListItemButton
-                          sx={{ borderRadius: `${customization.borderRadius}px` }}
-                          onClick={handleLogout}
-                        >
-                          <ListItemIcon>
-                            <IconLogout stroke={1.5} size="1.3rem" />
-                          </ListItemIcon>
-                          <ListItemText primary={<Typography variant="body2">Logout</Typography>} />
-                        </ListItemButton>
-                      </List>
-                    </Box>
-                  </PerfectScrollbar>
+                        <ListItemIcon>
+                          <IconUser stroke={1.5} size="1.3rem" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" sx={{ color: 'inherit' }}>
+                              Profile
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+
+                      <ListItemButton
+                        sx={{
+                          borderRadius: `${customization.borderRadius}px`,
+                          color: 'red',
+                          '& svg': { stroke: 'red' },
+                          '&:hover': {
+                            backgroundColor: '#ffe0f0',
+                            color: 'red',
+                            '& svg': { stroke: 'red' }
+                          }
+                        }}
+                        onClick={handleLogout}
+                      >
+                        <ListItemIcon>
+                          <IconLogout stroke={1.5} size="1.3rem" />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography variant="body2" sx={{ color: 'inherit' }}>
+                              Logout
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+
+                    </List>
+                  </Box>
                 </MainCard>
               </ClickAwayListener>
             </Paper>

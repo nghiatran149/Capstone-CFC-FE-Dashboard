@@ -1,11 +1,4 @@
-import { IconDashboard, IconUsersGroup, IconDeviceDesktopCog, IconFlower, IconGiftCard, IconCreditCardRefund, IconCategory } from '@tabler/icons-react';
-
-const icons = {
-  IconDashboard,
-  IconDeviceDesktopCog,
-  IconGiftCard,
-  IconCreditCardRefund
-};
+import { IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -13,6 +6,14 @@ const adminDashboard = {
   caption: 'Management Dashboard for Admin',
   type: 'group',
   children: [
+    {
+      id: 'chain',
+      title: 'Chain Overview',
+      type: 'item',
+      url: '/adminDashboard/chain-overview',
+      icon: IconDashboard,
+      breadcrumbs: true
+    },
     {
       id: 'store',
       title: 'Store Overview',
@@ -32,17 +33,57 @@ const adminDashboard = {
     {
       id: 'category',
       title: 'Category Management',
-      type: 'item',
-      url: '/adminDashboard/category-management',
+      type: 'collapse',
       icon: IconCategory,
-      breadcrumbs: true
+      children: [
+        {
+          id: 'category',
+          title: 'Product',
+          type: 'item',
+          url: '/adminDashboard/category-management',
+          icon: IconGift,
+          breadcrumbs: true
+        },
+        {
+          id: 'productcategory',
+          title: 'FlowerBasket',
+          type: 'item',
+          url: '/adminDashboard/flowerbasket-category-management',
+          icon: IconBasket,
+          breadcrumbs: true
+        },
+        {
+          id: 'flowercategory',
+          title: 'Flower',
+          type: 'item',
+          url: '/adminDashboard/flower-category-management',
+          icon: IconFlower,
+          breadcrumbs: true
+        },
+        {
+          id: 'stylecategory',
+          title: 'Style',
+          type: 'item',
+          url: '/adminDashboard/style-category-management',
+          icon: IconGiftCard,
+          breadcrumbs: true
+        },
+        {
+          id: 'accessorycategory',
+          title: 'Accessory',
+          type: 'item',
+          url: '/adminDashboard/accessory-category-management',
+          icon: IconDiamond,
+          breadcrumbs: true
+        }
+      ]
     },
     {
       id: 'product',
       title: 'Product Management',
       type: 'item',
       url: '/adminDashboard/product-management',
-      icon: IconFlower,
+      icon: IconGift,
       breadcrumbs: true
     },
     {
@@ -55,12 +96,52 @@ const adminDashboard = {
     },
     {
       id: 'refund',
-      title: 'Refund Management',
+      title: 'WithdrawMoney Management',
       type: 'item',
       url: '/adminDashboard/refund-management',
       icon: IconCreditCardRefund,
       breadcrumbs: true
     },
+    {
+      id: 'custom',
+      title: 'Custom Management',
+      type: 'collapse',
+      icon: IconSettings,
+      children: [
+        {
+          id: 'flowerBasket',
+          title: 'FlowerBasket',
+          type: 'item',
+          url: '/adminDashboard/flowerbasket-management',
+          icon: IconBasket,
+          breadcrumbs: true
+        },
+        {
+          id: 'flower',
+          title: 'Flower',
+          type: 'item',
+          url: '/adminDashboard/flower-management',
+          icon: IconFlower,
+          breadcrumbs: true
+        },
+        {
+          id: 'style',
+          title: 'Style',
+          type: 'item',
+          url: '/adminDashboard/style-management',
+          icon: IconGiftCard,
+          breadcrumbs: true
+        },
+        {
+          id: 'accessory',
+          title: 'Accessory',
+          type: 'item',
+          url: '/adminDashboard/accessory-management',
+          icon: IconDiamond,
+          breadcrumbs: true
+        }
+      ]
+    }
   ]
 };
 

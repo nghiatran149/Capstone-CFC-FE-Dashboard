@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Chip } from '@mui/material';
+
 import axios from 'axios';
 import { 
   Box, 
@@ -25,6 +27,7 @@ const CustomerManagement = () => {
   const [customers, setCustomers] = useState([]);
   const [openUpdateDialog, setOpenUpdateDialog] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState({ open: false, customerId: null });
+  
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [updateCustomer, setUpdateCustomer] = useState({
@@ -125,6 +128,7 @@ const CustomerManagement = () => {
           <TableHead>
             <TableRow>
               {/* <TableCell>ID</TableCell> */}
+              <TableCell>Avatar</TableCell>
               <TableCell>Full Name</TableCell>
               <TableCell>City</TableCell>
               <TableCell>District</TableCell>
@@ -134,13 +138,19 @@ const CustomerManagement = () => {
               <TableCell>Gender</TableCell>
               <TableCell>Birthday</TableCell>
               <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {customers.map((customer) => (
               <TableRow key={customer.customerId}>
                 {/* <TableCell>{customer.customerId}</TableCell> */}
+                <TableCell>
+                  <img
+                    src={customer.avatar}
+                    alt={customer.fullName}
+                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
+                  />
+                </TableCell>
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.city}</TableCell>
                 <TableCell>{customer.district}</TableCell>
@@ -149,15 +159,15 @@ const CustomerManagement = () => {
                 <TableCell>{customer.phone}</TableCell>
                 <TableCell>{customer.gender}</TableCell>
                 <TableCell>{customer.birthday ? customer.birthday.split('T')[0] : ''}</TableCell>
-                <TableCell>{customer.status}</TableCell>
-                <TableCell align="right">
-                  <IconButton color="primary" onClick={() => handleOpenUpdateDialog(customer)}>
-                    <Edit />
-                  </IconButton>
-                  <IconButton color="error" onClick={() => handleConfirmDelete(customer.customerId)}>
-                    <Delete />
-                  </IconButton>
+                <TableCell>
+                  <Chip 
+                    label={customer.status ? 'Active' : 'Inactive'}
+                    color={customer.status ? 'success' : 'error'}
+                    size="small"
+                  />
                 </TableCell>
+
+                
               </TableRow>
             ))}
           </TableBody>

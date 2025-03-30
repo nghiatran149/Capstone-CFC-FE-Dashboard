@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert } from "@mui/material";
-import { Delete, Edit, Add } from "@mui/icons-material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Paper, Snackbar, Alert, FormControlLabel, Switch, Grid, Typography, Chip } from "@mui/material";
+import { Delete, Edit, Add, CloudUpload, Close, Visibility } from "@mui/icons-material";
 
 const API_BASE_URL = "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api";
 
@@ -12,6 +12,10 @@ const PromotionManagement = () => {
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [confirmDialog, setConfirmDialog] = useState({ open: false, promotionId: null, promotionName: '' });
+  const [viewDetail, setViewDetail] = useState({
+    open: false,
+    promotion: null
+  });
 
   const [newPromotion, setNewPromotion] = useState({
     promotionName: "",
@@ -20,6 +24,8 @@ const PromotionManagement = () => {
     promotionCode: "",
     startDate: "",
     endDate: "",
+    image: null,
+    status: true
   });
 
   const [formErrors, setFormErrors] = useState({
@@ -29,6 +35,7 @@ const PromotionManagement = () => {
     promotionCode: "",
     startDate: "",
     endDate: "",
+    image: ""
   });
 
   const fetchPromotions = async () => {
@@ -46,6 +53,26 @@ const PromotionManagement = () => {
 
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setNewPromotion(prev => ({
+        ...prev,
+        image: file
+      }));
+    }
+  };
+
+  const handleUpdateImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedPromotion(prev => ({
+        ...prev,
+        image: file
+      }));
+    }
+  };
 
   const validatePromotion = () => {
     const errors = {};
@@ -120,47 +147,14 @@ const PromotionManagement = () => {
       }
     }
 
+    if (!newPromotion.image) {
+      errors.image = "Image is required";
+      isValid = false;
+    }
+
     setFormErrors(errors);
     return isValid;
   };
-
-
-  // const handleAddPromotion = async () => {
-  //   try {
-  //     const { data } = await axios.post(
-  //       `${API_BASE_URL}/promotions/create-promotion`,
-  //       {
-  //         ...newPromotion,
-  //         quantity: parseInt(newPromotion.quantity),
-  //         promotionDiscount: parseInt(newPromotion.promotionDiscount),
-  //         createAt: new Date().toISOString(),
-  //       }
-  //     );
-
-  //     const createdPromotion = {
-  //       ...data.data,
-  //       startDate: data.data.startDate.split("T")[0],
-  //       endDate: data.data.endDate.split("T")[0],
-  //     };
-
-  //     setPromotions((prev) => [...prev, createdPromotion]);
-
-  //     setNewPromotion({
-  //       promotionName: "",
-  //       quantity: "",
-  //       promotionDiscount: "",
-  //       promotionCode: "",
-  //       startDate: "",
-  //       endDate: "",
-  //     });
-
-  //     setOpenDialog(false);
-  //     setSnackbar({ open: true, message: "Promotion added successfully!", severity: "success" });
-  //   } catch (error) {
-  //     console.error("Failed to create promotion:", error);
-  //     setSnackbar({ open: true, message: "An error occurred while adding the promotion.", severity: "error" });
-  //   }
-  // };
 
   const handleAddPromotion = async () => {
     if (!validatePromotion()) {
@@ -173,13 +167,23 @@ const PromotionManagement = () => {
     }
 
     try {
+      const formData = new FormData();
+      formData.append('PromotionName', newPromotion.promotionName);
+      formData.append('Quantity', newPromotion.quantity);
+      formData.append('PromotionDiscount', newPromotion.promotionDiscount);
+      formData.append('PromotionCode', newPromotion.promotionCode);
+      formData.append('StartDate', newPromotion.startDate);
+      formData.append('EndDate', newPromotion.endDate);
+      formData.append('Status', newPromotion.status);
+      formData.append('Image', newPromotion.image);
+
       const { data } = await axios.post(
         `${API_BASE_URL}/promotions/create-promotion`,
+        formData,
         {
-          ...newPromotion,
-          quantity: parseInt(newPromotion.quantity),
-          promotionDiscount: parseInt(newPromotion.promotionDiscount),
-          createAt: new Date().toISOString(),
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         }
       );
 
@@ -199,6 +203,8 @@ const PromotionManagement = () => {
         promotionCode: "",
         startDate: "",
         endDate: "",
+        image: null,
+        status: true
       });
 
       setFormErrors({
@@ -208,6 +214,7 @@ const PromotionManagement = () => {
         promotionCode: "",
         startDate: "",
         endDate: "",
+        image: ""
       });
       setSnackbar({ open: true, message: "Promotion added successfully!", severity: "success" });
     } catch (error) {
@@ -247,20 +254,35 @@ const PromotionManagement = () => {
     if (!selectedPromotion) return;
 
     try {
-      const { data } = await axios.put(
+      const formData = new FormData();
+      formData.append('PromotionName', selectedPromotion.promotionName);
+      formData.append('Quantity', selectedPromotion.quantity.toString());
+      formData.append('PromotionDiscount', selectedPromotion.promotionDiscount.toString());
+      formData.append('PromotionCode', selectedPromotion.promotionCode);
+      formData.append('StartDate', selectedPromotion.startDate);
+      formData.append('EndDate', selectedPromotion.endDate);
+      formData.append('Status', selectedPromotion.status.toString());
+      
+      if (selectedPromotion.image instanceof File) {
+        formData.append('Image', selectedPromotion.image);
+      }
+
+      const response = await axios.put(
         `${API_BASE_URL}/promotions/${selectedPromotion.promotionId}`,
+        formData,
         {
-          ...selectedPromotion,
-          quantity: parseInt(selectedPromotion.quantity),
-          promotionDiscount: parseInt(selectedPromotion.promotionDiscount),
-          updateAt: new Date().toISOString(),
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         }
       );
 
-      setEditDialog(false);
-      setSelectedPromotion(null);
-      setSnackbar({ open: true, message: "Promotion updated successfully!", severity: "success" });
-      fetchPromotions();
+      if (response.status === 200) {
+        setEditDialog(false);
+        setSelectedPromotion(null);
+        setSnackbar({ open: true, message: "Promotion updated successfully!", severity: "success" });
+        fetchPromotions();
+      }
     } catch (error) {
       console.error("Failed to update promotion:", error);
       setSnackbar({ open: true, message: "An error occurred while updating the promotion.", severity: "error" });
@@ -279,25 +301,55 @@ const PromotionManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Quantity</TableCell>
               <TableCell>Discount (%)</TableCell>
               <TableCell>Code</TableCell>
               <TableCell>Start Date</TableCell>
               <TableCell>End Date</TableCell>
+              <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {promotions.map((promotion) => (
               <TableRow key={promotion.promotionId}>
+                <TableCell>
+                  {promotion.image && (
+                    <img
+                      src={promotion.image}
+                      alt={promotion.promotionName}
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        objectFit: 'cover',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  )}
+                </TableCell>
                 <TableCell>{promotion.promotionName}</TableCell>
                 <TableCell>{promotion.quantity}</TableCell>
                 <TableCell>{promotion.promotionDiscount}</TableCell>
                 <TableCell>{promotion.promotionCode}</TableCell>
                 <TableCell>{new Date(promotion.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(promotion.endDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={promotion.status ? 'Active' : 'Inactive'}
+                    color={promotion.status ? 'success' : 'error'}
+                    size="small"
+                  />
+                </TableCell>
                 <TableCell align="right">
+                  <IconButton
+                    color="info"
+                    onClick={() => setViewDetail({ open: true, promotion: promotion })}
+                    title="View Details"
+                  >
+                    <Visibility />
+                  </IconButton>
                   <IconButton
                     color="primary"
                     onClick={() => {
@@ -398,6 +450,63 @@ const PromotionManagement = () => {
             error={!!formErrors.endDate}
             helperText={formErrors.endDate}
           />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={newPromotion.status}
+                onChange={(e) => setNewPromotion({ ...newPromotion, status: e.target.checked })}
+              />
+            }
+            label="Active Status"
+            sx={{ mt: 2 }}
+          />
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              component="label"
+              startIcon={<CloudUpload />}
+            >
+              Upload Image
+              <input
+                type="file"
+                hidden
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </Button>
+            {formErrors.image && (
+              <Typography color="error" variant="caption" display="block">
+                {formErrors.image}
+              </Typography>
+            )}
+          </Box>
+          {newPromotion.image && (
+            <Box sx={{ mt: 2, position: 'relative', width: 200, height: 200 }}>
+              <img
+                src={URL.createObjectURL(newPromotion.image)}
+                alt="Preview"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: 4
+                }}
+              />
+              <IconButton
+                size="small"
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  '&:hover': { backgroundColor: 'white' }
+                }}
+                onClick={() => setNewPromotion(prev => ({ ...prev, image: null }))}
+              >
+                <Close fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
           <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred', } }} onClick={handleCloseDialog}>Cancel</Button>
@@ -407,90 +516,164 @@ const PromotionManagement = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={editDialog} onClose={() => setEditDialog(false)}>
+      <Dialog open={editDialog} onClose={() => setEditDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle sx={{ fontSize: '1rem', fontWeight: 'bold' }}>Edit Promotion</DialogTitle>
         <DialogContent>
-          <TextField
-            margin="dense"
-            label="Name"
-            fullWidth
-            value={selectedPromotion?.promotionName || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                promotionName: e.target.value,
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Quantity"
-            type="number"
-            fullWidth
-            value={selectedPromotion?.quantity || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                quantity: e.target.value,
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Discount (%)"
-            type="number"
-            fullWidth
-            value={selectedPromotion?.promotionDiscount || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                promotionDiscount: e.target.value,
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Code"
-            fullWidth
-            value={selectedPromotion?.promotionCode || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                promotionCode: e.target.value,
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="Start Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={selectedPromotion?.startDate || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                startDate: e.target.value,
-              })
-            }
-          />
-          <TextField
-            margin="dense"
-            label="End Date"
-            type="date"
-            fullWidth
-            InputLabelProps={{ shrink: true }}
-            value={selectedPromotion?.endDate || ""}
-            onChange={(e) =>
-              setSelectedPromotion({
-                ...selectedPromotion,
-                endDate: e.target.value,
-              })
-            }
-          />
+          <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              margin="dense"
+              label="Name"
+              fullWidth
+              value={selectedPromotion?.promotionName || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  promotionName: e.target.value,
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Quantity"
+              type="number"
+              fullWidth
+              value={selectedPromotion?.quantity || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  quantity: e.target.value,
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Discount (%)"
+              type="number"
+              fullWidth
+              value={selectedPromotion?.promotionDiscount || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  promotionDiscount: e.target.value,
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Code"
+              fullWidth
+              value={selectedPromotion?.promotionCode || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  promotionCode: e.target.value,
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="Start Date"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={selectedPromotion?.startDate?.split('T')[0] || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  startDate: e.target.value,
+                })
+              }
+            />
+            <TextField
+              margin="dense"
+              label="End Date"
+              type="date"
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              value={selectedPromotion?.endDate?.split('T')[0] || ""}
+              onChange={(e) =>
+                setSelectedPromotion({
+                  ...selectedPromotion,
+                  endDate: e.target.value,
+                })
+              }
+            />
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={selectedPromotion?.status || false}
+                  onChange={(e) =>
+                    setSelectedPromotion({
+                      ...selectedPromotion,
+                      status: e.target.checked,
+                    })
+                  }
+                />
+              }
+              label="Active Status"
+            />
+
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                component="label"
+                startIcon={<CloudUpload />}
+              >
+                Update Image
+                <input
+                  type="file"
+                  hidden
+                  accept="image/*"
+                  onChange={handleUpdateImageChange}
+                />
+              </Button>
+            </Box>
+
+            {selectedPromotion && (
+              <Box sx={{ mt: 2, position: 'relative', width: 200, height: 200 }}>
+                <img
+                  src={selectedPromotion.image instanceof File 
+                    ? URL.createObjectURL(selectedPromotion.image)
+                    : selectedPromotion.image}
+                  alt="Preview"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: 4
+                  }}
+                />
+                {selectedPromotion.image instanceof File && (
+                  <IconButton
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      '&:hover': { backgroundColor: 'white' }
+                    }}
+                    onClick={() => setSelectedPromotion(prev => ({ ...prev, image: null }))}
+                  >
+                    <Close fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred', } }} onClick={() => setEditDialog(false)}>Cancel</Button>
+          <Button 
+            sx={{ 
+              backgroundColor: 'red', 
+              color: 'white', 
+              '&:hover': { backgroundColor: 'darkred' } 
+            }} 
+            onClick={() => setEditDialog(false)}
+          >
+            Cancel
+          </Button>
           <Button variant="contained" onClick={handleEditPromotion}>
             Save
           </Button>
@@ -503,6 +686,124 @@ const PromotionManagement = () => {
         <DialogActions>
           <Button onClick={() => setConfirmDialog({ open: false, promotionId: null, promotionName: '' })}>Cancel</Button>
           <Button variant="contained" color="error" onClick={handleDeletePromotion}>Delete</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={viewDetail.open}
+        onClose={() => setViewDetail({ open: false, promotion: null })}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          Promotion Details
+          <IconButton onClick={() => setViewDetail({ open: false, promotion: null })}>
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {viewDetail.promotion && (
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <img
+                  src={viewDetail.promotion.image}
+                  alt={viewDetail.promotion.promotionName}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    maxHeight: '400px',
+                    objectFit: 'cover',
+                    borderRadius: '8px'
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <Typography variant="h5" gutterBottom>
+                    {viewDetail.promotion.promotionName}
+                  </Typography>
+
+                  <Typography color="text.secondary" variant="body2">
+                    ID: {viewDetail.promotion.promotionId}
+                  </Typography>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Promotion Code
+                    </Typography>
+                    <Typography variant="h6" color="primary">
+                      {viewDetail.promotion.promotionCode}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Discount
+                    </Typography>
+                    <Typography>
+                      {viewDetail.promotion.promotionDiscount}%
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Quantity
+                    </Typography>
+                    <Typography>{viewDetail.promotion.quantity}</Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Duration
+                    </Typography>
+                    <Typography>
+                      From: {new Date(viewDetail.promotion.startDate).toLocaleDateString()} <br />
+                      To: {new Date(viewDetail.promotion.endDate).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Status
+                    </Typography>
+                    <Chip
+                      label={viewDetail.promotion.status ? 'Active' : 'Inactive'}
+                      color={viewDetail.promotion.status ? 'success' : 'error'}
+                      size="small"
+                    />
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Used Count
+                    </Typography>
+                    <Typography>
+                      {viewDetail.promotion.usedCount || 0}
+                    </Typography>
+                  </Box>
+
+                  {viewDetail.promotion.description && (
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Description
+                      </Typography>
+                      <Typography>
+                        {viewDetail.promotion.description}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              </Grid>
+            </Grid>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            onClick={() => setViewDetail({ open: false, promotion: null })}
+          >
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 

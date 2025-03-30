@@ -5,7 +5,7 @@ import { Delete, Edit, Add } from "@mui/icons-material";
 
 const API_BASE_URL = "https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api";
 
-const CATEGORY_TYPES = ['Product'];
+const CATEGORY_TYPES = ['Basket'];
 
 const CategoryManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -21,7 +21,7 @@ const CategoryManagement = () => {
 
     const fetchCategories = async () => {
         try {
-            const { data } = await axios.get(`${API_BASE_URL}/categories/getCartegoryByProductType`);
+            const { data } = await axios.get(`${API_BASE_URL}/categories/GetCategoryByBasketType`);
             setCategories(data);
         } catch (error) {
             console.error("Failed to fetch categories:", error);
