@@ -19,6 +19,9 @@ import AuthFooter from 'ui-component/cards/AuthFooter';
 import AuthPic from "../../../assets/images/authpic.jpg"
 import menuItems from 'menu-items';
 
+// Import ảnh nền nếu cần
+// import backgroundImage from '../assets/image.png';
+
 // ================================|| AUTH3 - LOGIN ||================================ //
 
 const Login = () => {
@@ -87,6 +90,7 @@ const Login = () => {
   };
 
   return (
+
     <AuthWrapper1
       sx={{
         backgroundImage: `url(${AuthPic})`,
@@ -160,7 +164,7 @@ const Login = () => {
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
+        <Grid item xs={12} sx={{ m: 3, mt: 1, position: 'relative', zIndex: 2 }}>
           <AuthFooter />
         </Grid>
       </Grid>
