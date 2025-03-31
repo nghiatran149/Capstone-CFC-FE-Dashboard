@@ -27,12 +27,18 @@ import '@fontsource/poppins/700.css';
 // style + assets
 import 'assets/scss/style.scss';
 import reportWebVitals from 'reportWebVitals';
+import logo from './assets/images/square_logo.png';
 
 const container = document.getElementById('root');
 const root = createRoot(container); // createRoot(container!) if you use TypeScript
 const store = configureStore({ reducer });
 
 // ==============================|| REACT DOM RENDER  ||============================== //
+
+const link = document.querySelector("link[rel~='icon']");
+if (link) {
+    link.href = logo;
+}
 
 root.render(
   <Provider store={store}>
