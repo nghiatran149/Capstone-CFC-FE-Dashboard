@@ -13,8 +13,8 @@ import AuthCardWrapper from '../AuthCardWrapper';
 import Logo from 'ui-component/Logo';
 import AuthRegister from '../authentication/auth-forms/AuthRegister';
 import AuthFooter from 'ui-component/cards/AuthFooter';
+import AuthPic from "../../../assets/images/authpic.jpg"
 
-// assets
 
 // ===============================|| AUTH3 - REGISTER ||=============================== //
 
@@ -22,7 +22,14 @@ const Register = () => {
   const downMD = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   return (
-    <AuthWrapper1>
+    <AuthWrapper1
+    sx={{
+      backgroundImage: `url(${AuthPic})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      minHeight: '100vh'
+    }}
+  >
       <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
         <Grid item xs={12}>
           <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: 'calc(100vh - 68px)' }}>
@@ -38,7 +45,7 @@ const Register = () => {
                     <Grid container direction={{ xs: 'column-reverse', md: 'row' }} alignItems="center" justifyContent="center">
                       <Grid item>
                         <Stack alignItems="center" justifyContent="center" spacing={1}>
-                          <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
+                          <Typography color="#ff54b1" gutterBottom variant={downMD ? 'h3' : 'h2'}>
                             Sign up
                           </Typography>
                           <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
@@ -56,7 +63,7 @@ const Register = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Grid item container direction="column" alignItems="center" xs={12}>
-                      <Typography component={Link} to="/login" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                      <Typography component={Link} to="/login" variant="subtitle1" sx={{ color: '#ff66b2', textDecoration: 'none' }}>
                         Already have an account?
                       </Typography>
                     </Grid>

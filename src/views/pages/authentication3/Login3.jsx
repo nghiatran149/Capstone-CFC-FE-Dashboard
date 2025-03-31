@@ -16,6 +16,7 @@ import AuthWrapper1 from '../AuthWrapper1';
 import AuthCardWrapper from '../AuthCardWrapper';
 import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
+import AuthPic from "../../../assets/images/authpic.jpg"
 
 // Import ảnh nền nếu cần
 // import backgroundImage from '../assets/image.png';
@@ -83,31 +84,17 @@ const Login = () => {
   };
 
   return (
-    <AuthWrapper1>
-      <Grid
-        container
-        direction="column"
-        justifyContent="flex-end"
-        sx={{
-          minHeight: '100vh',
-          backgroundImage: `url('/assets/images/image.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          position: 'relative',
-          '&:before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Lớp phủ mờ
-            zIndex: 1,
-          },
-        }}
-      >
-        <Grid item xs={12} sx={{ position: 'relative', zIndex: 2 }}>
+
+    <AuthWrapper1
+      sx={{
+        backgroundImage: `url(${AuthPic})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh'
+      }}
+    >
+      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
+        <Grid item xs={12}>
           <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: 'calc(100vh - 68px)' }}>
             <Grid item sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
               <AuthCardWrapper>
@@ -119,7 +106,7 @@ const Login = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Stack alignItems="center" justifyContent="center" spacing={1}>
-                      <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
+                      <Typography color="#ff54b1" gutterBottom variant={downMD ? 'h3' : 'h2'}>
                         Hi, Welcome Back
                       </Typography>
                       <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
@@ -148,20 +135,21 @@ const Login = () => {
                       {successMessage && <Alert severity="success">{successMessage}</Alert>}
                       <Button
                         variant="contained"
-                        color="primary"
+                        sx={{ backgroundColor: '#ff66b2', '&:hover': { backgroundColor: '#ff33a2' } }}
                         fullWidth
                         onClick={handleLogin}
                         disabled={loading}
                       >
                         {loading ? 'Logging in...' : 'Login'}
                       </Button>
+
                     </Stack>
                   </Grid>
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography component={Link} to="/register" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                    <Typography component={Link} to="/register" variant="subtitle1" sx={{ color: '#ff66b2', textDecoration: 'none' }}>
                       Don&apos;t have an account?
                     </Typography>
                   </Grid>
