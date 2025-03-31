@@ -17,6 +17,7 @@ import AuthCardWrapper from '../AuthCardWrapper';
 import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
 import AuthPic from "../../../assets/images/authpic.jpg"
+import menuItems from 'menu-items';
 
 // ================================|| AUTH3 - LOGIN ||================================ //
 
@@ -51,6 +52,11 @@ const Login = () => {
 
       const data = await response.json();
       if (response.ok) {
+        console.log("data", data);
+        if (data?.roleName === 'Customer') {
+          setError('You do not have access to this system.');
+          return;
+        }
         setSuccessMessage(data.messages[0]);
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('roleName', data.data.roleName);

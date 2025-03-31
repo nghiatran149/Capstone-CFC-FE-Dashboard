@@ -776,8 +776,8 @@ const OrderManagement = () => {
                         color={filterStatus === "Delivery" ? "primary" : "default"}
                         onClick={() => setFilterStatus("Delivery")}
                         sx={{
-                            bgcolor: filterStatus === "Delivery" ? undefined : '#d8b4fe', // Màu nền tím nhạt
-                            color: filterStatus === "Delivery" ? undefined : '#6b21a8', // Màu chữ tím đậm
+                            bgcolor: filterStatus === "Delivery" ? undefined : '#d8b4fe',
+                            color: filterStatus === "Delivery" ? undefined : '#6b21a8',
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
@@ -851,7 +851,7 @@ const OrderManagement = () => {
                                         )}
                                         {order.status === "Request refund" && (
                                             <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')} sx={{ ml: 1 }}>
-                                                Refuse Refund
+                                                Reject Refund
                                             </Button>
                                         )}
                                     </TableCell>
@@ -863,7 +863,7 @@ const OrderManagement = () => {
             )}
 
             <Box mt={4}>
-                <Typography variant="h3">Refund Order Manager</Typography>
+                <Typography variant="h3" sx={{ mb: 2 }}>Refund Order Management</Typography>
                 {loading ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
                         <CircularProgress />
@@ -880,6 +880,7 @@ const OrderManagement = () => {
                                     <TableCell>Create Time</TableCell>
                                     <TableCell>Status</TableCell>
                                     <TableCell>Actions</TableCell>
+                                    <TableCell>Refund</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -902,7 +903,7 @@ const OrderManagement = () => {
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            <Button variant="outlined" onClick={() => handleViewDetails(order)}>
+                                            <Button variant="outlined" onClick={() => handleViewDetails(order)} sx={{ mr: 1 }}>
                                                 View Details
                                             </Button>
                                             {/* {(order.status === "Received" || order.status === "Request refund" || order.status === "Accept refund" || order.status === "Refuse refund") && (
@@ -910,16 +911,18 @@ const OrderManagement = () => {
                                                     Feedback
                                                 </Button>
                                             )} */}
-                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} sx={{ mr: 1 }}>
+                                            <Button variant="contained" color="primary" onClick={() => handleFeedback(order.orderId)} >
                                                 Feedback
                                             </Button>
+                                        </TableCell>
+                                        <TableCell>
                                             {order.status === "Request refund" && (
                                                 <>
                                                     <Button variant="contained" color="success" onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')} sx={{ mr: 1 }}>
-                                                        Accept Refund
+                                                        Accept
                                                     </Button>
                                                     <Button variant="contained" color="error" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')}>
-                                                        Refuse Refund
+                                                        Reject
                                                     </Button>
                                                 </>
                                             )}
@@ -1281,7 +1284,7 @@ const OrderManagement = () => {
             >
                 <DialogTitle
                     sx={{
-                        background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                        background: 'linear-gradient(45deg,rgb(255, 33, 144) 30%,rgb(255, 96, 207) 90%)',
                         color: 'white',
                         fontWeight: 'bold',
                         textAlign: 'center',
@@ -1383,7 +1386,7 @@ const OrderManagement = () => {
                                             variant="contained"
                                             color="primary"
                                             onClick={handleReply}
-                                            sx={{ mt: 1, background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)', color: 'white' }}
+                                            sx={{ mt: 1, background: 'linear-gradient(45deg,rgb(255, 33, 144) 30%,rgb(255, 96, 207) 90%)', color: 'white' }}
                                         >
                                             Send Reply
                                         </Button>
