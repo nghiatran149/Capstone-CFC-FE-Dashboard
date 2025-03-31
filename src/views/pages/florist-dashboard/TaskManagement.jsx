@@ -615,8 +615,8 @@ const TaskManagement = () => {
                 >
                     <MenuItem value="" disabled>Change Status</MenuItem>
                     <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
-                    <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                    <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                    <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
+                    <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
                     <MenuItem value="Received">6️⃣ Received</MenuItem>
                 </Select>
             );
@@ -650,7 +650,7 @@ const TaskManagement = () => {
                         }}
                     />
                     <Chip
-                        label="4️⃣ Awaiting Design Approval"
+                        label="3️⃣ Awaiting Design Approval"
                         color={filteredStatus === "Awaiting Design Approval" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Awaiting Design Approval")}
                         sx={{
@@ -661,7 +661,7 @@ const TaskManagement = () => {
                         }}
                     />
                     <Chip
-                        label="5️⃣ Flower Completed"
+                        label="4️⃣ Flower Completed"
                         color={filteredStatus === "Flower Completed" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Flower Completed")}
                         sx={{

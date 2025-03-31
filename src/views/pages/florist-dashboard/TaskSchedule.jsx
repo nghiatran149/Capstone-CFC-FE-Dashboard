@@ -31,6 +31,24 @@ const timeSlots = Array.from({ length: 14 }, (_, i) => i + 8).map(hour => ({
 
 const getStatusColor = (status) => {
   const statusLower = status.toLowerCase();
+
+  switch (statusLower) {
+    case 'arranging & packing':
+    case 'arranging and packing':
+      return { borderLeft: '4px solid #fc81c7', backgroundColor: '#fbcfe8' };
+    case 'awaiting design approval':
+      return { borderLeft: '4px solid #faf18e', backgroundColor: '#fef9c3' };
+    case 'flower completed':
+      return { borderLeft: '4px solid #ffbd70', backgroundColor: '#fed7aa' };
+    case 'delivery':
+      return { borderLeft: '4px solid #b46eff', backgroundColor: '#d8b4fe' };
+    case 'received':
+      return { borderLeft: '4px solid #66aaff', backgroundColor: '#bfdbfe' };
+    case 'cancel':
+      return { borderLeft: '4px solid #6a6b6b', backgroundColor: '#cdd1d1' };
+    default:
+      return { borderLeft: '4px solid #e5e7eb', backgroundColor: '#f9fafb' };
+  }
 };
 
 // CSS UI
@@ -60,35 +78,35 @@ const orderStyle = {
 // Status Color
 const StatusLegend = () => {
   const statusChips = [
-    { 
-      label: "2️⃣ Arranging & Packing", 
-      bgcolor: '#fbcfe8', 
-      color: '#9d174d' 
+    {
+      label: "2️⃣ Arranging & Packing",
+      bgcolor: '#fbcfe8',
+      color: '#9d174d'
     },
-    { 
-      label: "4️⃣ Awaiting Design Approval", 
-      bgcolor: '#fef9c3', 
-      color: '#854d0e' 
+    {
+      label: "3️⃣ Awaiting Design Approval",
+      bgcolor: '#fef9c3',
+      color: '#854d0e'
     },
-    { 
-      label: "5️⃣ Flower Completed", 
-      bgcolor: '#fed7aa', 
-      color: '#9a3412' 
+    {
+      label: "4️⃣ Flower Completed",
+      bgcolor: '#fed7aa',
+      color: '#9a3412'
     },
-    { 
-      label: "5️⃣ Delivery", 
-      bgcolor: '#d8b4fe', 
-      color: '#6b21a8' 
+    {
+      label: "5️⃣ Delivery",
+      bgcolor: '#d8b4fe',
+      color: '#6b21a8'
     },
-    { 
-      label: "6️⃣ Received", 
-      bgcolor: '#bfdbfe', 
-      color: '#1e40af' 
+    {
+      label: "6️⃣ Received",
+      bgcolor: '#bfdbfe',
+      color: '#1e40af'
     },
-    { 
-      label: "❌ Canceled", 
-      bgcolor: '#fecaca', 
-      color: '#b91c1c' 
+    {
+      label: "❌ Canceled",
+      bgcolor: '#cdd1d1',
+      color: '#050505'
     }
   ];
 
@@ -146,6 +164,7 @@ function TaskSchedule() {
           id: order.orderId,
           title: `Order #${order.orderId}`,
           createdAt: order.createAt,
+          updatedAt: order.updateAt,
           customer: order.customerId,
           status: order.status.toLowerCase(),
           description: order.note || 'Không có mô tả'
@@ -164,7 +183,8 @@ function TaskSchedule() {
 
   useEffect(() => {
     if (orders.length > 0 && !selectedDate) {
-      setSelectedDate(parseISO(orders[0].createdAt));
+      // setSelectedDate(parseISO(orders[0].createdAt));
+      setSelectedDate(parseISO(orders[0].updatedAt));
     }
   }, [orders]);
 
@@ -217,7 +237,8 @@ function TaskSchedule() {
 
   const getOrdersForTimeSlot = (day, hour) => {
     return orders.filter(order => {
-      const orderDate = parseISO(order.createdAt);
+      // const orderDate = parseISO(order.createdAt);
+      const orderDate = parseISO(order.updatedAt);
       const orderHour = getHours(orderDate);
       const sameDay = format(orderDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
       return sameDay && orderHour === hour;
@@ -266,7 +287,7 @@ function TaskSchedule() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      <AppBar position="static" className="bg-indigo-600">
+      <AppBar position="static" sx={{ backgroundColor: '#ff94cc' }}>
         <Toolbar>
           <Button
             color="inherit"
@@ -294,8 +315,8 @@ function TaskSchedule() {
       <div className="flex-grow overflow-auto p-4">
         {/* Status Color */}
         <StatusLegend />
-        
-        <div style={containerStyle}>
+
+        <div style={{ ...containerStyle, backgroundColor: 'white' }}>
           <div style={rowStyle}>
             {/* Cột thời gian */}
             <div style={cellStyle}>
@@ -344,7 +365,7 @@ function TaskSchedule() {
                         className={`p-1 border-l-4 cursor-pointer ${getStatusColor(order.status)}`}
                         elevation={1}
                         onClick={() => handleOrderClick(order)}
-                        style={orderStyle}
+                        style={{ ...orderStyle, ...getStatusColor(order.status) }}
                       >
                         <div className="flex justify-between items-center">
                           <Typography variant="body2" className="font-bold truncate">
@@ -353,7 +374,8 @@ function TaskSchedule() {
                           <InfoIcon fontSize="small" className="text-gray-500" />
                         </div>
                         <Typography variant="caption" className="block truncate">
-                          {format(parseISO(order.createdAt), 'HH:mm')} - {order.customer}
+                          {/* {format(parseISO(order.createdAt), 'HH:mm')} - {order.customer} */}
+                          {format(parseISO(order.updatedAt), 'HH:mm')} - {order.customer}
                         </Typography>
                       </Paper>
                     ))}
@@ -373,9 +395,16 @@ function TaskSchedule() {
               <Typography variant="h6" className="font-bold">
                 {selectedOrder.title}
               </Typography>
-              <Typography variant="caption" className="block mt-1">
-                Create At: {format(parseISO(selectedOrder.createdAt), 'HH:mm - dd/MM/yyyy')}
-              </Typography>
+              <div>
+                <Typography variant="caption" className="block">
+                  Create At: {format(parseISO(selectedOrder.createdAt), 'HH:mm - dd/MM/yyyy')}
+                </Typography>
+              </div>
+              <div>
+                <Typography variant="caption" className="block">
+                  Update At: {format(parseISO(selectedOrder.updatedAt), 'HH:mm - dd/MM/yyyy')}
+                </Typography>
+              </div>
             </DialogTitle>
             <DialogContent dividers>
               <div className="mb-3">
