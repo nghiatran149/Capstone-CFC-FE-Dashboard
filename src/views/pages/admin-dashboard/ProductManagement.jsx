@@ -432,7 +432,6 @@ const ProductManagement = () => {
               <TableCell>Size</TableCell>
               <TableCell>Discount</TableCell>
               <TableCell>Description</TableCell>
-              <TableCell>Quantity</TableCell>
               <TableCell>Sold</TableCell>
               <TableCell>featured</TableCell>
               <TableCell>Status</TableCell>
@@ -461,7 +460,6 @@ const ProductManagement = () => {
                 <TableCell>{product.size}</TableCell>
                 <TableCell>{product.discount}%</TableCell>
                 <TableCell>{product.description}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
                 <TableCell>{product.sold}</TableCell>
                 <TableCell> <Chip 
                     label={product.featured ? 'Yes' : 'No'}
@@ -548,21 +546,7 @@ const ProductManagement = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Quantity"
-                  type="number"
-                  value={newProduct.quantity}
-                  onChange={(e) => setNewProduct({ ...newProduct, quantity: Number(e.target.value) })}
-                  error={newProduct.quantity < 0}
-                  helperText={newProduct.quantity < 0 ? "Quantity cannot be negative" : ""}
-                  InputProps={{
-                    inputProps: { min: 0 }
-                  }}
-                />
-              </Grid>
+             
 
               {/* Size and Discount */}
               <Grid item xs={12} sm={6}>

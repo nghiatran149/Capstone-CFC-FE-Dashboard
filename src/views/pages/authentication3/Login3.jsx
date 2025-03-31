@@ -17,6 +17,9 @@ import AuthCardWrapper from '../AuthCardWrapper';
 import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
 
+// Import ảnh nền nếu cần
+// import backgroundImage from '../assets/image.png';
+
 // ================================|| AUTH3 - LOGIN ||================================ //
 
 const Login = () => {
@@ -81,8 +84,30 @@ const Login = () => {
 
   return (
     <AuthWrapper1>
-      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
-        <Grid item xs={12}>
+      <Grid
+        container
+        direction="column"
+        justifyContent="flex-end"
+        sx={{
+          minHeight: '100vh',
+          backgroundImage: `url('/assets/images/image.jpg')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          position: 'relative',
+          '&:before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)', // Lớp phủ mờ
+            zIndex: 1,
+          },
+        }}
+      >
+        <Grid item xs={12} sx={{ position: 'relative', zIndex: 2 }}>
           <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: 'calc(100vh - 68px)' }}>
             <Grid item sx={{ m: { xs: 1, sm: 3 }, mb: 0 }}>
               <AuthCardWrapper>
@@ -145,7 +170,7 @@ const Login = () => {
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
+        <Grid item xs={12} sx={{ m: 3, mt: 1, position: 'relative', zIndex: 2 }}>
           <AuthFooter />
         </Grid>
       </Grid>
