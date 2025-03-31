@@ -1,7 +1,7 @@
 // index.jsx cập nhật
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import { HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr';
 import { jwtDecode } from 'jwt-decode';
 
 // material-ui
@@ -384,17 +384,15 @@ const NotificationSection = () => {
                               size="small"
                               label={unreadCount}
                               sx={{
-                                color: '#FFFFFF',
-                                bgcolor: '#FF1493'
+                                color: theme.palette.background.default,
+                                bgcolor: theme.palette.warning.dark
                               }}
                             />
                           </Stack>
                         </Grid>
                         <Grid item>
-
                           <Typography component={Button} variant="subtitle2" color="primary" onClick={markAllAsRead}>
                             Đánh dấu đã đọc tất cả
-
                           </Typography>
                         </Grid>
                       </Grid>
@@ -412,19 +410,6 @@ const NotificationSection = () => {
                                 onChange={handleChange}
                                 SelectProps={{
                                   native: true
-                                }}
-                                sx={{
-                                  '& .MuiOutlinedInput-root': {
-                                    '& fieldset': {
-                                      borderColor: '#FF69B4', // Hot pink border
-                                    },
-                                    '&:hover fieldset': {
-                                      borderColor: '#8B008B', // Dark magenta border on hover
-                                    },
-                                    '&.Mui-focused fieldset': {
-                                      borderColor: '#FF1493', // Deep pink border when focused
-                                    }
-                                  }
                                 }}
                               >
                                 {status.map((option) => (
@@ -445,7 +430,6 @@ const NotificationSection = () => {
                   </Grid>
                   <Divider />
                   <CardActions sx={{ p: 1.25, justifyContent: 'center' }}>
-
                     <Button size="small" disableElevation>
 
                     </Button>
