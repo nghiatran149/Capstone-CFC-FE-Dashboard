@@ -3,6 +3,7 @@ import { HubConnectionBuilder, HttpTransportType } from "@microsoft/signalr";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 import ChatModal from "chat/ChatModal";
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box,
     Button,
@@ -86,6 +87,27 @@ const TaskManagement = () => {
     const [isChatModalOpen, setIsChatModalOpen] = useState(false);
     const [hasNewMessage, setHasNewMessage] = useState(false);
     const [connection, setConnection] = useState(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Kiểm tra query parameter khi component mount
+        const queryParams = new URLSearchParams(location.search);
+        const openOrderId = queryParams.get('openOrderId');
+        
+        if (openOrderId) {
+          // Tìm task có orderId tương ứng
+          const taskToOpen = tasks.find(task => task.orderId === openOrderId);
+          
+          if (taskToOpen) {
+            // Tự động mở Order Details
+            handleOpenDialog(taskToOpen);
+            
+            // Xóa query parameter khỏi URL để tránh mở lại khi refresh
+            navigate('/floristDashboard/task-management', { replace: true });
+          }
+        }
+      }, [tasks, location]);
 
     // Thiết lập kết nối SignalR
     useEffect(() => {
