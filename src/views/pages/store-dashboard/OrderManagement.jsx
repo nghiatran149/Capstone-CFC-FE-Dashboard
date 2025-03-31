@@ -164,66 +164,64 @@ const OrderManagement = () => {
     const [replyText, setReplyText] = useState('');
     const [hasReplied, setHasReplied] = useState(false);
 
+    const fetchOrders = async () => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                console.error('No token found');
+                return;
+            }
+            const decodedToken = jwtDecode(token);
+            const storeId = decodedToken.StoreId;
+
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByStore?StoreId=${storeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            console.log('API Response:', response.data);
+            setOrders(response.data.data);
+            // setRefundOrders(response.data.data)
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching orders:', error);
+            setLoading(false);
+        }
+    };
+
+    const fetchRefundOrders = async () => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                console.error('No token found');
+                return;
+            }
+            const decodedToken = jwtDecode(token);
+            const storeId = decodedToken.StoreId;
+
+            const response = await axios.get(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStore?StoreId=${storeId}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            console.log('Refund Orders API Response:', response.data);
+            setRefundOrders(response.data.data);
+        } catch (error) {
+            console.error('Error fetching refund orders:', error);
+        }
+    };
+
+
     useEffect(() => {
-        const fetchOrders = async () => {
-            try {
-                const token = localStorage.getItem('accessToken');
-                if (!token) {
-                    console.error('No token found');
-                    return;
-                }
-                const decodedToken = jwtDecode(token);
-                const storeId = decodedToken.StoreId;
-
-                const response = await axios.get(
-                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetOrderByStore?StoreId=${storeId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-                console.log('API Response:', response.data);
-                setOrders(response.data.data);
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching orders:', error);
-                setLoading(false);
-            }
-        };
-
-
         fetchOrders();
-
-        const fetchRefundOrders = async () => {
-            try {
-                const token = localStorage.getItem('accessToken');
-                if (!token) {
-                    console.error('No token found');
-                    return;
-                }
-                const decodedToken = jwtDecode(token);
-                const storeId = decodedToken.StoreId;
-
-                const response = await axios.get(
-                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStore?StoreId=${storeId}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
-                console.log('Refund Orders API Response:', response.data);
-                setRefundOrders(response.data.data);
-            } catch (error) {
-                console.error('Error fetching refund orders:', error);
-            }
-        };
-
-
         fetchRefundOrders();
     }, []);
-
 
     const fetchStaffList = async (orderId) => {
         try {
@@ -699,17 +697,18 @@ const OrderManagement = () => {
                     }
                 }
             );
+            console.log("re", response);
 
             if (response.status === 200) {
-                message.success('Status updated successfully!');
+                // message.success('Status updated successfully!');
                 // Optionally refresh the orders or feedback data here
-                fetchOrders(); // Refresh orders if needed
+                fetchRefundOrders(); // Refresh orders if needed
             } else {
-                message.error('Failed to update status');
+                // message.error('Failed to update status');
             }
         } catch (error) {
             console.error('Error updating status:', error);
-            message.error('Failed to update status');
+            // message.error('Failed to update status');
         }
     };
 
