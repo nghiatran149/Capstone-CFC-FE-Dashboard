@@ -22,8 +22,8 @@ import {
 } from '@mui/icons-material';
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO, isSameDay, getHours } from 'date-fns';
 
-// TIME (8:00 TO 22:00)
-const timeSlots = Array.from({ length: 14 }, (_, i) => i + 8).map(hour => ({
+// TIME (0:00 TO 24:00)
+const timeSlots = Array.from({ length: 24 }, (_, i) => i + 0).map(hour => ({
   hour,
   label: `${hour}:00 - ${hour + 1}:00`,
 }));
