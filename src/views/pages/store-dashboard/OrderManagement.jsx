@@ -41,7 +41,10 @@ const getStatusColor = (status) => {
             return '#fed7aa'; // Cam nhạt (bg-orange-200)
         case 'Received':
             return '#bfdbfe'; // Xanh dương nhạt (bg-blue-200)
-
+        case 'Delivery':
+            return '#d8b4fe';
+        case 'Cancel':
+            return '#ff9999';
         case 'Request refund':
             return '#fbcfe8';
         case 'Accept refund':
@@ -63,6 +66,8 @@ const getStatusColorText = (status) => {
             return 'text-yellow-800'; // Vàng đậm
         case 'Flower Completed':
             return 'text-orange-800'; // Cam đậm
+        case 'Cancel':
+            return 'text-red-800'; // Xanh dương đậm
         case 'Received':
             return 'text-blue-800'; // Xanh dương đậm
         case 'Processing':
@@ -726,6 +731,18 @@ const OrderManagement = () => {
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
+                    <Chip
+                        label="Cancel"
+                        color={filterStatus === "Cancel" ? "primary" : "default"}
+                        onClick={() => setFilterStatus("Cancel")}
+                        sx={{
+                            bgcolor: filterStatus === "Cancel" ? undefined : '#ff9999', // Đặt màu đỏ nhạt khi chưa chọn
+                            color: filterStatus === "Cancel" ? undefined : '#ffffff', // Màu chữ trắng khi chưa chọn
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+
                     <Chip
                         label="1️⃣ Order Successfully"
                         color={filterStatus === "Order Successfully" ? "primary" : "default"}

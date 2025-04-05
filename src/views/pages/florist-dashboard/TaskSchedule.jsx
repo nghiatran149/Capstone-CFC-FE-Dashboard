@@ -104,7 +104,7 @@ const StatusLegend = () => {
       color: '#1e40af'
     },
     {
-      label: "❌ Canceled",
+      label: "❌ Cancel",
       bgcolor: '#cdd1d1',
       color: '#050505'
     }

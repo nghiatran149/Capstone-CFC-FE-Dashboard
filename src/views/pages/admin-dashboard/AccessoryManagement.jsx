@@ -425,6 +425,8 @@ const AccessoryManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+            <TableCell>ID</TableCell>
+
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
@@ -438,7 +440,10 @@ const AccessoryManagement = () => {
           </TableHead>
           <TableBody>
             {accessories.map((accessory) => (
+
               <TableRow key={accessory.accessoryId}>
+                                <TableCell>{accessory.accessoryId}</TableCell>
+
                 <TableCell>
                   {accessory.image && (
                     <img

@@ -89,25 +89,26 @@ const TaskManagement = () => {
     const [connection, setConnection] = useState(null);
     const location = useLocation();
     const navigate = useNavigate();
+    const [refundOrders, setRefundOrders] = useState([]);
 
     useEffect(() => {
         // Kiểm tra query parameter khi component mount
         const queryParams = new URLSearchParams(location.search);
         const openOrderId = queryParams.get('openOrderId');
-        
+
         if (openOrderId) {
-          // Tìm task có orderId tương ứng
-          const taskToOpen = tasks.find(task => task.orderId === openOrderId);
-          
-          if (taskToOpen) {
-            // Tự động mở Order Details
-            handleOpenDialog(taskToOpen);
-            
-            // Xóa query parameter khỏi URL để tránh mở lại khi refresh
-            navigate('/floristDashboard/task-management', { replace: true });
-          }
+            // Tìm task có orderId tương ứng
+            const taskToOpen = tasks.find(task => task.orderId === openOrderId);
+
+            if (taskToOpen) {
+                // Tự động mở Order Details
+                handleOpenDialog(taskToOpen);
+
+                // Xóa query parameter khỏi URL để tránh mở lại khi refresh
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
         }
-      }, [tasks, location]);
+    }, [tasks, location]);
 
     // Thiết lập kết nối SignalR
     useEffect(() => {
@@ -626,24 +627,87 @@ const TaskManagement = () => {
     };
 
     const renderStatusChange = (task) => {
-        if (task.status !== "Delivery") {
-            return (
-                <Select
-                    size="small"
-                    value=""
-                    onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
-                    sx={{ minWidth: 150 }}
-                    displayEmpty
-                >
-                    <MenuItem value="" disabled>Change Status</MenuItem>
-                    <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
-                    <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
-                    <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
-                    <MenuItem value="Received">6️⃣ Received</MenuItem>
-                </Select>
-            );
+        // Don't show status change options for Received, Cancel, and Delivery statuses
+        if (task.status === "Received" || task.status === "Cancel" || task.status === "Delivery") {
+            return null;
         }
-        return null;
+
+        return (
+            <Select
+                size="small"
+                value=""
+                onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
+                sx={{ minWidth: 150 }}
+                displayEmpty
+            >
+                <MenuItem value="" disabled>Change Status</MenuItem>
+                <MenuItem value="Cancel">Cancel</MenuItem>
+                <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
+                <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
+                <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
+                <MenuItem value="Received">6️⃣ Received</MenuItem>
+            </Select>
+        );
+    };
+
+    useEffect(() => {
+        const fetchRefundOrders = async () => {
+            try {
+                const response = await axios.get(
+                    'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStaffId?StaffId=3005fac2-b6e7-4304-83cc-a94f287ff585'
+                );
+                setRefundOrders(response.data.data);
+            } catch (error) {
+                console.error('Error fetching refund orders:', error);
+            }
+        };
+
+        fetchRefundOrders();
+    }, []);
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Accept refund':
+                return '#d1fae5'; // Light green
+            case 'Refuse refund':
+                return '#fee2e2'; // Light red
+            case 'Request refund':
+                return '#fbcfe8'; // Light pink
+            default:
+                return '#e5e7eb'; // Light gray
+        }
+    };
+
+    const getStatusColorText = (status) => {
+        switch (status) {
+            case 'Accept refund':
+                return '#047857'; // Dark green
+            case 'Refuse refund':
+                return '#dc2626'; // Dark red
+            case 'Request refund':
+                return '#db2777'; // Dark pink
+            default:
+                return '#374151'; // Dark gray
+        }
+    };
+
+    const handleViewDetails = (order) => {
+        // Implement view details functionality
+        console.log('View details for order:', order);
+    };
+
+    const handleFeedback = (orderId) => {
+        // Implement feedback functionality
+        console.log('Feedback for order:', orderId);
+    };
+
+    const handleUpdateStatus = async (orderId, status) => {
+        try {
+            // Implement status update functionality
+            console.log('Update status for order:', orderId, 'to:', status);
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
     };
 
     return (
@@ -656,6 +720,17 @@ const TaskManagement = () => {
                         color={filteredStatus === "" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("")}
                         sx={{
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="Cancel"
+                        color={filteredStatus === "Cancel" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Cancel")}
+                        sx={{
+                            bgcolor: filteredStatus === "Cancel" ? undefined : '#ff9999', // Đặt màu đỏ nhạt khi chưa chọn
+                            color: filteredStatus === "Cancel" ? undefined : '#ffffff', // Màu chữ trắng khi chưa chọn
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
@@ -761,11 +836,14 @@ const TaskManagement = () => {
                                                         task.status === "Awaiting Design Approval" ? '#fef9c3' :
                                                             task.status === "Flower Completed" ? '#fed7aa' :
                                                                 task.status === "Delivery" ? '#d8b4fe' :
-                                                                    task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                                    task.status === "Cancel" ? '#ff9999' :
+
+                                                                        task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             task.status === "Flower Completed" ? '#9a3412' :
                                                                 task.status === "Delivery" ? '#1e40af' :
+
                                                                     task.status === "Received" ? '#1e40af' : '#374151',
                                                     fontWeight: 500,
                                                     '& .MuiChip-label': { px: 2 }
@@ -809,6 +887,84 @@ const TaskManagement = () => {
                     </Table>
                 </TableContainer>
             )}
+            <Box mt={4}>
+                <Typography variant="h3" sx={{
+                    mb: 2,
+                    fontWeight: 'bold'
+                }}>
+                    Refund Order Management
+                </Typography>
+                {loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                        <CircularProgress sx={{ color: '#FF69B4' }} /> {/* Pink color for loading spinner */}
+                    </Box>
+                ) : (
+                    <TableContainer component={Paper} sx={{
+                        boxShadow: '0 4px 6px -1px rgba(255, 105, 180, 0.1)',
+                        borderRadius: '10px'
+                    }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: '' }}> {/* Light pink background */}
+                                    <TableCell>Order ID</TableCell>
+                                    <TableCell>Order Price</TableCell>
+                                    <TableCell>Customer ID</TableCell>
+                                    <TableCell>Phone</TableCell>
+                                    <TableCell>Create Time</TableCell>
+                                    <TableCell>Status</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {refundOrders.map((order) => (
+                                    <TableRow key={order.orderId}>
+                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>{formatPrice(order.orderPrice)}</TableCell>
+                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.phone}</TableCell>
+                                        <TableCell>{formatDateTime(order.createAt)}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={order.status}
+                                                sx={{
+                                                    bgcolor: getStatusColor(order.status),
+                                                    color: getStatusColorText(order.status),
+                                                    fontWeight: 500,
+                                                    '& .MuiChip-label': { px: 2 }
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                        <Button variant="outlined" onClick={() => handleOpenDialog(order)}>
+                                            View Details
+                                        </Button>
+
+                                            {order.status === "Request refund" && (
+                                                <Box sx={{ mt: 1 }}>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="success"
+                                                        onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')}
+                                                        sx={{ mr: 1 }}
+                                                    >
+                                                        Accept
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="error"
+                                                        onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')}
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </Box>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </Box>
 
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
                 <DialogTitle sx={{
@@ -846,22 +1002,26 @@ const TaskManagement = () => {
                                                             detailedOrder.status === 'Received' ? 'info' : 'warning'}
                                                         sx={{ mb: 1 }}
                                                     />
-                                                    <Select
-                                                        size="small"
-                                                        value=""
-                                                        onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
-                                                        sx={{
-                                                            minWidth: 200,
-                                                            mb: 1,
-                                                            '& .MuiSelect-select': { py: 1 }
-                                                        }}
-                                                        displayEmpty
-                                                    >
-                                                        <MenuItem value="" disabled>Change Status</MenuItem>
-                                                        <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                                                        <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                        <MenuItem value="Received">6️⃣ Received</MenuItem>
-                                                    </Select>
+                                                    {detailedOrder.status !== "Received" && 
+                                                     detailedOrder.status !== "Cancel" && 
+                                                     detailedOrder.status !== "Delivery" && (
+                                                        <Select
+                                                            size="small"
+                                                            value=""
+                                                            onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
+                                                            sx={{
+                                                                minWidth: 200,
+                                                                mb: 1,
+                                                                '& .MuiSelect-select': { py: 1 }
+                                                            }}
+                                                            displayEmpty
+                                                        >
+                                                            <MenuItem value="" disabled>Change Status</MenuItem>
+                                                            <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
+                                                            <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                                                            <MenuItem value="Received">6️⃣ Received</MenuItem>
+                                                        </Select>
+                                                    )}
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
                                                     </Typography>
