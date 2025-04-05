@@ -128,6 +128,7 @@ const CustomerManagement = () => {
           <TableHead>
             <TableRow>
               {/* <TableCell>ID</TableCell> */}
+              <TableCell>ID</TableCell>
               <TableCell>Avatar</TableCell>
               <TableCell>Full Name</TableCell>
               <TableCell>City</TableCell>
@@ -144,6 +145,8 @@ const CustomerManagement = () => {
             {customers.map((customer) => (
               <TableRow key={customer.customerId}>
                 {/* <TableCell>{customer.customerId}</TableCell> */}
+                <TableCell>{customer.customerId}</TableCell>
+
                 <TableCell>
                   <img
                     src={customer.avatar}

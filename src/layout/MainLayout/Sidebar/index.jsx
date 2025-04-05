@@ -27,7 +27,10 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
 
   const drawer = (
     <>
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+      <Box sx={{ 
+        display: { xs: 'block', md: 'none' },
+        background: 'linear-gradient(45deg, #FF69B4 30%, #FFB6C1 90%)',
+      }}>
         <Box sx={{ display: 'flex', p: 2, mx: 'auto' }}>
           <LogoSection />
         </Box>
@@ -38,22 +41,46 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
           style={{
             height: !matchUpMd ? 'calc(100vh - 56px)' : 'calc(100vh - 88px)',
             paddingLeft: '16px',
-            paddingRight: '16px'
+            paddingRight: '16px',
+            background: 'linear-gradient(180deg, #FFF0F5 0%, #FFFFFF 100%)', // Light pink gradient background
           }}
         >
           <MenuList />
           <MenuCard />
           <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-            <Chip label={import.meta.env.VITE_APP_VERSION} disabled chipcolor="secondary" size="small" sx={{ cursor: 'pointer' }} />
+            <Chip 
+              label={import.meta.env.VITE_APP_VERSION} 
+              disabled 
+              chipcolor="secondary" 
+              size="small" 
+              sx={{ 
+                cursor: 'pointer',
+                background: '#FF69B4',
+                color: '#fff' 
+              }} 
+            />
           </Stack>
         </PerfectScrollbar>
       </BrowserView>
       <MobileView>
-        <Box sx={{ px: 2 }}>
+        <Box sx={{ 
+          px: 2,
+          background: 'linear-gradient(180deg, #FFF0F5 0%, #FFFFFF 100%)', // Light pink gradient background
+        }}>
           <MenuList />
           <MenuCard />
           <Stack direction="row" justifyContent="center" sx={{ mb: 2 }}>
-            <Chip label={import.meta.env.VITE_APP_VERSION} disabled chipcolor="secondary" size="small" sx={{ cursor: 'pointer' }} />
+            <Chip 
+              label={import.meta.env.VITE_APP_VERSION} 
+              disabled 
+              chipcolor="secondary" 
+              size="small" 
+              sx={{ 
+                cursor: 'pointer',
+                background: '#FF69B4',
+                color: '#fff'
+              }} 
+            />
           </Stack>
         </Box>
       </MobileView>
@@ -73,33 +100,55 @@ const Sidebar = ({ drawerOpen, drawerToggle, window }) => {
         sx={{
           '& .MuiDrawer-paper': {
             width: drawerWidth,
-            background: theme.palette.background.default,
+            background: 'linear-gradient(180deg, #FFF0F5 0%, #FFFFFF 100%)', // Light pink gradient background
             color: theme.palette.text.primary,
             borderRight: 'none',
+            boxShadow: '4px 0 8px rgba(255, 105, 180, 0.1)', // Soft pink shadow
             [theme.breakpoints.up('md')]: {
               top: '88px'
             },
             '& .MuiListItem-root': {
               transition: 'all .2s ease-in-out',
+              borderRadius: '8px',
+              margin: '4px 0',
               '&:hover': {
-                background: '#ffe0f0',
-                color: theme.palette.text.primary,
+                background: 'rgba(255, 105, 180, 0.1)', // Light pink hover
+                color: '#FF69B4',
               },
               '&.Mui-selected, &.Mui-selected:hover': {
-                background: '#ffe0f0',
-                color: theme.palette.text.primary,
+                background: 'rgba(255, 105, 180, 0.2)', // Darker pink for selected
+                color: '#FF69B4',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  left: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  height: '60%',
+                  width: '4px',
+                  background: '#FF69B4',
+                  borderRadius: '0 4px 4px 0'
+                }
               }
             },
             '& .MuiListItemButton-root': {
               transition: 'all .2s ease-in-out',
+              borderRadius: '8px',
               '&:hover': {
-                background: '#ffe0f0',
-                color: theme.palette.text.primary,
+                background: 'rgba(255, 105, 180, 0.1)', // Light pink hover
+                color: '#FF69B4',
               },
               '&.Mui-selected, &.Mui-selected:hover': {
-                background: '#ffe0f0',
-                color: theme.palette.text.primary,
+                background: 'rgba(255, 105, 180, 0.2)', // Darker pink for selected
+                color: '#FF69B4',
               }
+            },
+            '& .MuiListItemIcon-root': {
+              color: 'inherit'
+            },
+            '& .MuiListItemText-primary': {
+              fontSize: '0.875rem',
+              fontWeight: 500
             }
           }
         }}

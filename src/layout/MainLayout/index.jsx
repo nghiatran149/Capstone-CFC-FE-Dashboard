@@ -23,6 +23,8 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && pr
   ...theme.typography.mainContent,
   borderBottomLeftRadius: 0,
   borderBottomRightRadius: 0,
+  background: 'linear-gradient(135deg, #FFE6EE 0%, #FFD1DC 100%)',
+  minHeight: '100vh',
   transition: theme.transitions.create(
     'margin',
     open
@@ -65,16 +67,20 @@ const MainLayout = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ 
+      display: 'flex',
+      background: 'linear-gradient(135deg, #FFE6EE 0%, #FFD1DC 100%)',
+      minHeight: '100vh'
+    }}>
       <CssBaseline />
       {/* header */}
       <AppBar
         enableColorOnDark
         position="fixed"
-        color="inherit"
         elevation={0}
         sx={{
-          bgcolor: theme.palette.background.default,
+          background: 'linear-gradient(45deg, #FF69B4 30%, #FFB6C1 90%)',
+          boxShadow: '0 3px 5px 2px rgba(255, 105, 180, .3)',
           transition: leftDrawerOpened ? theme.transitions.create('width') : 'none'
         }}
       >
@@ -89,8 +95,40 @@ const MainLayout = () => {
       {/* main content */}
       <Main theme={theme} open={leftDrawerOpened}>
         {/* breadcrumb */}
-        <Breadcrumbs separator={IconChevronRight} navigation={navigation} icon title rightAlign />
-        <Outlet />
+        <Breadcrumbs 
+          separator={IconChevronRight} 
+          navigation={navigation} 
+          icon 
+          title 
+          rightAlign 
+          sx={{
+            '& .MuiBreadcrumbs-ol': {
+              '& .MuiBreadcrumbs-li': {
+                '& a': {
+                  color: '#FF1493',
+                  '&:hover': {
+                    color: '#FF69B4'
+                  }
+                },
+                '& .MuiTypography-root': {
+                  color: '#FF1493'
+                }
+              }
+            },
+            background: 'rgba(255, 255, 255, 0.8)',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            marginBottom: '16px'
+          }}
+        />
+        <Box sx={{
+          background: 'rgba(255, 255, 255, 0.8)',
+          borderRadius: '12px',
+          padding: '20px',
+          boxShadow: '0 4px 6px rgba(255, 105, 180, 0.1)'
+        }}>
+          <Outlet />
+        </Box>
       </Main>
       {/* <Customization /> */}
     </Box>

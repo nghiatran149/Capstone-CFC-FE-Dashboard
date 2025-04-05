@@ -172,7 +172,7 @@ const FlowerBasketManagement = () => {
       });
 
       const formData = new FormData();
-      
+
       // Format và validate data trước khi append
       formData.append('FlowerBasketName', String(newBasket.flowerBasketName).trim());
       formData.append('MaxQuantity', Math.max(0, Number(newBasket.maxQuantity)));
@@ -182,7 +182,7 @@ const FlowerBasketManagement = () => {
       formData.append('Decription', String(newBasket.description || '').trim());
       formData.append('Feature', Boolean(newBasket.feature));
       formData.append('CategoryId', String(newBasket.categoryId).trim());
-      
+
       // Kiểm tra và xử lý file ảnh
       if (newBasket.image instanceof File) {
         formData.append('Image', newBasket.image);
@@ -247,7 +247,7 @@ const FlowerBasketManagement = () => {
       // Hiển thị thông báo lỗi chi tiết hơn
       setSnackbar({
         open: true,
-        message: error.response?.status === 500 
+        message: error.response?.status === 500
           ? 'Server error. Please check your input data and try again.'
           : error.response?.data?.messages?.[0] || error.message,
         severity: 'error'
@@ -259,9 +259,9 @@ const FlowerBasketManagement = () => {
   const handleUpdateBasket = async () => {
     try {
       console.log('Updating basket:', editingBasket.flowerBasketId); // Log để debug
-      
+
       const formData = new FormData();
-      
+
       formData.append('FlowerBasketName', String(newBasket.flowerBasketName).trim());
       formData.append('MaxQuantity', Math.max(0, Number(newBasket.maxQuantity)));
       formData.append('MinQuantity', Math.max(0, Number(newBasket.minQuantity)));
@@ -271,7 +271,7 @@ const FlowerBasketManagement = () => {
       formData.append('Feature', Boolean(newBasket.feature).toString());
       formData.append('Status', Boolean(newBasket.status).toString());
       formData.append('CategoryId', String(newBasket.categoryId).trim());
-      
+
       if (newBasket.image instanceof File) {
         formData.append('Image', newBasket.image);
       }
@@ -353,19 +353,19 @@ const FlowerBasketManagement = () => {
   // Sửa lại hàm validateForm, bỏ validation quantity
   const validateForm = () => {
     const errors = [];
-    
+
     if (!newBasket.flowerBasketName) {
       errors.push('Basket Name is required');
     }
-    
+
     if (!newBasket.categoryId) {
       errors.push('Category is required');
     }
-    
+
     if (!newBasket.image) {
       errors.push('Image is required');
     }
-    
+
     if (newBasket.price <= 0) {
       errors.push('Price must be greater than 0');
     }
@@ -377,9 +377,9 @@ const FlowerBasketManagement = () => {
     <Box sx={{ p: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <h2>Flower Basket Management</h2>
-        <Button 
-          variant="contained" 
-          startIcon={<Add />} 
+        <Button
+          variant="contained"
+          startIcon={<Add />}
           onClick={() => setOpenDialog(true)}
           aria-label="open add flower basket form"
         >
@@ -390,6 +390,7 @@ const FlowerBasketManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Id</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
@@ -405,7 +406,10 @@ const FlowerBasketManagement = () => {
           </TableHead>
           <TableBody>
             {flowerBaskets.map((basket) => (
+
               <TableRow key={basket.flowerBasketId}>
+                <TableCell>{basket.flowerBasketId}</TableCell>
+
                 <TableCell>
                   {basket.image && (
                     <img
@@ -423,40 +427,40 @@ const FlowerBasketManagement = () => {
                 <TableCell>{basket.quantity}</TableCell>
                 <TableCell>{basket.sold}</TableCell>
                 <TableCell>
-                  <Chip 
+                  <Chip
                     label={basket.feature ? 'Yes' : 'No'}
                     color={basket.feature ? 'success' : 'default'}
                     size="small"
                   />
                 </TableCell>
                 <TableCell>
-                  <Chip 
+                  <Chip
                     label={basket.status ? 'Active' : 'Inactive'}
                     color={basket.status ? 'success' : 'error'}
                     size="small"
                   />
                 </TableCell>
                 <TableCell>
-                  <IconButton 
-                    color="info" 
+                  <IconButton
+                    color="info"
                     onClick={() => setViewDetail({ open: true, basket: basket })}
                     title="View Detail"
                   >
                     <RemoveRedEye />
                   </IconButton>
-                  <IconButton 
-                    color="primary" 
+                  <IconButton
+                    color="primary"
                     onClick={() => handleEdit(basket)}
                     title="Edit"
                   >
                     <Edit />
                   </IconButton>
-                  <IconButton 
-                    color="error" 
-                    onClick={() => setConfirmDelete({ 
-                      open: true, 
+                  <IconButton
+                    color="error"
+                    onClick={() => setConfirmDelete({
+                      open: true,
                       basketId: basket.flowerBasketId,
-                      basketName: basket.flowerBasketName 
+                      basketName: basket.flowerBasketName
                     })}
                     title="Delete"
                   >
@@ -469,8 +473,8 @@ const FlowerBasketManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog 
-        open={openDialog} 
+      <Dialog
+        open={openDialog}
         onClose={() => {
           setOpenDialog(false);
           setEditingBasket(null);
@@ -494,9 +498,9 @@ const FlowerBasketManagement = () => {
           {editingBasket ? `Edit Flower Basket: ${editingBasket.flowerBasketName}` : 'Add New Flower Basket'}
         </DialogTitle>
         <DialogContent>
-          <Box 
-            component="form" 
-            sx={{ mt: 2 }} 
+          <Box
+            component="form"
+            sx={{ mt: 2 }}
             noValidate
             role="form"
             aria-label="flower basket form"
@@ -655,7 +659,7 @@ const FlowerBasketManagement = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => {
               setOpenDialog(false);
               setEditingBasket(null);
@@ -676,7 +680,7 @@ const FlowerBasketManagement = () => {
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             variant="contained"
             onClick={editingBasket ? handleUpdateBasket : handleAddBasket}
             disabled={!newBasket.flowerBasketName || !newBasket.categoryId}
@@ -698,13 +702,13 @@ const FlowerBasketManagement = () => {
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setConfirmDelete({ open: false, basketId: null, basketName: '' })}
             color="primary"
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={() => handleDelete(confirmDelete.basketId)}
             color="error"
             variant="contained"
@@ -721,8 +725,8 @@ const FlowerBasketManagement = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle sx={{ 
-          display: 'flex', 
+        <DialogTitle sx={{
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: '1px solid #e0e0e0'
@@ -812,7 +816,7 @@ const FlowerBasketManagement = () => {
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Featured</TableCell>
                           <TableCell>
-                            <Chip 
+                            <Chip
                               label={viewDetail.basket.feature ? 'Yes' : 'No'}
                               color={viewDetail.basket.feature ? 'success' : 'default'}
                               size="small"
@@ -822,7 +826,7 @@ const FlowerBasketManagement = () => {
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                           <TableCell>
-                            <Chip 
+                            <Chip
                               label={viewDetail.basket.status ? 'Active' : 'Inactive'}
                               color={viewDetail.basket.status ? 'success' : 'error'}
                               size="small"
@@ -838,8 +842,8 @@ const FlowerBasketManagement = () => {
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Updated At</TableCell>
                           <TableCell>
-                            {viewDetail.basket.updateAt ? 
-                              new Date(viewDetail.basket.updateAt).toLocaleString() : 
+                            {viewDetail.basket.updateAt ?
+                              new Date(viewDetail.basket.updateAt).toLocaleString() :
                               'N/A'
                             }
                           </TableCell>
@@ -853,10 +857,10 @@ const FlowerBasketManagement = () => {
                     <Typography variant="h6" gutterBottom>
                       Description
                     </Typography>
-                    <Paper 
-                      variant="outlined" 
-                      sx={{ 
-                        p: 2, 
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2,
                         backgroundColor: '#f8f8f8',
                         minHeight: 100
                       }}
@@ -879,8 +883,8 @@ const FlowerBasketManagement = () => {
         onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
-        <Alert 
-          severity={snackbar.severity} 
+        <Alert
+          severity={snackbar.severity}
           onClose={() => setSnackbar({ ...snackbar, open: false })}
           sx={{ width: "100%" }}
         >

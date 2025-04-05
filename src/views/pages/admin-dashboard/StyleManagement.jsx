@@ -424,6 +424,7 @@ const StyleManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+            <TableCell>ID</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Category</TableCell>
@@ -436,7 +437,10 @@ const StyleManagement = () => {
           </TableHead>
           <TableBody>
             {styles.map((style) => (
+
               <TableRow key={style.styleId}>
+                                              <TableCell>{style.styleId}</TableCell>
+
                 <TableCell>
                   {style.image && (
                     <img

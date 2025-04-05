@@ -12,7 +12,7 @@ import WcIcon from '@mui/icons-material/Wc';
 import EarningCard from 'views/dashboard/EarningCard';
 import TotalOrderLineChartCard from 'views/dashboard/TotalOrderLineChartCard';
 import TotalGrowthBarChart from 'views/dashboard/TotalGrowthBarChart';
-import { Add, Delete ,Edit} from '@mui/icons-material';
+import { Add, Delete, Edit } from '@mui/icons-material';
 import Visibility from '@mui/icons-material/Visibility';
 import Divider from '@mui/material/Divider';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -457,7 +457,7 @@ const StoreOverview = () => {
             profit={selectedStore ? selectedStore.profit : 0}
             isLoading={false}
           />
-         <TotalOrderLineChartCard isLoading={false} storeId={selectedStore?.storeId} />
+          <TotalOrderLineChartCard isLoading={false} storeId={selectedStore?.storeId} />
         </div>
 
         {selectedStore && (
@@ -515,6 +515,7 @@ const StoreOverview = () => {
             <Divider />
             <CardContent sx={{ padding: '24px' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography variant="body1" sx={{ fontWeight: 'bold', flex: 1 }}>Store Name:</Typography>
                   <Typography variant="body1" sx={{ fontSize: '1rem', color: '#333' }}>{selectedStore.storeName}</Typography>
@@ -551,9 +552,9 @@ const StoreOverview = () => {
       </div>
 
       {selectedStore ? (
-        <TotalGrowthBarChart 
-          isLoading={false} 
-          storeId={selectedStore.storeId} 
+        <TotalGrowthBarChart
+          isLoading={false}
+          storeId={selectedStore.storeId}
         />
       ) : (
         <Box sx={{ mt: 2 }}>
@@ -583,12 +584,13 @@ const StoreOverview = () => {
         />
         <CardContent>
           <Box sx={{ overflowX: 'auto', width: '100%' }}>
-            <Table sx={{ 
+            <Table sx={{
               minWidth: 800,
               whiteSpace: 'nowrap'
             }}>
               <TableHead>
                 <TableRow>
+                  <TableCell>ID</TableCell>
                   <TableCell>Avatar</TableCell>
                   <TableCell>FullName</TableCell>
                   <TableCell>Address</TableCell>
@@ -604,7 +606,10 @@ const StoreOverview = () => {
               <TableBody>
                 {employees.map((employee) => (
                   <TableRow key={employee.id}>
+                    <TableCell>{employee.employeeId}</TableCell>
+
                     <TableCell>
+
                       {employee.avatar && (
                         <img
                           src={employee.avatar}
@@ -1154,13 +1159,13 @@ const StoreOverview = () => {
           <Typography>Are you sure you want to delete this employee?</Typography>
         </DialogContent>
         <DialogActions>
-          <Button 
+          <Button
             onClick={() => setConfirmDelete({ open: false, employeeId: null })}
             color="primary"
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={() => handleDeleteEmployee(confirmDelete.employeeId)}
             color="error"
             variant="contained"
