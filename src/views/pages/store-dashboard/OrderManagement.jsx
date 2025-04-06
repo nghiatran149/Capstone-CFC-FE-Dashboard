@@ -318,7 +318,7 @@ const OrderManagement = () => {
             }
 
             // Fetch delivery details if the order status is "Delivery"
-            if (response.data.data.status === "Delivery") {
+            if (response.data.data.status === "Delivery" || response.data.data.status === "Received") {
                 fetchDeliveryDetails(order.orderId);
             }
         } catch (error) {
