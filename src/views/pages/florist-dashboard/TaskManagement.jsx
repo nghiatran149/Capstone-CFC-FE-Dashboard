@@ -645,7 +645,10 @@ const TaskManagement = () => {
                 <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
                 <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
                 <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
-                <MenuItem value="Received">6️⃣ Received</MenuItem>
+                {/* Chỉ hiển thị option Received nếu delivery là false (Pickup) */}
+                {!task.delivery && (
+                    <MenuItem value="Received">6️⃣ Received</MenuItem>
+                )}
             </Select>
         );
     };
@@ -934,9 +937,9 @@ const TaskManagement = () => {
                                             />
                                         </TableCell>
                                         <TableCell>
-                                        <Button variant="outlined" onClick={() => handleOpenDialog(order)}>
-                                            View Details
-                                        </Button>
+                                            <Button variant="outlined" onClick={() => handleOpenDialog(order)}>
+                                                View Details
+                                            </Button>
 
                                             {order.status === "Request refund" && (
                                                 <Box sx={{ mt: 1 }}>
@@ -1002,26 +1005,25 @@ const TaskManagement = () => {
                                                             detailedOrder.status === 'Received' ? 'info' : 'warning'}
                                                         sx={{ mb: 1 }}
                                                     />
-                                                    {detailedOrder.status !== "Received" && 
-                                                     detailedOrder.status !== "Cancel" && 
-                                                     detailedOrder.status !== "Delivery" && (
-                                                        <Select
-                                                            size="small"
-                                                            value=""
-                                                            onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
-                                                            sx={{
-                                                                minWidth: 200,
-                                                                mb: 1,
-                                                                '& .MuiSelect-select': { py: 1 }
-                                                            }}
-                                                            displayEmpty
-                                                        >
-                                                            <MenuItem value="" disabled>Change Status</MenuItem>
-                                                            <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                                                            <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                                                    <Select
+                                                        size="small"
+                                                        value=""
+                                                        onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
+                                                        sx={{
+                                                            minWidth: 200,
+                                                            mb: 1,
+                                                            '& .MuiSelect-select': { py: 1 }
+                                                        }}
+                                                        displayEmpty
+                                                    >
+                                                        <MenuItem value="" disabled>Change Status</MenuItem>
+                                                        <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
+                                                        <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
+                                                        {/* Chỉ hiển thị option Received nếu delivery là false (Pickup) */}
+                                                        {!detailedOrder.delivery && (
                                                             <MenuItem value="Received">6️⃣ Received</MenuItem>
-                                                        </Select>
-                                                    )}
+                                                        )}
+                                                    </Select>
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
                                                     </Typography>
@@ -1232,7 +1234,7 @@ const TaskManagement = () => {
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">Assign Shipper</Typography>
-                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery" ? (
+                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery"  ? (
                                             <Stack spacing={2}>
                                                 <InfoRow>
                                                     <Typography className="label">Select Shipper</Typography>
@@ -1332,6 +1334,10 @@ const TaskManagement = () => {
                                                     <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
+                                                    <Typography className="label">Fee</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.fee}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
                                                     <Typography className="label">Delivery Time</Typography>
                                                     <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.deliveryTime)}</Typography>
                                                 </InfoRow>
@@ -1341,7 +1347,15 @@ const TaskManagement = () => {
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery Image</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage ?? "N/A"}</Typography>
+                                                    {detailedOrder.deliveryDetails.deliveryImage ? (
+                                                        <img
+                                                            src={detailedOrder.deliveryDetails.deliveryImage}
+                                                            alt="Delivery"
+                                                            style={{ width: "200px", height: "auto", borderRadius: "8px", marginTop: "8px" }}
+                                                        />
+                                                    ) : (
+                                                        <Typography className="value">N/A</Typography>
+                                                    )}
                                                 </InfoRow>
                                             </Stack>
                                         </OrderSection>
