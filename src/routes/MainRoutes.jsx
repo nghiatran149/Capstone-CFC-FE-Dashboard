@@ -7,6 +7,7 @@ import Loadable from 'ui-component/Loadable';
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
 // Admin Dashboard
+const Statistic = Loadable(lazy(() => import('views/pages/admin-dashboard/Statistic')));
 const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const ChainOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/ChainOverview')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
@@ -56,6 +57,15 @@ const MainRoutes = {
     },
 
     // Admin Dashboard
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'statistic',
+          element: <Statistic />
+        }
+      ]
+    },
     {
       path: '/adminDashboard',
       children: [

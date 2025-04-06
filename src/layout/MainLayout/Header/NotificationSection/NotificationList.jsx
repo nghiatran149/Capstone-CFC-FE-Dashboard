@@ -147,7 +147,7 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
   if (!notifications || notifications.length === 0) {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
-        <Typography variant="subtitle1">Không có thông báo</Typography>
+        <Typography variant="subtitle1">There is no notification</Typography>
       </Box>
     );
   }
