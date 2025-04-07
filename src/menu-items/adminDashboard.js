@@ -1,4 +1,4 @@
-import { IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
+import { IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -7,11 +7,19 @@ const adminDashboard = {
   type: 'group',
   children: [
     {
+      id: 'stat',
+      title: 'Statistic',
+      type: 'item',
+      url: '/adminDashboard/statistic',
+      icon: IconGraph,
+      breadcrumbs: true
+    },
+    {
       id: 'chain',
       title: 'Chain Overview',
       type: 'item',
       url: '/adminDashboard/chain-overview',
-      icon: IconDashboard,
+      icon: IconChartBar,
       breadcrumbs: true
     },
     {

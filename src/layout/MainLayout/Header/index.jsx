@@ -25,7 +25,7 @@ const Header = ({ handleLeftDrawerToggle }) => {
     <AppBar
       position="fixed"
       sx={{
-        background: 'linear-gradient(45deg, #FFB6C1 30%, #FFC0CB 90%)',
+        background: 'linear-gradient(45deg,rgb(255, 231, 231) 30%,rgb(255, 178, 191) 90%)',
         boxShadow: '0 3px 5px 2px rgba(255, 192, 203, 0.3)',
       }}
     >
