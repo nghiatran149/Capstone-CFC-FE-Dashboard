@@ -1,4 +1,4 @@
-import { IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
+import { IconBasketCog,IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -36,6 +36,14 @@ const adminDashboard = {
       type: 'item',
       url: '/adminDashboard/customer-management',
       icon: IconUsersGroup,
+      breadcrumbs: true
+    },
+    {
+      id: 'order',
+      title: 'Order Management',
+      type: 'item',
+      url: '/adminDashboard/order-management',
+      icon: IconBasketCog,
       breadcrumbs: true
     },
     {

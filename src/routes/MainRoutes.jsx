@@ -24,7 +24,7 @@ const FlowerManagement =  Loadable(lazy(() => import('views/pages/admin-dashboar
 const FlowerBasketManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/FlowerBasketManagement')));
 const StyleManagement= Loadable(lazy(() => import('views/pages/admin-dashboard/StyleManagement')));
 const AccessoryManagement =Loadable(lazy(() => import('views/pages/admin-dashboard/AccessoryManagement')));
-
+const AllOrderManagement =Loadable(lazy(() => import('views/pages/admin-dashboard/AllOrderManagement')));
 
 // Store Dashboard
 const StaffManagement = Loadable(lazy(() => import('views/pages/store-dashboard/StaffManagement')));
@@ -153,6 +153,15 @@ const MainRoutes = {
         {
           path: 'accessory-category-management',
           element: <AccessoryCategoryManagement />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
+          path: 'order-management',
+          element: <AllOrderManagement />
         }
       ]
     },
