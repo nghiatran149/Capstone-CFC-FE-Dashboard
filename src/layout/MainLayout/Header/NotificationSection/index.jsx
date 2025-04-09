@@ -216,7 +216,13 @@ const NotificationSection = () => {
       if (response.ok) {
         const result = await response.json();
         if (result.data && Array.isArray(result.data)) {
-          setNotifications(result.data);
+
+          const sortedData = result.data.sort((a, b) => {
+            const dateA = new Date(a.updateAt ?? a.createAt);
+            const dateB = new Date(b.updateAt ?? b.createAt);
+            return dateB - dateA; 
+          });
+          setNotifications(sortedData);
 
           // Đếm số thông báo chưa đọc
           const unreadNotifications = result.data.filter(notification => !notification.isRead);
@@ -379,7 +385,7 @@ const NotificationSection = () => {
                       <Grid container alignItems="center" justifyContent="space-between" sx={{ pt: 2, px: 2 }}>
                         <Grid item>
                           <Stack direction="row" spacing={2}>
-                            <Typography variant="subtitle1">Tất cả thông báo</Typography>
+                            <Typography variant="subtitle1">All notifications</Typography>
                             <Chip
                               size="small"
                               label={unreadCount}
@@ -392,7 +398,7 @@ const NotificationSection = () => {
                         </Grid>
                         <Grid item>
                           <Typography component={Button} variant="subtitle2" color="primary" onClick={markAllAsRead}>
-                            Đánh dấu đã đọc tất cả
+                            Mark all as read
                           </Typography>
                         </Grid>
                       </Grid>

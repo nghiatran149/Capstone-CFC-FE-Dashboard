@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IconUser, IconMessage, IconShoppingCart, IconBox } from '@tabler/icons-react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -24,33 +25,35 @@ import Divider from '@mui/material/Divider';
 import Chip from 'ui-component/extended/Chip';
 
 // assets
-import { IconBrandTelegram, IconBuildingStore, IconMailbox, IconPhoto, IconUser } from '@tabler/icons-react';
+
 import User1 from 'assets/images/users/user-round.svg';
 
 // Định dạng thời gian
+// Format time difference in English
 const formatTime = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now - date;
-  
-  // Tính toán sự khác biệt thời gian
+
+  // Calculate time difference
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
   const diffHour = Math.floor(diffMin / 60);
   const diffDay = Math.floor(diffHour / 24);
 
   if (diffSec < 60) {
-    return 'Vừa xong';
+    return 'Just now';
   } else if (diffMin < 60) {
-    return `${diffMin} phút trước`;
+    return `${diffMin} minute${diffMin === 1 ? '' : 's'} ago`;
   } else if (diffHour < 24) {
-    return `${diffHour} giờ trước`;
+    return `${diffHour} hour${diffHour === 1 ? '' : 's'} ago`;
   } else if (diffDay < 7) {
-    return `${diffDay} ngày trước`;
+    return `${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
   } else {
-    return date.toLocaleDateString('vi-VN');
+    return date.toLocaleDateString('en-US');
   }
 };
+
 
 const ListItemWrapper = ({ children, onClick }) => {
   return (
@@ -115,7 +118,7 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
     if (onClose) {
       onClose();
     }
-    
+
     // Xử lý chuyển hướng hoặc các hành động khác tùy thuộc vào loại thông báo
 
     if (notification.relatedId) {
@@ -130,8 +133,28 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
         case 'User':
           navigate(`/user/profile/${notification.relatedId}`);
           break;
-        case 'Inventory':
-          navigate(`/inventory/detail/${notification.relatedId}`);
+        case 'Message':
+          if (notification.relatedId) {
+            // Gọi API để lấy chi tiết chat room
+            fetch(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/chatRooms/Id?id=${notification.relatedId}`, {
+              headers: {
+                'accept': '*/*',
+              },
+            })
+              .then(res => res.json())
+              .then(data => {
+                if (data?.data) {
+                  const { orderId, customerId, employeeId } = data.data;
+
+                  navigate(`/floristDashboard/task-management?openChat=true&orderId=${orderId}&customerId=${customerId}&employeeId=${employeeId}`);
+                } else {
+                  console.error("Không lấy được dữ liệu chat room");
+                }
+              })
+              .catch(error => {
+                console.error("Lỗi khi gọi API chatRoom:", error);
+              });
+          }
           break;
         default:
           // Mặc định nếu không xác định được loại thông báo
@@ -143,11 +166,25 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
     }
   };
 
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'Order':
+        return <IconShoppingCart stroke={1.5} size="1.3rem" />;
+      case 'Product':
+        return <IconBox stroke={1.5} size="1.3rem" />;
+      case 'Message':
+        return <IconMessage stroke={1.5} size="1.3rem" />;
+      case 'User':
+      default:
+        return <IconUser stroke={1.5} size="1.3rem" />;
+    }
+  };
+
   // Hiển thị tin nhắn khi không có thông báo
   if (!notifications || notifications.length === 0) {
     return (
       <Box sx={{ p: 2, textAlign: 'center' }}>
-        <Typography variant="subtitle1">Không có thông báo</Typography>
+        <Typography variant="subtitle1">No notification</Typography>
       </Box>
     );
   }
@@ -179,17 +216,17 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
             <ListItem alignItems="center" disableGutters>
               <ListItemAvatar>
                 <Avatar>
-                  <IconUser stroke={1.5} size="1.3rem" />
+                  {getNotificationIcon(notification.type)}
                 </Avatar>
               </ListItemAvatar>
-              <ListItemText 
-                primary={notification.type || "Thông báo"} 
+              <ListItemText
+                primary={notification.type || "Notification"}
               />
               <ListItemSecondaryAction>
                 <Grid container justifyContent="flex-end">
                   <Grid item xs={12}>
                     <Typography variant="caption" display="block" gutterBottom>
-                      {formatTime(notification.createAt)}
+                      {formatTime(notification.updateAt ?? notification.createAt)}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -203,12 +240,12 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
                 <Grid container>
                   {!notification.isRead && (
                     <Grid item>
-                      <Chip label="Chưa đọc" sx={chipErrorSX} />
+                      <Chip label="Unread" sx={chipErrorSX} />
                     </Grid>
                   )}
-                  <Grid item>
+                  {/* <Grid item>
                     <Chip label={notification.status || "New"} sx={chipWarningSX} />
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </Grid>

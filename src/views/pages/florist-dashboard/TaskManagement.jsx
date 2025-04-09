@@ -94,20 +94,37 @@ const TaskManagement = () => {
         // Kiểm tra query parameter khi component mount
         const queryParams = new URLSearchParams(location.search);
         const openOrderId = queryParams.get('openOrderId');
-        
+        const openChat = queryParams.get('openChat');
+
         if (openOrderId) {
-          // Tìm task có orderId tương ứng
-          const taskToOpen = tasks.find(task => task.orderId === openOrderId);
-          
-          if (taskToOpen) {
-            // Tự động mở Order Details
-            handleOpenDialog(taskToOpen);
-            
-            // Xóa query parameter khỏi URL để tránh mở lại khi refresh
-            navigate('/floristDashboard/task-management', { replace: true });
-          }
+            // Tìm task có orderId tương ứng
+            const taskToOpen = tasks.find(task => task.orderId === openOrderId);
+
+            if (taskToOpen) {
+                // Tự động mở Order Details
+                handleOpenDialog(taskToOpen);
+
+                // Xóa query parameter khỏi URL để tránh mở lại khi refresh
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
         }
-      }, [tasks, location]);
+        if (openChat === 'true') {
+            const orderId = queryParams.get('orderId');
+            const customerId = queryParams.get('customerId');
+            const employeeId = queryParams.get('employeeId');
+
+
+            if (orderId && customerId && employeeId) {
+                const fakeTask = {
+                  orderId: orderId,
+                  customerId: customerId,
+                  employeeId: employeeId,
+                };
+                handleOpenChatDialog(fakeTask);
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
+        }
+    }, [tasks, location]);
 
     // Thiết lập kết nối SignalR
     useEffect(() => {
