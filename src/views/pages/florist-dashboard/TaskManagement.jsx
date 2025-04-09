@@ -96,6 +96,8 @@ const TaskManagement = () => {
         const queryParams = new URLSearchParams(location.search);
         const openOrderId = queryParams.get('openOrderId');
 
+        const openChat = queryParams.get('openChat');
+
         if (openOrderId) {
             // Tìm task có orderId tương ứng
             const taskToOpen = tasks.find(task => task.orderId === openOrderId);
@@ -105,6 +107,23 @@ const TaskManagement = () => {
                 handleOpenDialog(taskToOpen);
 
                 // Xóa query parameter khỏi URL để tránh mở lại khi refresh
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
+        }
+
+        if (openChat === 'true') {
+            const orderId = queryParams.get('orderId');
+            const customerId = queryParams.get('customerId');
+            const employeeId = queryParams.get('employeeId');
+
+
+            if (orderId && customerId && employeeId) {
+                const fakeTask = {
+                  orderId: orderId,
+                  customerId: customerId,
+                  employeeId: employeeId,
+                };
+                handleOpenChatDialog(fakeTask);
                 navigate('/floristDashboard/task-management', { replace: true });
             }
         }
@@ -641,7 +660,6 @@ const TaskManagement = () => {
                 displayEmpty
             >
                 <MenuItem value="" disabled>Change Status</MenuItem>
-                <MenuItem value="Cancel">Cancel</MenuItem>
                 <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
                 <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
                 <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
