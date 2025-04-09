@@ -296,18 +296,18 @@ const ProductManagement = () => {
     }
   };
 
-  const handleConfirmDelete = (id) => {
-    setConfirmDelete({ open: true, customerId: id });
+  const handleDeleteProduct = async (productId) => {
+    setConfirmDelete({ open: true, productId: productId });
   };
 
-  const handleDeleteProduct = async (productId) => {
+  const handleConfirmDelete = async () => {
     try {
       const response = await axios.delete(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${productId}`
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${confirmDelete.productId}`
       );
 
       if (response.data.statusCode === 200) {
-        setProducts(products.filter((product) => product.productId !== productId));
+        setProducts(products.filter((product) => product.productId !== confirmDelete.productId));
         setSnackbar({
           open: true,
           message: 'Product deleted successfully!',
@@ -879,7 +879,7 @@ const ProductManagement = () => {
           <Button
             color="error"
             variant="contained"
-            onClick={() => handleDeleteProduct(confirmDelete.productId)}
+            onClick={handleConfirmDelete}
           >
             Delete
           </Button>

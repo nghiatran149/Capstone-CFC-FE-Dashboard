@@ -641,7 +641,6 @@ const TaskManagement = () => {
                 displayEmpty
             >
                 <MenuItem value="" disabled>Change Status</MenuItem>
-                <MenuItem value="Cancel">Cancel</MenuItem>
                 <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
                 <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
                 <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
