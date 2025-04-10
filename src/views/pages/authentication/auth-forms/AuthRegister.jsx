@@ -196,9 +196,8 @@ const AuthRegister = ({ ...others }) => {
           identificationBack: null,
           submit: null
         }}
-        validationSchema={Yup.object().shape({
+         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-          password: Yup.string().max(255).required('Password is required'),
           fullName: Yup.string().required('Full Name is required'),
           phone: Yup.string().required('Phone is required'),
           address: Yup.string().required('Address is required'),
@@ -206,7 +205,7 @@ const AuthRegister = ({ ...others }) => {
           birthday: Yup.date().required('Birthday is required'),
         })}
         onSubmit={handleRegister}
-      >
+        >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values, setFieldValue }) => (
           <form noValidate onSubmit={handleSubmit} {...others}>
             <Grid container spacing={2}>
@@ -415,7 +414,7 @@ const AuthRegister = ({ ...others }) => {
                   <FormHelperText error>{errors.submit}</FormHelperText>
                 </Box>
               )}
-
+  
               <Box sx={{ mt: 2 }}>
                 <AnimateButton>
                   <Button
