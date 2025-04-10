@@ -670,12 +670,25 @@ const TaskManagement = () => {
             </Select>
         );
     };
-
+   
     useEffect(() => {
         const fetchRefundOrders = async () => {
             try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+                const decodedToken = jwtDecode(token);
+                const staffId = decodedToken.Id;
+
                 const response = await axios.get(
-                    'https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStaffId?StaffId=3005fac2-b6e7-4304-83cc-a94f287ff585'
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStaffId?StaffId=${staffId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
                 );
                 setRefundOrders(response.data.data);
             } catch (error) {
