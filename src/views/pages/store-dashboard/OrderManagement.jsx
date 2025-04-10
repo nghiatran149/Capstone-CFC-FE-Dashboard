@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     Box,
     Table,
@@ -168,6 +169,25 @@ const OrderManagement = () => {
     const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
     const [replyText, setReplyText] = useState('');
     const [hasReplied, setHasReplied] = useState(false);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const openOrderId = queryParams.get('openOrderId');
+
+        if (openOrderId && orders.length > 0) {
+            const orderToOpen = orders.find(order => order.orderId === openOrderId);
+            if (orderToOpen) {
+                handleViewDetails(orderToOpen);
+                queryParams.delete('openOrderId');
+                navigate({
+                    pathname: location.pathname,
+                    search: queryParams.toString(),
+                }, { replace: true });
+            }
+        }
+    }, [location.search, orders]);
 
     const fetchOrders = async () => {
         try {
