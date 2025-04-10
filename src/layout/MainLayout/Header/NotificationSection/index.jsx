@@ -79,11 +79,14 @@ const NotificationSection = () => {
   useEffect(() => {
     try {
       const token = localStorage.getItem('accessToken');
+      const roleName = localStorage.getItem('roleName');
       if (token) {
         const decodedToken = jwtDecode(token);
         const userIdFromToken = decodedToken.Id;
-        setUserId(userIdFromToken);
-        console.log('User ID from token:', userIdFromToken);
+        const storeIdFromToken = decodedToken.StoreId;
+        const toUserId = roleName === 'StoreManager' ? storeIdFromToken : userIdFromToken;
+        setUserId(toUserId);
+        console.log('User ID from token:', toUserId);
       } else {
         console.error('No token found');
       }

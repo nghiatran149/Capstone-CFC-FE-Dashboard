@@ -124,8 +124,13 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
     if (notification.relatedId) {
       switch (notification.type) {
         case 'Order':
-          // navigate(`/order/detail/${notification.relatedId}`);
-          navigate(`/floristDashboard/task-management?openOrderId=${notification.relatedId}`);
+          const roleName = localStorage.getItem('roleName');
+          if(roleName === 'StoreManager'){
+            navigate(`/storeDashboard/order-management?openOrderId=${notification.relatedId}`);
+          }else{
+            navigate(`/floristDashboard/task-management?openOrderId=${notification.relatedId}`);
+          }
+          
           break;
         case 'Product':
           navigate(`/product/detail/${notification.relatedId}`);
@@ -166,17 +171,29 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
     }
   };
 
-  const getNotificationIcon = (type) => {
+  const getNotificationIconWithBg = (type) => {
     switch (type) {
       case 'Order':
-        return <IconShoppingCart stroke={1.5} size="1.3rem" />;
+        return {
+          icon: <IconShoppingCart stroke={1.5} size="1.3rem" color="#1976d2" />,
+          bgColor: '#e3f2fd'
+        };
       case 'Product':
-        return <IconBox stroke={1.5} size="1.3rem" />;
+        return {
+          icon: <IconBox stroke={1.5} size="1.3rem" color="#388e3c" />,
+          bgColor: '#e8f5e9'
+        };
       case 'Message':
-        return <IconMessage stroke={1.5} size="1.3rem" />;
+        return {
+          icon: <IconMessage stroke={1.5} size="1.3rem" color="#f57c00" />,
+          bgColor: '#fff3e0'
+        };
       case 'User':
       default:
-        return <IconUser stroke={1.5} size="1.3rem" />;
+        return {
+          icon: <IconUser stroke={1.5} size="1.3rem" color="#7b1fa2" />,
+          bgColor: '#f3e5f5'
+        };
     }
   };
 
@@ -216,8 +233,15 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
           <ListItemWrapper onClick={() => handleNotificationClick(notification)}>
             <ListItem alignItems="center" disableGutters>
               <ListItemAvatar>
-                <Avatar>
-                  {getNotificationIcon(notification.type)}
+                <Avatar
+                  sx={{
+                    bgcolor: getNotificationIconWithBg(notification.type).bgColor,
+                    width: 40,
+                    height: 40
+                  }}
+                  variant="rounded"
+                >
+                  {getNotificationIconWithBg(notification.type).icon}
                 </Avatar>
               </ListItemAvatar>
               <ListItemText
