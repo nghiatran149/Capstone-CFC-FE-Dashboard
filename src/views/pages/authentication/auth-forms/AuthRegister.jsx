@@ -23,6 +23,7 @@ import Typography from '@mui/material/Typography';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import { CloudUpload } from '@mui/icons-material'; // Import icon for file upload
+import { useNavigate } from 'react-router-dom';
 
 // third party
 import * as Yup from 'yup';
@@ -47,7 +48,7 @@ const AuthRegister = ({ ...others }) => {
   const [checked, setChecked] = useState(true);
   const [stores, setStores] = useState([]); // State to hold stores
   const [selectedStoreId, setSelectedStoreId] = useState(''); // State for selected store ID
-
+  const navigate = useNavigate();
   const [strength, setStrength] = useState(0);
   const [level, setLevel] = useState();
 
@@ -118,10 +119,10 @@ const AuthRegister = ({ ...others }) => {
           },
         }
       );
-      console.log('Registration successful:', response.data);
-      setSnackbarMessage('Bạn đã đăng ký thành công! Vui lòng chờ đợi email xét duyệt.'); // Set Snackbar message
-      setSnackbarOpen(true); // Open Snackbar
-      navigate('/login');
+      if (response.status === 200) {
+        console.log('Registration successful:', response.data);
+        navigate('/login', { replace: true });
+      }
     } catch (error) {
       console.error('Error registering:', error);
       setSnackbarMessage('Đăng ký không thành công. Vui lòng thử lại.'); // Set error message
