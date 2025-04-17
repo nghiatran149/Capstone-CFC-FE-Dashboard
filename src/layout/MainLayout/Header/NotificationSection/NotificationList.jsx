@@ -125,12 +125,12 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
       switch (notification.type) {
         case 'Order':
           const roleName = localStorage.getItem('roleName');
-          if(roleName === 'StoreManager'){
+          if (roleName === 'StoreManager') {
             navigate(`/storeDashboard/order-management?openOrderId=${notification.relatedId}`);
-          }else{
+          } else {
             navigate(`/floristDashboard/task-management?openOrderId=${notification.relatedId}`);
           }
-          
+
           break;
         case 'Product':
           navigate(`/product/detail/${notification.relatedId}`);

@@ -1,4 +1,4 @@
-import { IconBasketCog,IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
+import { IconWallet, IconBasketCog,IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -28,6 +28,14 @@ const adminDashboard = {
       type: 'item',
       url: '/adminDashboard/store-overview',
       icon: IconDashboard,
+      breadcrumbs: true
+    },
+    {
+      id: 'wallet',
+      title: 'System Wallet',
+      type: 'item',
+      url: '/adminDashboard/system-wallet',
+      icon: IconWallet,
       breadcrumbs: true
     },
     {

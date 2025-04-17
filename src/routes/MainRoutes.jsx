@@ -8,8 +8,9 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
 // Admin Dashboard
 const Statistic = Loadable(lazy(() => import('views/pages/admin-dashboard/Statistic')));
-const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const ChainOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/ChainOverview')));
+const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
+const SystemWallet = Loadable(lazy(() => import('views/pages/admin-dashboard/SystemWallet')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
@@ -70,6 +71,15 @@ const MainRoutes = {
       path: '/adminDashboard',
       children: [
         {
+          path: 'chain-overview',
+          element: <ChainOverview />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
           path: 'store-overview',
           element: <StoreOverview />
         }
@@ -79,8 +89,8 @@ const MainRoutes = {
       path: '/adminDashboard',
       children: [
         {
-          path: 'chain-overview',
-          element: <ChainOverview />
+          path: 'system-wallet',
+          element: <SystemWallet />
         }
       ]
     },
