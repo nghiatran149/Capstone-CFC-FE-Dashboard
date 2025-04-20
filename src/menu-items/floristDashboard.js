@@ -1,8 +1,9 @@
-import { IconCalendarWeek, IconChecklist } from '@tabler/icons-react';
+import { IconCalendarWeek, IconChecklist , IconMessageChatbot } from '@tabler/icons-react';
 
 const icons = {
   IconCalendarWeek,
   IconChecklist,
+  IconMessageChatbot,
 };
 
 const floristDashboard = {
@@ -25,6 +26,14 @@ const floristDashboard = {
       type: 'item',
       url: '/floristDashboard/task-management',
       icon: IconChecklist,
+      breadcrumbs: true
+    },
+    {
+      id: 'advise',
+      title: 'Design Consultant',
+      type: 'item',
+      url: '/floristDashboard/design-consultant',
+      icon: IconMessageChatbot,
       breadcrumbs: true
     },
   ]

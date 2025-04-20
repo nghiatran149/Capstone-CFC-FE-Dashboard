@@ -33,11 +33,12 @@ const StoreRevenue = Loadable(lazy(() => import('views/pages/store-dashboard/Sto
 const FloristManagement = Loadable(lazy(() => import('views/pages/store-dashboard/FloristManagement')));
 const CouriverManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CouriverManagement')));
 const OrderManagement = Loadable(lazy(() => import('views/pages/store-dashboard/OrderManagement')));
-
+const CustomManagement =  Loadable(lazy(() => import('views/pages/store-dashboard/CustomManagement')));
 
 // Florist Dashboard
 const TaskSchedule = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskSchedule')));
 const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
+const DesignConsultant = Loadable(lazy(() => import('views/pages/florist-dashboard/DesignConsultant')));
 
 const MainRoutes = {
   path: '/',
@@ -267,6 +268,15 @@ const MainRoutes = {
         }
       ]
     },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'custom-management',
+          element: <CustomManagement />
+        }
+      ]
+    },
 
     // Florist Dashboard
     {
@@ -284,6 +294,15 @@ const MainRoutes = {
         {
           path: 'task-management',
           element: <TaskManagement />
+        }
+      ]
+    },
+    {
+      path: '/floristDashboard',
+      children: [
+        {
+          path: 'design-consultant',
+          element: <DesignConsultant />
         }
       ]
     },
