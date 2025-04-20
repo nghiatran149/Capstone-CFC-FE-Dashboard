@@ -8,8 +8,9 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard')));
 
 // Admin Dashboard
 const Statistic = Loadable(lazy(() => import('views/pages/admin-dashboard/Statistic')));
-const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
 const ChainOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/ChainOverview')));
+const StoreOverview = Loadable(lazy(() => import('views/pages/admin-dashboard/StoreOverview')));
+const SystemWallet = Loadable(lazy(() => import('views/pages/admin-dashboard/SystemWallet')));
 const CustomerManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/CustomerManagement')));
 const PromotionManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/PromotionManagement')));
 const RefundManagement = Loadable(lazy(() => import('views/pages/admin-dashboard/RefundManagement')));
@@ -32,11 +33,12 @@ const StoreRevenue = Loadable(lazy(() => import('views/pages/store-dashboard/Sto
 const FloristManagement = Loadable(lazy(() => import('views/pages/store-dashboard/FloristManagement')));
 const CouriverManagement = Loadable(lazy(() => import('views/pages/store-dashboard/CouriverManagement')));
 const OrderManagement = Loadable(lazy(() => import('views/pages/store-dashboard/OrderManagement')));
-
+const CustomManagement =  Loadable(lazy(() => import('views/pages/store-dashboard/CustomManagement')));
 
 // Florist Dashboard
 const TaskSchedule = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskSchedule')));
 const TaskManagement = Loadable(lazy(() => import('views/pages/florist-dashboard/TaskManagement')));
+const DesignConsultant = Loadable(lazy(() => import('views/pages/florist-dashboard/DesignConsultant')));
 
 const MainRoutes = {
   path: '/',
@@ -70,6 +72,15 @@ const MainRoutes = {
       path: '/adminDashboard',
       children: [
         {
+          path: 'chain-overview',
+          element: <ChainOverview />
+        }
+      ]
+    },
+    {
+      path: '/adminDashboard',
+      children: [
+        {
           path: 'store-overview',
           element: <StoreOverview />
         }
@@ -79,8 +90,8 @@ const MainRoutes = {
       path: '/adminDashboard',
       children: [
         {
-          path: 'chain-overview',
-          element: <ChainOverview />
+          path: 'system-wallet',
+          element: <SystemWallet />
         }
       ]
     },
@@ -257,6 +268,15 @@ const MainRoutes = {
         }
       ]
     },
+    {
+      path: '/storeDashboard',
+      children: [
+        {
+          path: 'custom-management',
+          element: <CustomManagement />
+        }
+      ]
+    },
 
     // Florist Dashboard
     {
@@ -274,6 +294,15 @@ const MainRoutes = {
         {
           path: 'task-management',
           element: <TaskManagement />
+        }
+      ]
+    },
+    {
+      path: '/floristDashboard',
+      children: [
+        {
+          path: 'design-consultant',
+          element: <DesignConsultant />
         }
       ]
     },
