@@ -210,11 +210,13 @@ const DesignManagement = () => {
 
     const handleOpenChatDialog = (design) => {
         console.log("Opening chat for task:", design);
+        setSelectedTask(design);
         setIsChatModalOpen(true);
         setHasNewMessage(false);
     };
 
     const handleCloseChatDialog = () => {
+        setSelectedTask(null);
         setIsChatModalOpen(false);
         setHasNewMessage(false);
     };
@@ -524,7 +526,7 @@ const DesignManagement = () => {
             <ChatModal
                 isOpen={isChatModalOpen}
                 onClose={handleCloseChatDialog}
-                selectedTask={selectedTask}
+                task={selectedTask}
             />
         </Box>
     );
