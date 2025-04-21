@@ -4,8 +4,10 @@ import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import ChatModal from "chat/ChatModal";
 import { useLocation, useNavigate } from 'react-router-dom';
+
 import {
     Box,
+    FormControl,
     Button,
     Table,
     TableBody,
@@ -23,6 +25,7 @@ import {
     DialogActions,
     Card,
     CardContent,
+    InputLabel,
     CardMedia,
     CircularProgress,
     Grid,
@@ -90,6 +93,13 @@ const TaskManagement = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [refundOrders, setRefundOrders] = useState([]);
+    const [failDialogOpen, setFailDialogOpen] = useState(false);
+    const [failReason, setFailReason] = useState('');
+    const [wallet, setWallet] = useState('');
+    const [isWalletAvailable, setIsWalletAvailable] = useState(true);
+
+    const [failImage, setFailImage] = useState(null);
+    const [timeDelay, setTimeDelay] = useState('');
 
     useEffect(() => {
         // Kiểm tra query parameter khi component mount
@@ -119,9 +129,9 @@ const TaskManagement = () => {
 
             if (orderId && customerId && employeeId) {
                 const fakeTask = {
-                  orderId: orderId,
-                  customerId: customerId,
-                  employeeId: employeeId,
+                    orderId: orderId,
+                    customerId: customerId,
+                    employeeId: employeeId,
                 };
                 handleOpenChatDialog(fakeTask);
                 navigate('/floristDashboard/task-management', { replace: true });
@@ -161,6 +171,7 @@ const TaskManagement = () => {
             }
         };
     }, []);
+
 
     // Lắng nghe tin nhắn mới
     useEffect(() => {
@@ -362,7 +373,7 @@ const TaskManagement = () => {
 
 
 
-    
+
 
     const filteredTasks = filteredStatus
         ? tasks.filter((task) => task.status === filteredStatus)
@@ -651,7 +662,7 @@ const TaskManagement = () => {
 
     const renderStatusChange = (task) => {
         // Don't show status change options for Received, Cancel, and Delivery statuses
-        if (task.status === "Received" || task.status === "Cancel" || task.status === "Delivery") {
+        if (task.status === "Fail" || task.status === "Received" || task.status === "Cancel" || task.status === "Delivery") {
             return null;
         }
 
@@ -671,10 +682,11 @@ const TaskManagement = () => {
                 {!task.delivery && (
                     <MenuItem value="Received">6️⃣ Received</MenuItem>
                 )}
+
             </Select>
         );
     };
-   
+
     useEffect(() => {
         const fetchRefundOrders = async () => {
             try {
@@ -711,6 +723,7 @@ const TaskManagement = () => {
                 return '#fee2e2'; // Light red
             case 'Request refund':
                 return '#fbcfe8'; // Light pink
+          
             default:
                 return '#e5e7eb'; // Light gray
         }
@@ -724,6 +737,7 @@ const TaskManagement = () => {
                 return '#dc2626'; // Dark red
             case 'Request refund':
                 return '#db2777'; // Dark pink
+         
             default:
                 return '#374151'; // Dark gray
         }
@@ -747,6 +761,55 @@ const TaskManagement = () => {
             console.error('Error updating status:', error);
         }
     };
+    const checkWallet = async () => {
+        try {
+            const response = await fetch(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Wallet/CheckWallet?CustomerId=${selectedTask.customerId}`);
+            const data = await response.json();
+
+            if (data.statusCode === 200) {
+                setIsWalletAvailable(data.data);
+                if (!data.data) {
+                    setWallet('false'); // Mặc định là false nếu không có ví
+                } else {
+                    setWallet(''); // Đặt lại để cho phép chọn true/false
+                }
+            } else {
+                message.error(data.message || 'Failed to check wallet status');
+            }
+        } catch (error) {
+            console.error("Error checking wallet:", error);
+            message.error('Failed to check wallet status');
+        }
+    };
+    const handleSubmitFail = async () => {
+        try {
+            const formData = new FormData();
+            formData.append('ReasonFail', failReason);
+            formData.append('ImageFail', failImage);
+            formData.append('TimeDelay', timeDelay);
+            formData.append('Wallet', wallet); // Hoặc true nếu cần
+
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateFailOrder?orderId=${selectedTask.orderId}`, // Sử dụng orderId từ selectedTask
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            console.log('Order status updated to Fail:', response.data);
+            
+            // Kiểm tra mã trạng thái và đóng dialog nếu thành công
+            if (response.status === 200) {
+                fetchTasks(); // Làm mới danh sách đơn hàng
+                handleCloseFailDialog(); // Đóng dialog
+            }
+        } catch (error) {
+            console.error('Error updating order status to Fail:', error);
+        }
+    };
 
     return (
         <Box sx={{ p: 4 }}>
@@ -758,6 +821,17 @@ const TaskManagement = () => {
                         color={filteredStatus === "" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("")}
                         sx={{
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                     <Chip
+                        label="Fail"
+                        color={filteredStatus === "Fail" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Fail")}
+                        sx={{
+                            bgcolor: filteredStatus === "Fail" ? undefined : '#ff1a1a', // Đặt màu đỏ nhạt khi chưa chọn
+                            color: filteredStatus === "Fail" ? undefined : '#ffffff', // Màu chữ trắng khi chưa chọn
                             fontWeight: 500,
                             '&:hover': { opacity: 0.9 }
                         }}
@@ -875,7 +949,7 @@ const TaskManagement = () => {
                                                             task.status === "Flower Completed" ? '#fed7aa' :
                                                                 task.status === "Delivery" ? '#d8b4fe' :
                                                                     task.status === "Cancel" ? '#ff9999' :
-
+                                                                    task.status === "Fail" ? '#ff1a1a' :
                                                                         task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
@@ -917,7 +991,18 @@ const TaskManagement = () => {
                                                 />
                                             )}
                                         </Button>
-
+                                        {task.status !== "Fail" && task.status !== "Received" && (
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => {
+                                                    setFailDialogOpen(true);
+                                                    setSelectedTask(task);
+                                                }}
+                                            >
+                                                Fail
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -1269,7 +1354,7 @@ const TaskManagement = () => {
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">Assign Shipper</Typography>
-                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery"  ? (
+                                        {detailedOrder.delivery && detailedOrder.status !== "Delivery" ? (
                                             <Stack spacing={2}>
                                                 <InfoRow>
                                                     <Typography className="label">Select Shipper</Typography>
@@ -1422,6 +1507,57 @@ const TaskManagement = () => {
                 onClose={handleCloseChatDialog}
                 task={selectedTask}
             />
+            <Dialog open={failDialogOpen} onClose={() => setFailDialogOpen(false)}>
+                <DialogTitle>Fail Order</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Reason for Failure"
+                        value={failReason}
+                        onChange={(e) => setFailReason(e.target.value)}
+                        fullWidth
+                        multiline
+                        rows={4}
+                    />
+                    <TextField
+                        label="Time Delay"
+                        type="datetime-local"
+                        value={timeDelay}
+                        onChange={(e) => setTimeDelay(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>Wallet</InputLabel>
+                        <Select
+                            value={wallet}
+                            label="Wallet"
+                            onChange={(e) => setWallet(e.target.value)}
+                            disabled={!isWalletAvailable}
+                        >
+                            <MenuItem value="true">True</MenuItem>
+                            <MenuItem value="false">False</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        fullWidth
+                    >
+                        Upload Failure Image
+                        <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={(e) => setFailImage(e.target.files[0])}
+                        />
+                    </Button>
+                    {failImage && <Typography>{failImage.name}</Typography>}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFailDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSubmitFail} color="error">Submit</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
