@@ -100,6 +100,8 @@ const TaskManagement = () => {
 
     const [failImage, setFailImage] = useState(null);
     const [timeDelay, setTimeDelay] = useState('');
+    const [failOrderDetails, setFailOrderDetails] = useState(null);
+    const [failReasonDialogOpen, setFailReasonDialogOpen] = useState(false);
 
     useEffect(() => {
         // Kiểm tra query parameter khi component mount
@@ -659,6 +661,75 @@ const TaskManagement = () => {
             </Box>
         );
     };
+    const rederDesignCustomOrderDetail = (order) => {
+        const designCustom = order.designCustomBuCustomerResponse; // Lấy thông tin từ response
+        return (
+            <Box sx={{ mt: 2 }}>
+                <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
+                    <CardContent>
+                        <Typography variant="h6" gutterBottom color="primary" sx={{ borderBottom: '2px solid #FFE7EF', pb: 1 }}>
+                            Design Custom Order Details
+                        </Typography>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} md={6}>
+                                <Stack spacing={2}>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Design Custom ID</Typography>
+                                        <Typography variant="h6">{designCustom.designCustomId}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Image</Typography>
+                                        <img src={designCustom.requestImage} alt="Request" style={{ width: '100%', height: 'auto' }} />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Description</Typography>
+                                        <Typography variant="h6">{designCustom.requestDescription}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Price</Typography>
+                                        <Typography variant="h6">{designCustom.requestPrice}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Occasion</Typography>
+                                        <Typography variant="h6">{designCustom.requestOccasion}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Main Color</Typography>
+                                        <Typography variant="h6">{designCustom.requestMainColor}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Flower Type</Typography>
+                                        <Typography variant="h6">{designCustom.requestFlowerType}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Card</Typography>
+                                        <Typography variant="h6">{designCustom.requestCard}</Typography>
+                                    </Box>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Stack spacing={2}>
+                                   
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Image</Typography>
+                                        <img src={designCustom.responseImage} alt="Response" style={{ width: '100%', height: 'auto' }} />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Price</Typography>
+                                        <Typography variant="h6">{formatPrice(designCustom.responsePrice)}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Description</Typography>
+                                        <Typography variant="h6">{designCustom.responseDescription}</Typography>
+                                    </Box>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
+            </Box>
+        );
+    };
 
     const renderStatusChange = (task) => {
         // Don't show status change options for Received, Cancel, and Delivery statuses
@@ -808,6 +879,20 @@ const TaskManagement = () => {
             }
         } catch (error) {
             console.error('Error updating order status to Fail:', error);
+        }
+    };
+
+    const handleViewReasonFail = async (orderId) => {
+        try {
+            const response = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/failOrder/GetFailOrderByOrderId?orderID=${orderId}`);
+            
+            if (response.status === 200) {
+                const failOrderData = response.data.data; // Giả sử dữ liệu nằm trong response.data.data
+                setFailOrderDetails(failOrderData); // Lưu thông tin vào state
+                setFailReasonDialogOpen(true); // Mở dialog
+            }
+        } catch (error) {
+            console.error('Error fetching fail order details:', error);
         }
     };
 
@@ -962,6 +1047,15 @@ const TaskManagement = () => {
                                                 }}
                                             />
                                             {renderStatusChange(task)}
+                                            {task.status === "Fail" && (
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={() => handleViewReasonFail(task.orderId)}
+                                                >
+                                                    View Reason Fail
+                                                </Button>
+                                            )}
                                         </Stack>
                                     </TableCell>
                                     <TableCell>
@@ -1341,12 +1435,9 @@ const TaskManagement = () => {
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">
-                                            {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
+                                            {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details' }
                                         </Typography>
-                                        {detailedOrder.productCustomResponse
-                                            ? renderCustomOrderDetails(detailedOrder)
-                                            : renderRegularOrderDetails(detailedOrder)
-                                        }
+                                        {detailedOrder.productCustomResponse ? renderCustomOrderDetails(detailedOrder) : rederDesignCustomOrderDetail(detailedOrder)}
                                     </OrderSection>
                                 </Grid>
 
@@ -1556,6 +1647,26 @@ const TaskManagement = () => {
                 <DialogActions>
                     <Button onClick={() => setFailDialogOpen(false)}>Cancel</Button>
                     <Button onClick={handleSubmitFail} color="error">Submit</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={failReasonDialogOpen} onClose={() => setFailReasonDialogOpen(false)}>
+                <DialogTitle>Fail Order Details</DialogTitle>
+                <DialogContent>
+                    {failOrderDetails && (
+                        <Box>
+                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId}</Typography>
+                            <Typography variant="body1">Reason: {failOrderDetails.reasonFail}</Typography>
+                            <img src={failOrderDetails.imageFail} alt="Failure Image" style={{ width: '100%', height: 'auto' }} />
+                            <Typography variant="body1">Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>
+                            <Typography variant="body1">Refund Price: {formatPrice(failOrderDetails.refundPrice)}</Typography>
+                            <Typography variant="body1">Wallet: {failOrderDetails.wallet ? 'Yes' : 'No'}</Typography>
+                            <Typography variant="body1">Created At: {formatDateTime(failOrderDetails.createAt)}</Typography>
+                            <Typography variant="body1">Updated At: {formatDateTime(failOrderDetails.updateAt)}</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFailReasonDialogOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
         </Box>

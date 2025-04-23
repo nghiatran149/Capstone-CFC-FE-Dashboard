@@ -44,6 +44,8 @@ const getStatusColor = (status) => {
             return '#bfdbfe'; // Xanh dương nhạt (bg-blue-200)
         case 'Delivery':
             return '#d8b4fe';
+        case 'Fail':
+            return '#ff1a1a';
         case 'Cancel':
             return '#ff9999';
         case 'Request refund':
@@ -164,7 +166,8 @@ const OrderManagement = () => {
     const [staffList, setStaffList] = useState([]);
     const [selectedStaff, setSelectedStaff] = useState('');
     const [updatingStaff, setUpdatingStaff] = useState(false);
-
+    const [failOrderDetails, setFailOrderDetails] = useState(null);
+    const [failReasonDialogOpen, setFailReasonDialogOpen] = useState(false);
     const [feedbackData, setFeedbackData] = useState(null);
     const [isFeedbackModalVisible, setIsFeedbackModalVisible] = useState(false);
     const [replyText, setReplyText] = useState('');
@@ -242,10 +245,23 @@ const OrderManagement = () => {
         }
     };
 
+    const handleViewReasonFail = async (orderId) => {
+        try {
+            const response = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/failOrder/GetFailOrderByOrderId?orderID=${orderId}`);
 
+            if (response.status === 200) {
+                const failOrderData = response.data.data; // Giả sử dữ liệu nằm trong response.data.data
+                setFailOrderDetails(failOrderData); // Lưu thông tin vào state
+                setFailReasonDialogOpen(true); // Mở dialog
+            }
+        } catch (error) {
+            console.error('Error fetching fail order details:', error);
+        }
+    };
     useEffect(() => {
         fetchOrders();
         fetchRefundOrders();
+        handleViewReasonFail();
     }, []);
 
     const fetchStaffList = async (orderId) => {
@@ -871,7 +887,9 @@ const OrderManagement = () => {
                                             }}
                                         />
                                     </TableCell>
+
                                     <TableCell>
+
                                         <Button variant="outlined" onClick={() => handleViewDetails(order)}>
                                             View Details
                                         </Button>
@@ -888,6 +906,15 @@ const OrderManagement = () => {
                                         {order.status === "Request refund" && (
                                             <Button variant="contained" color="primary" onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')} sx={{ ml: 1 }}>
                                                 Reject Refund
+                                            </Button>
+                                        )}
+                                        {order.status === "Fail" && (
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => handleViewReasonFail(order.orderId)}
+                                            >
+                                                View Reason Fail
                                             </Button>
                                         )}
                                     </TableCell>
@@ -1245,6 +1272,7 @@ const OrderManagement = () => {
                                         }
                                     </OrderSection>
                                 </Grid>
+                              
                                 {/* Delivery Details */}
                                 {detailedOrder.deliveryDetails && (
                                     <Grid item xs={12}>
@@ -1436,6 +1464,35 @@ const OrderManagement = () => {
                     <Button onClick={() => setIsFeedbackModalVisible(false)} color="primary">
                         Close
                     </Button>
+                </DialogActions>
+            </StyledDialog>
+
+            <StyledDialog
+                open={failReasonDialogOpen}
+                onClose={() => setFailReasonDialogOpen(false)}
+                maxWidth="lg"
+                fullWidth
+            >
+                <DialogTitle>Fail Order Details</DialogTitle>
+                <DialogContent>
+                    {failOrderDetails && (
+                        <Box>
+                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId}</Typography>
+                            <Typography variant="body1">Reason: {failOrderDetails.reasonFail}</Typography>
+                            <img src={failOrderDetails.imageFail} alt="Failure Image" style={{ width: '100%', height: 'auto' }} />
+                            <Typography variant="body1">Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>
+                            <Typography variant="body1">Staff ID: {(failOrderDetails.staffId)}</Typography>
+                            <Typography variant="body1">Courier ID: {(failOrderDetails.shipperId)}</Typography>
+
+                            <Typography variant="body1">Refund Price: {formatPrice(failOrderDetails.refundPrice)}</Typography>
+                            <Typography variant="body1">Wallet: {failOrderDetails.wallet ? 'Yes' : 'No'}</Typography>
+                            <Typography variant="body1">Created At: {formatDateTime(failOrderDetails.createAt)}</Typography>
+                            <Typography variant="body1">Updated At: {formatDateTime(failOrderDetails.updateAt)}</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFailReasonDialogOpen(false)}>Close</Button>
                 </DialogActions>
             </StyledDialog>
         </Box>
