@@ -473,7 +473,7 @@ const DesignManagement = () => {
 
                             {/* Bên phải */}
                             <Grid item xs={6}>
-                                {detailedDesign.status === 'Send Response' ? (
+                                {detailedDesign.status === 'Send Response'||'Design Successfully' ||'Design Failure'? (
                                     <>
                                         <Typography><strong>Response Image:</strong></Typography>
                                         <img src={detailedDesign.responseImage} alt="Response" style={{ width: '100%', height: 'auto' }} />
