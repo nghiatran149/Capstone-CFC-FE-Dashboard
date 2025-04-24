@@ -302,9 +302,15 @@ const DesignManagement = () => {
             );
 
             console.log('Response updated successfully:', response.data);
-            // Có thể thêm logic để cập nhật lại thông tin hiển thị nếu cần
+
+            // Kiểm tra mã trạng thái và đóng dialog nếu thành công
+            if (response.status === 200) {
+                handleCloseDialog(); // Đóng dialog
+                message.success('Response sent successfully!'); // Thông báo thành công
+            }
         } catch (error) {
             console.error('Error updating response:', error);
+            message.error('Failed to send response'); // Thông báo lỗi
         }
     };
 
@@ -452,15 +458,25 @@ const DesignManagement = () => {
 
             {/* Dialog for detailed design information */}
             <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-                <DialogTitle>Design Details</DialogTitle>
-                <DialogContent>
+                <DialogTitle sx={{
+                    fontSize: '1.5rem',
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                    background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                    color: 'white',
+                    borderRadius: '12px 12px 0 0',
+                    padding: 3,
+                }}>
+                    Design Details
+                </DialogTitle>
+                <DialogContent sx={{ p: 3, bgcolor: '#ffffff' }}>
                     {detailedDesign && (
                         <Grid container spacing={2}>
                             {/* Bên trái */}
                             <Grid item xs={6}>
-                                <Typography variant="h6">Design ID: {detailedDesign.designCustomId}</Typography>
+                                <Typography variant="h6" color="primary">Design ID: {detailedDesign.designCustomId}</Typography>
                                 <Typography><strong>Request Image:</strong></Typography>
-                                <img src={detailedDesign.requestImage} alt="Design" style={{ width: '100%', height: 'auto' }} />
+                                <img src={detailedDesign.requestImage} alt="Design" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
                                 <Typography><strong>Description:</strong> {detailedDesign.requestDescription}</Typography>
                                 <Typography><strong>Price:</strong> {detailedDesign.requestPrice}</Typography>
                                 <Typography><strong>Occasion:</strong> {detailedDesign.requestOccasion}</Typography>
@@ -473,10 +489,10 @@ const DesignManagement = () => {
 
                             {/* Bên phải */}
                             <Grid item xs={6}>
-                                {detailedDesign.status === 'Send Response'||'Design Successfully' ||'Design Failure'? (
+                                {detailedDesign.status === 'Send Response' || detailedDesign.status === 'Design Successfully' || detailedDesign.status === 'Design Failure' ? (
                                     <>
                                         <Typography><strong>Response Image:</strong></Typography>
-                                        <img src={detailedDesign.responseImage} alt="Response" style={{ width: '100%', height: 'auto' }} />
+                                        <img src={detailedDesign.responseImage} alt="Response" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
                                         <Typography><strong>Response Price:</strong> {detailedDesign.responsePrice}</Typography>
                                         <Typography><strong>Response Description:</strong> {detailedDesign.responseDescription}</Typography>
                                     </>
@@ -488,6 +504,8 @@ const DesignManagement = () => {
                                             onChange={(e) => setResponsePrice(e.target.value)}
                                             fullWidth
                                             margin="normal"
+                                            variant="outlined"
+                                            sx={{ bgcolor: '#f0f0f0' }}
                                         />
                                         <TextField
                                             label="Response Description"
@@ -495,11 +513,14 @@ const DesignManagement = () => {
                                             onChange={(e) => setResponseDescription(e.target.value)}
                                             fullWidth
                                             margin="normal"
+                                            variant="outlined"
+                                            sx={{ bgcolor: '#f0f0f0' }}
                                         />
                                         <Button
                                             variant="contained"
                                             component="label"
                                             fullWidth
+                                            sx={{ bgcolor: '#FF0080', color: 'white', '&:hover': { bgcolor: '#FF8C00' } }}
                                         >
                                             Upload Response Image
                                             <input
@@ -520,7 +541,9 @@ const DesignManagement = () => {
                     )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleCloseDialog}>Close</Button>
+                    <Button onClick={handleCloseDialog} sx={{ bgcolor: '#FF0080', color: 'white', '&:hover': { bgcolor: '#FF8C00' } }}>
+                        Close
+                    </Button>
                 </DialogActions>
             </Dialog>
             <ChatModal

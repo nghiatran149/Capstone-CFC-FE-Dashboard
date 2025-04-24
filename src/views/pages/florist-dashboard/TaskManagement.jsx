@@ -1435,9 +1435,13 @@ const TaskManagement = () => {
                                 <Grid item xs={12}>
                                     <OrderSection>
                                         <Typography variant="h6" className="section-title">
-                                            {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details' }
+                                            {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
                                         </Typography>
-                                        {detailedOrder.productCustomResponse ? renderCustomOrderDetails(detailedOrder) : rederDesignCustomOrderDetail(detailedOrder)}
+                                        {detailedOrder.productCustomResponse 
+                                            ? renderCustomOrderDetails(detailedOrder) 
+                                            : detailedOrder.designCustomBuCustomerResponse 
+                                                ? rederDesignCustomOrderDetail(detailedOrder) 
+                                                : renderRegularOrderDetails(detailedOrder)}
                                     </OrderSection>
                                 </Grid>
 
