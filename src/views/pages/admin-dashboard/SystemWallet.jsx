@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -31,6 +31,7 @@ import {
   Refresh as RefreshIcon,
   FilterList as FilterListIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 
 // Styled components
 const StatsCard = styled(Card)(({ theme }) => ({
@@ -172,6 +173,10 @@ export default function SystemWallet() {
   const [tabValue, setTabValue] = useState(0);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState([]);
+  const [refunds, setRefunds] = useState([]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -189,6 +194,44 @@ export default function SystemWallet() {
 
   const currentData = tabValue === 0 ? transactions : refunds;
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - currentData.length) : 0;
+
+  const fetchWalletData = async () => {
+    try {
+      const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Wallet/GetWalletByAdmin?id=55d9964b-8543-4b74-96d6-e0ab2ce86d3f');
+      if (response.status === 200) {
+        const walletData = response.data.data;
+        setTotalBalance(walletData.totalPrice);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchIncomeData = async () => {
+    try {
+      const walletId = '55d9964b-8543-4b74-96d6-e0ab2ce86d3f';
+      const incomeResponse = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/IncomeWallet/GetInComWalletByWalletId?WalletId=${walletId}`);
+      if (incomeResponse.status === 200) {
+        const incomeData = incomeResponse.data.data.filter(item => item.method === "Payment");
+        setTransactions(incomeData);
+      }
+      if (incomeResponse.status === 200) {
+        const refundData = incomeResponse.data.data.filter(item => item.method === "Refund");
+        setRefunds(refundData);
+      }
+    } catch (error) {
+      console.error('Error fetching wallet data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWalletData();
+    fetchIncomeData();
+  }, []);
 
   return (
     <Container maxWidth="xl">
@@ -212,15 +255,6 @@ export default function SystemWallet() {
             >
               Refresh
             </Button>
-            {/* <SearchBar>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search..."
-                inputProps={{ 'aria-label': 'search' }}
-              />
-            </SearchBar> */}
           </Box>
         </Box>
 
@@ -233,27 +267,15 @@ export default function SystemWallet() {
                   <Typography variant="h5" sx={{ color: 'rgba(255,255,255,0.7)', mb: 1 }}>
                     TOTAL BALANCE
                   </Typography>
-                  <Typography variant="h2" fontWeight="bold" sx={{ color: '#ffffff', mb: 2 }}>
-                    $12,750.00
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                    <Typography 
-                      variant="subtitle1" 
-                      sx={{ 
-                        color: '#4caf50',
-                        fontWeight: 'medium',
-                        backgroundColor: 'rgb(255, 255, 255)',
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1,
-                      }}
-                    >
-                      +12.3%
+                  {loading ? (
+                    <Typography variant="h2" fontWeight="bold" sx={{ color: '#ffffff', mb: 2 }}>
+                      Loading...
                     </Typography>
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255,255,255,0.7)', ml: 2 }}>
-                      vs last month
+                  ) : (
+                    <Typography variant="h2" fontWeight="bold" sx={{ color: '#ffffff', mb: 2 }}>
+                      {totalBalance.toLocaleString()} VND
                     </Typography>
-                  </Box>
+                  )}
                 </Box>
                 <WhiteIconWrapper>
                   <Wallet fontSize="large" />
@@ -303,66 +325,21 @@ export default function SystemWallet() {
         </Grid>
 
         {/* Tabs and Tables */}
-        <Paper sx={{ 
-          borderRadius: 3, 
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)',
-        }}>
+        <Paper sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.05)' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange}
-              sx={{
-                '& .MuiTab-root': {
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  fontWeight: 'medium',
-                  minWidth: 120,
-                },
-                '& .Mui-selected': {
-                  color: '#FF69B4',
-                  fontWeight: 'bold',
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: '#FF69B4',
-                  height: 3,
-                }
-              }}
-            >
+            <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab label="Transactions" />
               <Tab label="Refunds" />
             </Tabs>
           </Box>
 
-          <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle1" fontWeight="medium">
-              {tabValue === 0 ? 'Transaction History' : 'Refund History'}
-            </Typography>
-            {/* <Button
-              variant="outlined"
-              size="small"
-              color="primary"
-              startIcon={<FilterListIcon />}
-              sx={{ borderRadius: 2 }}
-            >
-              Filter
-            </Button> */}
-          </Box>
-          
-          <Divider />
-
           <TableContainer>
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: 'grey.50' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Income Wallet ID</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Amount</TableCell>
                   <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-                  {tabValue === 0 ? (
-                    <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                  ) : (
-                    <TableCell sx={{ fontWeight: 'bold' }}>Reason</TableCell>
-                  )}
                   <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                 </TableRow>
               </TableHead>
@@ -370,62 +347,30 @@ export default function SystemWallet() {
                 {currentData
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => (
-                    <TableRow 
-                      key={row.id}
-                      hover
-                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                    >
-                      <TableCell component="th" scope="row">
+                    <TableRow key={row.incomeWalletID}>
+                      <TableCell>
                         <Typography variant="body2" fontWeight="medium">
-                          {row.description}
+                          {row.incomeWalletID}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography 
-                          variant="body2" 
-                          fontWeight="medium"
-                          sx={{ 
-                            color: tabValue === 0 
-                              ? row.type === 'Income' ? 'success.main' : 'error.main' 
-                              : 'error.main' 
-                          }}
-                        >
-                          {tabValue === 0 
-                            ? row.type === 'Income' ? `+${row.amount}` : `-${row.amount}`
-                            : `-${row.amount}`
-                          }
+                        <Typography variant="body2" fontWeight="medium">
+                          {row.incomePrice.toLocaleString()} VND
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">{row.date}</Typography>
+                        <Typography variant="body2">{new Date(row.createAt).toLocaleDateString()}</Typography>
                       </TableCell>
+                      
                       <TableCell>
-                        {tabValue === 0 ? (
-                          <Chip 
-                            label={row.type} 
-                            size="small"
-                            sx={{ 
-                              bgcolor: row.type === 'Income' ? alpha('#4caf50', 0.1) : alpha('#f44336', 0.1),
-                              color: row.type === 'Income' ? 'success.main' : 'error.main',
-                              fontWeight: 'medium',
-                              borderRadius: 1,
-                            }}
-                          />
-                        ) : (
-                          <Typography variant="body2">{row.reason}</Typography>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={row.status} 
-                          size="small"
-                          sx={{ 
-                            bgcolor: row.status === 'Completed' ? alpha('#4caf50', 0.1) : alpha('#ff9800', 0.1),
-                            color: row.status === 'Completed' ? 'success.main' : 'warning.main',
+                        <Chip label={row.status} size="small"
+                        sx={{ 
+                            bgcolor: row.status === 'Successfull' ? alpha('#4caf50', 0.1) : alpha('#ff9800', 0.1),
+                            color: row.status === 'Successfull' ? 'success.main' : 'warning.main',
                             fontWeight: 'medium',
                             borderRadius: 1,
                           }}
-                        />
+                          />
                       </TableCell>
                     </TableRow>
                   ))}
