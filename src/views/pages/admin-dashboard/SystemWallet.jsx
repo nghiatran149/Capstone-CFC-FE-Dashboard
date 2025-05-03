@@ -349,9 +349,13 @@ export default function SystemWallet() {
                   .map((row) => (
                     <TableRow key={row.incomeWalletID}>
                       <TableCell>
-                        <Typography variant="body2" fontWeight="medium">
-                          {row.incomeWalletID}
-                        </Typography>
+                        <Typography 
+                        variant="body2" 
+                        fontWeight="medium" 
+                        title={row.incomeWalletID}
+                      >
+                        {row.incomeWalletID ? `#${row.incomeWalletID.slice(0, 8)}` : "N/A"}
+                      </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="medium">

@@ -632,7 +632,7 @@ const TaskManagement = () => {
                                 <TableBody>
                                     {order.orderDetails.map((detail) => (
                                         <TableRow key={detail.orderDetailId} hover>
-                                            <TableCell>{detail.productId}</TableCell>
+                                            <TableCell>{detail.productId.slice(0, 8)}</TableCell>
                                             <TableCell>
                                                 <Avatar
                                                     src={detail.productImage}
@@ -675,7 +675,7 @@ const TaskManagement = () => {
                                 <Stack spacing={2}>
                                     <Box>
                                         <Typography variant="subtitle2" color="textSecondary">Design Custom ID</Typography>
-                                        <Typography variant="h6">{designCustom.designCustomId}</Typography>
+                                        <Typography variant="h6">{designCustom.designCustomId.slice(0, 8)}</Typography>
                                     </Box>
                                     <Box>
                                         <Typography variant="subtitle2" color="textSecondary">Request Image</Typography>
@@ -1013,7 +1013,7 @@ const TaskManagement = () => {
                         <TableBody>
                             {filteredTasks.map((task) => (
                                 <TableRow key={task.orderId}>
-                                    <TableCell>{task.orderId}</TableCell>
+                                    <TableCell>Order#{task.orderId.slice(0, 8)}</TableCell>
                                     <TableCell>
                                         {task.productCustomResponse ?
                                             task.productCustomResponse.productName :
@@ -1134,9 +1134,9 @@ const TaskManagement = () => {
                             <TableBody>
                                 {refundOrders.map((order) => (
                                     <TableRow key={order.orderId}>
-                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>Order#{order.orderId.slice(0, 8)}</TableCell>
                                         <TableCell>{formatPrice(order.orderPrice)}</TableCell>
-                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.customerId.slice(0, 8)}</TableCell>
                                         <TableCell>{order.phone}</TableCell>
                                         <TableCell>{formatDateTime(order.createAt)}</TableCell>
                                         <TableCell>
@@ -1203,7 +1203,7 @@ const TaskManagement = () => {
                                     <OrderSection>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                             <Box>
-                                                <Typography variant="h5" gutterBottom>Order #{detailedOrder.orderId}</Typography>
+                                                <Typography variant="h5" gutterBottom>Order #{detailedOrder.orderId.slice(0, 8)}</Typography>
                                                 <Typography variant="body1" color="textSecondary">
                                                     Created at {formatDateTime(detailedOrder.createAt)}
                                                 </Typography>
@@ -1300,7 +1300,7 @@ const TaskManagement = () => {
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Customer ID</Typography>
-                                                        <Typography className="value">{detailedOrder.customerId}</Typography>
+                                                        <Typography className="value">{detailedOrder.customerId.slice(0, 8)}</Typography>
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Phone</Typography>
@@ -1393,7 +1393,7 @@ const TaskManagement = () => {
                                         <Stack spacing={2}>
                                             <InfoRow>
                                                 <Typography className="label">Payment ID</Typography>
-                                                <Typography className="value">{detailedOrder.paymentId}</Typography>
+                                                <Typography className="value">{detailedOrder.paymentId.slice(0, 8)}</Typography>
                                             </InfoRow>
                                             <InfoRow>
                                                 <Typography className="label">Payment Method</Typography>
@@ -1522,7 +1522,7 @@ const TaskManagement = () => {
                                             <Stack spacing={2}>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery ID</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId}</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId.slice(0, 8)}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Shipper Name</Typography>
@@ -1658,7 +1658,7 @@ const TaskManagement = () => {
                 <DialogContent>
                     {failOrderDetails && (
                         <Box>
-                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId}</Typography>
+                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId.slice(0, 8)}</Typography>
                             <Typography variant="body1">Reason: {failOrderDetails.reasonFail}</Typography>
                             <img src={failOrderDetails.imageFail} alt="Failure Image" style={{ width: '100%', height: 'auto' }} />
                             <Typography variant="body1">Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>

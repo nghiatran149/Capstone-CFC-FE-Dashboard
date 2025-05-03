@@ -439,7 +439,7 @@ const StyleManagement = () => {
             {styles.map((style) => (
 
               <TableRow key={style.styleId}>
-                                              <TableCell>{style.styleId}</TableCell>
+                                              <TableCell>{style.styleId.slice(0, 8)}</TableCell>
 
                 <TableCell>
                   {style.image && (
@@ -745,8 +745,9 @@ const StyleManagement = () => {
                     <Typography variant="h4" gutterBottom>
                       {viewDetail.basket.name}
                     </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      ID: {viewDetail.basket.styleId}
+                    <Typography variant="caption" color="textSecondary"title={viewDetail.basket.styleId}
+                    >            
+                    ID: {viewDetail.basket.styleId ? `#${viewDetail.basket.styleId.slice(0, 8)}` : "N/A"}
                     </Typography>
                   </Box>
 

@@ -400,7 +400,7 @@ const DesignManagement = () => {
                         <TableBody>
                             {filteredOrders.map((design) => (
                                 <TableRow key={design.designCustomId}>
-                                    <TableCell>{design.designCustomId}</TableCell>
+                                    <TableCell>{design.designCustomId.slice(0, 8)}</TableCell>
                                     <TableCell>
                                         <img src={design.requestImage} alt="request" style={{ width: '100px', height: 'auto' }} />
                                     </TableCell>
@@ -474,7 +474,7 @@ const DesignManagement = () => {
                         <Grid container spacing={2}>
                             {/* Bên trái */}
                             <Grid item xs={6}>
-                                <Typography variant="h6" color="primary">Design ID: {detailedDesign.designCustomId}</Typography>
+                                <Typography variant="h6" color="primary">Design ID: {detailedDesign.designCustomId.slice(0, 8)}</Typography>
                                 <Typography><strong>Request Image:</strong></Typography>
                                 <img src={detailedDesign.requestImage} alt="Design" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
                                 <Typography><strong>Description:</strong> {detailedDesign.requestDescription}</Typography>

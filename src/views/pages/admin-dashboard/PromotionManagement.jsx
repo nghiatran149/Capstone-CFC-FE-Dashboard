@@ -723,8 +723,8 @@ const PromotionManagement = () => {
                     {viewDetail.promotion.promotionName}
                   </Typography>
 
-                  <Typography color="text.secondary" variant="body2">
-                    ID: {viewDetail.promotion.promotionId}
+                  <Typography color="text.secondary" variant="body2" title={viewDetail.promotion.promotionId} >
+                  ID: {viewDetail.promotion.promotionId ? `#${viewDetail.promotion.promotionId.slice(0, 8)}` : "N/A"}
                   </Typography>
 
                   <Box>

@@ -137,7 +137,9 @@ const CustomerManagement = () => {
             {customers.map((customer) => (
               <TableRow key={customer.customerId}>
                 {/* <TableCell>{customer.customerId}</TableCell> */}
-                <TableCell>{customer.customerId}</TableCell>
+                <TableCell title={customer.customerId}>
+                  {customer.customerId ? `#${customer.customerId.slice(0, 8)}` : "N/A"}
+                </TableCell>
 
                 <TableCell>{customer.email}</TableCell>
 
