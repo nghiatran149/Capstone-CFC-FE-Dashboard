@@ -3,8 +3,11 @@ import { HubConnectionBuilder, HttpTransportType } from "@microsoft/signalr";
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import ChatModal from "chat/ChatModal";
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import {
     Box,
+    FormControl,
     Button,
     Table,
     TableBody,
@@ -22,6 +25,7 @@ import {
     DialogActions,
     Card,
     CardContent,
+    InputLabel,
     CardMedia,
     CircularProgress,
     Grid,
@@ -86,6 +90,56 @@ const TaskManagement = () => {
     const [isChatModalOpen, setIsChatModalOpen] = useState(false);
     const [hasNewMessage, setHasNewMessage] = useState(false);
     const [connection, setConnection] = useState(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [refundOrders, setRefundOrders] = useState([]);
+    const [failDialogOpen, setFailDialogOpen] = useState(false);
+    const [failReason, setFailReason] = useState('');
+    const [wallet, setWallet] = useState('');
+    const [isWalletAvailable, setIsWalletAvailable] = useState(true);
+
+    const [failImage, setFailImage] = useState(null);
+    const [timeDelay, setTimeDelay] = useState('');
+    const [failOrderDetails, setFailOrderDetails] = useState(null);
+    const [failReasonDialogOpen, setFailReasonDialogOpen] = useState(false);
+
+    useEffect(() => {
+        // Kiểm tra query parameter khi component mount
+        const queryParams = new URLSearchParams(location.search);
+        const openOrderId = queryParams.get('openOrderId');
+
+        const openChat = queryParams.get('openChat');
+
+        if (openOrderId) {
+            // Tìm task có orderId tương ứng
+            const taskToOpen = tasks.find(task => task.orderId === openOrderId);
+
+            if (taskToOpen) {
+                // Tự động mở Order Details
+                handleOpenDialog(taskToOpen);
+
+                // Xóa query parameter khỏi URL để tránh mở lại khi refresh
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
+        }
+
+        if (openChat === 'true') {
+            const orderId = queryParams.get('orderId');
+            const customerId = queryParams.get('customerId');
+            const employeeId = queryParams.get('employeeId');
+
+
+            if (orderId && customerId && employeeId) {
+                const fakeTask = {
+                    orderId: orderId,
+                    customerId: customerId,
+                    employeeId: employeeId,
+                };
+                handleOpenChatDialog(fakeTask);
+                navigate('/floristDashboard/task-management', { replace: true });
+            }
+        }
+    }, [tasks, location]);
 
     // Thiết lập kết nối SignalR
     useEffect(() => {
@@ -119,6 +173,7 @@ const TaskManagement = () => {
             }
         };
     }, []);
+
 
     // Lắng nghe tin nhắn mới
     useEffect(() => {
@@ -317,6 +372,10 @@ const TaskManagement = () => {
         setSelectedTask(null);
         setDetailedOrder(null);
     };
+
+
+
+
 
     const filteredTasks = filteredStatus
         ? tasks.filter((task) => task.status === filteredStatus)
@@ -602,26 +661,239 @@ const TaskManagement = () => {
             </Box>
         );
     };
+    const rederDesignCustomOrderDetail = (order) => {
+        const designCustom = order.designCustomBuCustomerResponse; // Lấy thông tin từ response
+        return (
+            <Box sx={{ mt: 2 }}>
+                <Card sx={{ borderRadius: 3, overflow: 'hidden', boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)' }}>
+                    <CardContent>
+                        <Typography variant="h6" gutterBottom color="primary" sx={{ borderBottom: '2px solid #FFE7EF', pb: 1 }}>
+                            Design Custom Order Details
+                        </Typography>
+                        <Grid container spacing={3}>
+                            <Grid item xs={12} md={6}>
+                                <Stack spacing={2}>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Design Custom ID</Typography>
+                                        <Typography variant="h6">{designCustom.designCustomId}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Image</Typography>
+                                        <img src={designCustom.requestImage} alt="Request" style={{ width: '100%', height: 'auto' }} />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Description</Typography>
+                                        <Typography variant="h6">{designCustom.requestDescription}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Price</Typography>
+                                        <Typography variant="h6">{designCustom.requestPrice}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Occasion</Typography>
+                                        <Typography variant="h6">{designCustom.requestOccasion}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Main Color</Typography>
+                                        <Typography variant="h6">{designCustom.requestMainColor}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Flower Type</Typography>
+                                        <Typography variant="h6">{designCustom.requestFlowerType}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Request Card</Typography>
+                                        <Typography variant="h6">{designCustom.requestCard}</Typography>
+                                    </Box>
+                                </Stack>
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                                <Stack spacing={2}>
+                                   
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Image</Typography>
+                                        <img src={designCustom.responseImage} alt="Response" style={{ width: '100%', height: 'auto' }} />
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Price</Typography>
+                                        <Typography variant="h6">{formatPrice(designCustom.responsePrice)}</Typography>
+                                    </Box>
+                                    <Box>
+                                        <Typography variant="subtitle2" color="textSecondary">Response Description</Typography>
+                                        <Typography variant="h6">{designCustom.responseDescription}</Typography>
+                                    </Box>
+                                </Stack>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
+            </Box>
+        );
+    };
 
     const renderStatusChange = (task) => {
-        if (task.status !== "Delivery") {
-            return (
-                <Select
-                    size="small"
-                    value=""
-                    onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
-                    sx={{ minWidth: 150 }}
-                    displayEmpty
-                >
-                    <MenuItem value="" disabled>Change Status</MenuItem>
-                    <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
-                    <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                    <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                    <MenuItem value="Received">6️⃣ Received</MenuItem>
-                </Select>
-            );
+        // Don't show status change options for Received, Cancel, and Delivery statuses
+        if (task.status === "Fail" || task.status === "Received" || task.status === "Cancel" || task.status === "Delivery") {
+            return null;
         }
-        return null;
+
+        return (
+            <Select
+                size="small"
+                value=""
+                onChange={(e) => handleStatusChange(task.orderId, e.target.value)}
+                sx={{ minWidth: 150 }}
+                displayEmpty
+            >
+                <MenuItem value="" disabled>Change Status</MenuItem>
+                <MenuItem value="Arranging & Packing">2️⃣ Arranging & Packing</MenuItem>
+                <MenuItem value="Awaiting Design Approval">3️⃣ Awaiting Design Approval</MenuItem>
+                <MenuItem value="Flower Completed">4️⃣ Flower Completed</MenuItem>
+                {/* Chỉ hiển thị option Received nếu delivery là false (Pickup) */}
+                {!task.delivery && (
+                    <MenuItem value="Received">6️⃣ Received</MenuItem>
+                )}
+
+            </Select>
+        );
+    };
+
+    useEffect(() => {
+        const fetchRefundOrders = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+                const decodedToken = jwtDecode(token);
+                const staffId = decodedToken.Id;
+
+                const response = await axios.get(
+                    `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/GetRefundOrderByStaffId?StaffId=${staffId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+                setRefundOrders(response.data.data);
+            } catch (error) {
+                console.error('Error fetching refund orders:', error);
+            }
+        };
+
+        fetchRefundOrders();
+    }, []);
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Accept refund':
+                return '#d1fae5'; // Light green
+            case 'Refuse refund':
+                return '#fee2e2'; // Light red
+            case 'Request refund':
+                return '#fbcfe8'; // Light pink
+          
+            default:
+                return '#e5e7eb'; // Light gray
+        }
+    };
+
+    const getStatusColorText = (status) => {
+        switch (status) {
+            case 'Accept refund':
+                return '#047857'; // Dark green
+            case 'Refuse refund':
+                return '#dc2626'; // Dark red
+            case 'Request refund':
+                return '#db2777'; // Dark pink
+         
+            default:
+                return '#374151'; // Dark gray
+        }
+    };
+
+    const handleViewDetails = (order) => {
+        // Implement view details functionality
+        console.log('View details for order:', order);
+    };
+
+    const handleFeedback = (orderId) => {
+        // Implement feedback functionality
+        console.log('Feedback for order:', orderId);
+    };
+
+    const handleUpdateStatus = async (orderId, status) => {
+        try {
+            // Implement status update functionality
+            console.log('Update status for order:', orderId, 'to:', status);
+        } catch (error) {
+            console.error('Error updating status:', error);
+        }
+    };
+    const checkWallet = async () => {
+        try {
+            const response = await fetch(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Wallet/CheckWallet?CustomerId=${selectedTask.customerId}`);
+            const data = await response.json();
+
+            if (data.statusCode === 200) {
+                setIsWalletAvailable(data.data);
+                if (!data.data) {
+                    setWallet('false'); // Mặc định là false nếu không có ví
+                } else {
+                    setWallet(''); // Đặt lại để cho phép chọn true/false
+                }
+            } else {
+                message.error(data.message || 'Failed to check wallet status');
+            }
+        } catch (error) {
+            console.error("Error checking wallet:", error);
+            message.error('Failed to check wallet status');
+        }
+    };
+    const handleSubmitFail = async () => {
+        try {
+            const formData = new FormData();
+            formData.append('ReasonFail', failReason);
+            formData.append('ImageFail', failImage);
+            formData.append('TimeDelay', timeDelay);
+            formData.append('Wallet', wallet); // Hoặc true nếu cần
+
+            const response = await axios.put(
+                `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Order/UpdateFailOrder?orderId=${selectedTask.orderId}`, // Sử dụng orderId từ selectedTask
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            console.log('Order status updated to Fail:', response.data);
+            
+            // Kiểm tra mã trạng thái và đóng dialog nếu thành công
+            if (response.status === 200) {
+                fetchTasks(); // Làm mới danh sách đơn hàng
+                handleCloseFailDialog(); // Đóng dialog
+            }
+        } catch (error) {
+            console.error('Error updating order status to Fail:', error);
+        }
+    };
+
+    const handleViewReasonFail = async (orderId) => {
+        try {
+            const response = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/failOrder/GetFailOrderByOrderId?orderID=${orderId}`);
+            
+            if (response.status === 200) {
+                const failOrderData = response.data.data; // Giả sử dữ liệu nằm trong response.data.data
+                setFailOrderDetails(failOrderData); // Lưu thông tin vào state
+                setFailReasonDialogOpen(true); // Mở dialog
+            }
+        } catch (error) {
+            console.error('Error fetching fail order details:', error);
+        }
     };
 
     return (
@@ -638,6 +910,28 @@ const TaskManagement = () => {
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
+                     <Chip
+                        label="Fail"
+                        color={filteredStatus === "Fail" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Fail")}
+                        sx={{
+                            bgcolor: filteredStatus === "Fail" ? undefined : '#ff1a1a', // Đặt màu đỏ nhạt khi chưa chọn
+                            color: filteredStatus === "Fail" ? undefined : '#ffffff', // Màu chữ trắng khi chưa chọn
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
+                    <Chip
+                        label="Cancel"
+                        color={filteredStatus === "Cancel" ? "primary" : "default"}
+                        onClick={() => setFilteredStatus("Cancel")}
+                        sx={{
+                            bgcolor: filteredStatus === "Cancel" ? undefined : '#ff9999', // Đặt màu đỏ nhạt khi chưa chọn
+                            color: filteredStatus === "Cancel" ? undefined : '#ffffff', // Màu chữ trắng khi chưa chọn
+                            fontWeight: 500,
+                            '&:hover': { opacity: 0.9 }
+                        }}
+                    />
                     <Chip
                         label="2️⃣ Arranging & Packing"
                         color={filteredStatus === "Arranging & Packing" ? "primary" : "default"}
@@ -650,7 +944,7 @@ const TaskManagement = () => {
                         }}
                     />
                     <Chip
-                        label="4️⃣ Awaiting Design Approval"
+                        label="3️⃣ Awaiting Design Approval"
                         color={filteredStatus === "Awaiting Design Approval" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Awaiting Design Approval")}
                         sx={{
@@ -661,7 +955,7 @@ const TaskManagement = () => {
                         }}
                     />
                     <Chip
-                        label="5️⃣ Flower Completed"
+                        label="4️⃣ Flower Completed"
                         color={filteredStatus === "Flower Completed" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Flower Completed")}
                         sx={{
@@ -739,17 +1033,29 @@ const TaskManagement = () => {
                                                         task.status === "Awaiting Design Approval" ? '#fef9c3' :
                                                             task.status === "Flower Completed" ? '#fed7aa' :
                                                                 task.status === "Delivery" ? '#d8b4fe' :
-                                                                    task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                                    task.status === "Cancel" ? '#ff9999' :
+                                                                    task.status === "Fail" ? '#ff1a1a' :
+                                                                        task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             task.status === "Flower Completed" ? '#9a3412' :
                                                                 task.status === "Delivery" ? '#1e40af' :
+
                                                                     task.status === "Received" ? '#1e40af' : '#374151',
                                                     fontWeight: 500,
                                                     '& .MuiChip-label': { px: 2 }
                                                 }}
                                             />
                                             {renderStatusChange(task)}
+                                            {task.status === "Fail" && (
+                                                <Button
+                                                    variant="outlined"
+                                                    color="error"
+                                                    onClick={() => handleViewReasonFail(task.orderId)}
+                                                >
+                                                    View Reason Fail
+                                                </Button>
+                                            )}
                                         </Stack>
                                     </TableCell>
                                     <TableCell>
@@ -779,7 +1085,18 @@ const TaskManagement = () => {
                                                 />
                                             )}
                                         </Button>
-
+                                        {task.status !== "Fail" && task.status !== "Received" && (
+                                            <Button
+                                                variant="outlined"
+                                                color="error"
+                                                onClick={() => {
+                                                    setFailDialogOpen(true);
+                                                    setSelectedTask(task);
+                                                }}
+                                            >
+                                                Fail
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -787,6 +1104,84 @@ const TaskManagement = () => {
                     </Table>
                 </TableContainer>
             )}
+            <Box mt={4}>
+                <Typography variant="h3" sx={{
+                    mb: 2,
+                    fontWeight: 'bold'
+                }}>
+                    Refund Order Management
+                </Typography>
+                {loading ? (
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                        <CircularProgress sx={{ color: '#FF69B4' }} /> {/* Pink color for loading spinner */}
+                    </Box>
+                ) : (
+                    <TableContainer component={Paper} sx={{
+                        boxShadow: '0 4px 6px -1px rgba(255, 105, 180, 0.1)',
+                        borderRadius: '10px'
+                    }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow sx={{ backgroundColor: '' }}> {/* Light pink background */}
+                                    <TableCell>Order ID</TableCell>
+                                    <TableCell>Order Price</TableCell>
+                                    <TableCell>Customer ID</TableCell>
+                                    <TableCell>Phone</TableCell>
+                                    <TableCell>Create Time</TableCell>
+                                    <TableCell>Status</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {refundOrders.map((order) => (
+                                    <TableRow key={order.orderId}>
+                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>{formatPrice(order.orderPrice)}</TableCell>
+                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.phone}</TableCell>
+                                        <TableCell>{formatDateTime(order.createAt)}</TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={order.status}
+                                                sx={{
+                                                    bgcolor: getStatusColor(order.status),
+                                                    color: getStatusColorText(order.status),
+                                                    fontWeight: 500,
+                                                    '& .MuiChip-label': { px: 2 }
+                                                }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Button variant="outlined" onClick={() => handleOpenDialog(order)}>
+                                                View Details
+                                            </Button>
+
+                                            {order.status === "Request refund" && (
+                                                <Box sx={{ mt: 1 }}>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="success"
+                                                        onClick={() => handleUpdateStatus(order.orderId, 'Accept refund')}
+                                                        sx={{ mr: 1 }}
+                                                    >
+                                                        Accept
+                                                    </Button>
+                                                    <Button
+                                                        variant="contained"
+                                                        color="error"
+                                                        onClick={() => handleUpdateStatus(order.orderId, 'Refuse refund')}
+                                                    >
+                                                        Reject
+                                                    </Button>
+                                                </Box>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </Box>
 
             <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="lg" fullWidth>
                 <DialogTitle sx={{
@@ -838,7 +1233,10 @@ const TaskManagement = () => {
                                                         <MenuItem value="" disabled>Change Status</MenuItem>
                                                         <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
                                                         <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                        <MenuItem value="Received">6️⃣ Received</MenuItem>
+                                                        {/* Chỉ hiển thị option Received nếu delivery là false (Pickup) */}
+                                                        {!detailedOrder.delivery && (
+                                                            <MenuItem value="Received">6️⃣ Received</MenuItem>
+                                                        )}
                                                     </Select>
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
@@ -1039,10 +1437,11 @@ const TaskManagement = () => {
                                         <Typography variant="h6" className="section-title">
                                             {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
                                         </Typography>
-                                        {detailedOrder.productCustomResponse
-                                            ? renderCustomOrderDetails(detailedOrder)
-                                            : renderRegularOrderDetails(detailedOrder)
-                                        }
+                                        {detailedOrder.productCustomResponse 
+                                            ? renderCustomOrderDetails(detailedOrder) 
+                                            : detailedOrder.designCustomBuCustomerResponse 
+                                                ? rederDesignCustomOrderDetail(detailedOrder) 
+                                                : renderRegularOrderDetails(detailedOrder)}
                                     </OrderSection>
                                 </Grid>
 
@@ -1150,6 +1549,10 @@ const TaskManagement = () => {
                                                     <Typography className="value">{detailedOrder.deliveryDetails.note}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
+                                                    <Typography className="label">Fee</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.fee}</Typography>
+                                                </InfoRow>
+                                                <InfoRow>
                                                     <Typography className="label">Delivery Time</Typography>
                                                     <Typography className="value">{formatDateTime(detailedOrder.deliveryDetails.deliveryTime)}</Typography>
                                                 </InfoRow>
@@ -1159,7 +1562,15 @@ const TaskManagement = () => {
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery Image</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryImage ?? "N/A"}</Typography>
+                                                    {detailedOrder.deliveryDetails.deliveryImage ? (
+                                                        <img
+                                                            src={detailedOrder.deliveryDetails.deliveryImage}
+                                                            alt="Delivery"
+                                                            style={{ width: "200px", height: "auto", borderRadius: "8px", marginTop: "8px" }}
+                                                        />
+                                                    ) : (
+                                                        <Typography className="value">N/A</Typography>
+                                                    )}
                                                 </InfoRow>
                                             </Stack>
                                         </OrderSection>
@@ -1191,6 +1602,77 @@ const TaskManagement = () => {
                 onClose={handleCloseChatDialog}
                 task={selectedTask}
             />
+            <Dialog open={failDialogOpen} onClose={() => setFailDialogOpen(false)}>
+                <DialogTitle>Fail Order</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Reason for Failure"
+                        value={failReason}
+                        onChange={(e) => setFailReason(e.target.value)}
+                        fullWidth
+                        multiline
+                        rows={4}
+                    />
+                    <TextField
+                        label="Time Delay"
+                        type="datetime-local"
+                        value={timeDelay}
+                        onChange={(e) => setTimeDelay(e.target.value)}
+                        fullWidth
+                        margin="normal"
+                    />
+                    <FormControl fullWidth margin="normal">
+                        <InputLabel>Wallet</InputLabel>
+                        <Select
+                            value={wallet}
+                            label="Wallet"
+                            onChange={(e) => setWallet(e.target.value)}
+                            disabled={!isWalletAvailable}
+                        >
+                            <MenuItem value="true">True</MenuItem>
+                            <MenuItem value="false">False</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <Button
+                        variant="contained"
+                        component="label"
+                        fullWidth
+                    >
+                        Upload Failure Image
+                        <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={(e) => setFailImage(e.target.files[0])}
+                        />
+                    </Button>
+                    {failImage && <Typography>{failImage.name}</Typography>}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFailDialogOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSubmitFail} color="error">Submit</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={failReasonDialogOpen} onClose={() => setFailReasonDialogOpen(false)}>
+                <DialogTitle>Fail Order Details</DialogTitle>
+                <DialogContent>
+                    {failOrderDetails && (
+                        <Box>
+                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId}</Typography>
+                            <Typography variant="body1">Reason: {failOrderDetails.reasonFail}</Typography>
+                            <img src={failOrderDetails.imageFail} alt="Failure Image" style={{ width: '100%', height: 'auto' }} />
+                            <Typography variant="body1">Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>
+                            <Typography variant="body1">Refund Price: {formatPrice(failOrderDetails.refundPrice)}</Typography>
+                            <Typography variant="body1">Wallet: {failOrderDetails.wallet ? 'Yes' : 'No'}</Typography>
+                            <Typography variant="body1">Created At: {formatDateTime(failOrderDetails.createAt)}</Typography>
+                            <Typography variant="body1">Updated At: {formatDateTime(failOrderDetails.updateAt)}</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setFailReasonDialogOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };

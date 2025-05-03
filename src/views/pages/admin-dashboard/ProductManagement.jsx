@@ -60,6 +60,7 @@ const ProductManagement = () => {
     quantity: 0,
     price: 0,
     size: '',
+    weight: 0,
     discount: 0,
     description: '',
     featured: true,
@@ -121,6 +122,8 @@ const ProductManagement = () => {
         quantity: product.quantity || 0,
         price: product.price,
         size: product.size,
+        weight: product.weight,
+
         discount: product.discount || 0,
         description: product.description,
         featured: product.featured,
@@ -134,6 +137,8 @@ const ProductManagement = () => {
         productName: '',
         price: 0,
         size: '',
+        weight: 0,
+
         quantity: 0,
         discount: 0,
         description: '',
@@ -150,7 +155,7 @@ const ProductManagement = () => {
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     setImageFiles(files);
-    
+
     // Preview images
     const imagePreviews = files.map(file => URL.createObjectURL(file));
     setImagePreviews(imagePreviews);
@@ -160,16 +165,19 @@ const ProductManagement = () => {
     try {
       // Tạo FormData object
       const formData = new FormData();
-      
+
       // Thêm các trường thông tin sản phẩm
       formData.append('productName', newProduct.productName);
       formData.append('quantity', newProduct.quantity.toString());
       formData.append('price', newProduct.price.toString());
       formData.append('size', newProduct.size);
+      formData.append('weight', newProduct.weight);
+
       formData.append('discount', newProduct.discount.toString());
       formData.append('description', newProduct.description);
       formData.append('featured', 'false');
       formData.append('categoryId', newProduct.categoryId);
+
       formData.append('status', 'true');
 
       // Thêm các file ảnh
@@ -199,6 +207,8 @@ const ProductManagement = () => {
           productName: '',
           price: 0,
           size: '',
+          weight: '',
+
           quantity: 0,
           discount: 0,
           description: '',
@@ -233,6 +243,8 @@ const ProductManagement = () => {
       quantity: product.quantity,
       price: product.price,
       size: product.size,
+      weight: product.weight,
+
       discount: product.discount,
       description: product.description,
       featured: product.featured,
@@ -252,7 +264,7 @@ const ProductManagement = () => {
       });
       return;
     }
-  
+
     try {
       const response = await axios.put(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/UpdateProduct/${editingProduct.productId}`,
@@ -263,7 +275,7 @@ const ProductManagement = () => {
           }
         }
       );
-  
+
       if (response.data.statusCode === 200) {
         const updatedProducts = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetAllProduct');
         setProducts(updatedProducts.data.data);
@@ -284,18 +296,18 @@ const ProductManagement = () => {
     }
   };
 
-  const handleConfirmDelete = (id) => {
-    setConfirmDelete({ open: true, customerId: id });
+  const handleDeleteProduct = async (productId) => {
+    setConfirmDelete({ open: true, productId: productId });
   };
 
-  const handleDeleteProduct = async (productId) => {
+  const handleConfirmDelete = async () => {
     try {
       const response = await axios.delete(
-        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${productId}`
+        `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/DeleteProduct/${confirmDelete.productId}`
       );
 
       if (response.data.statusCode === 200) {
-        setProducts(products.filter((product) => product.productId !== productId));
+        setProducts(products.filter((product) => product.productId !== confirmDelete.productId));
         setSnackbar({
           open: true,
           message: 'Product deleted successfully!',
@@ -319,6 +331,7 @@ const ProductManagement = () => {
       productName: '',
       price: 0,
       size: '',
+      weight: 0,
       quantity: 0,
       discount: 0,
       description: '',
@@ -345,7 +358,8 @@ const ProductManagement = () => {
     return (
       newProduct.productName &&
       newProduct.price > 0 &&
-      newProduct.quantity >= 0 &&
+      newProduct.weight >= 0 &&
+
       newProduct.categoryId &&
       imageFiles.length > 0 &&
       (newProduct.discount >= 0 && newProduct.discount <= 100)
@@ -395,7 +409,7 @@ const ProductManagement = () => {
       const response = await axios.get(
         `https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Product/GetProductById?id=${productId}`
       );
-      
+
       if (response.data.statusCode === 200) {
         setProductDetail(response.data.data);
       }
@@ -424,6 +438,7 @@ const ProductManagement = () => {
           <TableHead>
             <TableRow>
               {/* <TableCell>ID</TableCell> */}
+              <TableCell>ID</TableCell>
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
@@ -432,7 +447,6 @@ const ProductManagement = () => {
               <TableCell>Size</TableCell>
               <TableCell>Discount</TableCell>
               <TableCell>Description</TableCell>
-              <TableCell>Quantity</TableCell>
               <TableCell>Sold</TableCell>
               <TableCell>featured</TableCell>
               <TableCell>Status</TableCell>
@@ -442,6 +456,8 @@ const ProductManagement = () => {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.productId}>
+                <TableCell>{product.productId}</TableCell>
+
                 {/* <TableCell>{product.productId}</TableCell> */}
                 <TableCell>
                   {product.productImages && product.productImages[0]?.productImage1 && (
@@ -461,18 +477,17 @@ const ProductManagement = () => {
                 <TableCell>{product.size}</TableCell>
                 <TableCell>{product.discount}%</TableCell>
                 <TableCell>{product.description}</TableCell>
-                <TableCell>{product.quantity}</TableCell>
                 <TableCell>{product.sold}</TableCell>
-                <TableCell> <Chip 
-                    label={product.featured ? 'Yes' : 'No'}
-                    color={product.featured ? 'success' : 'default'}
-                    size="small"
-                  /></TableCell>
-                <TableCell> <Chip 
-                    label={product.status ? 'Active' : 'Inactive'}
-                    color={product.status ? 'success' : 'error'}
-                    size="small"
-                  /></TableCell>
+                <TableCell> <Chip
+                  label={product.featured ? 'Yes' : 'No'}
+                  color={product.featured ? 'success' : 'default'}
+                  size="small"
+                /></TableCell>
+                <TableCell> <Chip
+                  label={product.status ? 'Active' : 'Inactive'}
+                  color={product.status ? 'success' : 'error'}
+                  size="small"
+                /></TableCell>
                 <TableCell align="right">
                   <IconButton
                     onClick={() => {
@@ -503,10 +518,10 @@ const ProductManagement = () => {
         </Table>
       </TableContainer>
 
-      <Dialog 
-        open={openDialog} 
-        onClose={() => setOpenDialog(false)} 
-        maxWidth="md" 
+      <Dialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        maxWidth="md"
         fullWidth
       >
         <DialogTitle sx={{ pb: 1 }}>
@@ -548,31 +563,21 @@ const ProductManagement = () => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Quantity"
-                  type="number"
-                  value={newProduct.quantity}
-                  onChange={(e) => setNewProduct({ ...newProduct, quantity: Number(e.target.value) })}
-                  error={newProduct.quantity < 0}
-                  helperText={newProduct.quantity < 0 ? "Quantity cannot be negative" : ""}
-                  InputProps={{
-                    inputProps: { min: 0 }
-                  }}
-                />
-              </Grid>
-
               {/* Size and Discount */}
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Size"
-                  value={newProduct.size}
-                  onChange={(e) => setNewProduct({ ...newProduct, size: e.target.value })}
-                  placeholder="Enter size (optional)"
-                />
+                <FormControl fullWidth>
+                  <InputLabel id="size-label">Size</InputLabel>
+                  <Select
+                    labelId="size-label"
+                    value={newProduct.size}
+                    label="Size"
+                    onChange={(e) => setNewProduct({ ...newProduct, size: e.target.value })}
+                  >
+                    <MenuItem value="Large">Large</MenuItem>
+                    <MenuItem value="Medium">Medium</MenuItem>
+                    <MenuItem value="Small">Small</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
 
               <Grid item xs={12} sm={6}>
@@ -590,7 +595,22 @@ const ProductManagement = () => {
                   }}
                 />
               </Grid>
-
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  required
+                  fullWidth
+                  label="Weight"
+                  type="number"
+                  value={newProduct.weight}
+                  onChange={(e) => setNewProduct({ ...newProduct, weight: Number(e.target.value) })}
+                  error={newProduct.weight <= 0}
+                  helperText={newProduct.priweightce <= 0 ? "weight must be greater than 0" : ""}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">kg</InputAdornment>,
+                  }}
+                  placeholder="Enter weight"
+                />
+              </Grid>
               {/* Category */}
               <Grid item xs={12}>
                 <FormControl fullWidth required error={!newProduct.categoryId}>
@@ -606,7 +626,7 @@ const ProductManagement = () => {
                       </MenuItem>
                     ))}
                   </Select>
-                  {!newProduct.categoryId && 
+                  {!newProduct.categoryId &&
                     <FormHelperText>Please select a category</FormHelperText>
                   }
                 </FormControl>
@@ -681,11 +701,11 @@ const ProductManagement = () => {
                 </Box>
 
                 {/* Image Previews */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 1, 
+                <Box sx={{
+                  display: 'flex',
+                  gap: 1,
                   flexWrap: 'wrap',
-                  mb: 2 
+                  mb: 2
                 }}>
                   {imagePreviews.map((preview, index) => (
                     <Box
@@ -730,7 +750,7 @@ const ProductManagement = () => {
         </DialogContent>
 
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button 
+          <Button
             onClick={() => {
               setOpenDialog(false);
               resetForm();
@@ -761,17 +781,7 @@ const ProductManagement = () => {
               productName: e.target.value
             })}
           />
-          <TextField
-            margin="dense"
-            label="Quantity"
-            fullWidth
-            type="number"
-            value={updateProductData.quantity}
-            onChange={(e) => setUpdateProductData({
-              ...updateProductData,
-              quantity: parseInt(e.target.value)
-            })}
-          />
+
           <TextField
             margin="dense"
             label="Price"
@@ -793,6 +803,16 @@ const ProductManagement = () => {
               size: e.target.value
             })}
           />
+           <TextField
+            margin="dense"
+            label="Weight"
+            fullWidth
+            value={updateProductData.weight}
+            onChange={(e) => setUpdateProductData({
+              ...updateProductData,
+              weight: e.target.value
+            })}
+          />
           <TextField
             margin="dense"
             label="Discount (%)"
@@ -804,7 +824,7 @@ const ProductManagement = () => {
               discount: parseInt(e.target.value)
             })}
           />
-          
+
           <TextField
             margin="dense"
             label="Description"
@@ -836,7 +856,7 @@ const ProductManagement = () => {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred',} }} onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
+          <Button sx={{ backgroundColor: 'red', color: 'white', '&:hover': { backgroundColor: 'darkred', } }} onClick={() => setUpdateDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleUpdateProduct}>
             Update
           </Button>
@@ -859,7 +879,7 @@ const ProductManagement = () => {
           <Button
             color="error"
             variant="contained"
-            onClick={() => handleDeleteProduct(confirmDelete.productId)}
+            onClick={handleConfirmDelete}
           >
             Delete
           </Button>
@@ -876,14 +896,14 @@ const ProductManagement = () => {
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ 
-          display: 'flex', 
+        <DialogTitle sx={{
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           borderBottom: '1px solid #e0e0e0'
         }}>
           <Typography variant="h6">Product Details</Typography>
-          <IconButton 
+          <IconButton
             onClick={() => {
               setViewDetail({ open: false, product: null });
               setProductDetail(null);
@@ -942,7 +962,7 @@ const ProductManagement = () => {
                                 backgroundColor: 'rgba(255,255,255,0.8)',
                                 '&:hover': { backgroundColor: 'white' }
                               }}
-                              onClick={() => setSelectedImageIndex(prev => 
+                              onClick={() => setSelectedImageIndex(prev =>
                                 prev === 0 ? productDetail.productImages.length - 1 : prev - 1
                               )}
                             >
@@ -957,7 +977,7 @@ const ProductManagement = () => {
                                 backgroundColor: 'rgba(255,255,255,0.8)',
                                 '&:hover': { backgroundColor: 'white' }
                               }}
-                              onClick={() => setSelectedImageIndex(prev => 
+                              onClick={() => setSelectedImageIndex(prev =>
                                 prev === productDetail.productImages.length - 1 ? 0 : prev + 1
                               )}
                             >
@@ -971,12 +991,12 @@ const ProductManagement = () => {
 
                   {/* Thumbnails */}
                   {productDetail.productImages?.length > 0 && (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      gap: 1, 
+                    <Box sx={{
+                      display: 'flex',
+                      gap: 1,
                       flexWrap: 'wrap',
                       justifyContent: 'center',
-                      mt: 2 
+                      mt: 2
                     }}>
                       {productDetail.productImages.map((image, index) => (
                         <Paper
@@ -1012,10 +1032,10 @@ const ProductManagement = () => {
 
                   {/* Image Counter */}
                   {productDetail.productImages?.length > 0 && (
-                    <Box sx={{ 
-                      display: 'flex', 
+                    <Box sx={{
+                      display: 'flex',
                       justifyContent: 'center',
-                      mt: 1 
+                      mt: 1
                     }}>
                       <Typography variant="caption" color="textSecondary">
                         Image {selectedImageIndex + 1} of {productDetail.productImages.length}
@@ -1044,7 +1064,7 @@ const ProductManagement = () => {
                       {productDetail.price.toLocaleString()} VND
                     </Typography>
                     {productDetail.discount > 0 && (
-                      <Chip 
+                      <Chip
                         label={`-${productDetail.discount}%`}
                         color="error"
                         size="small"
@@ -1076,13 +1096,17 @@ const ProductManagement = () => {
                           <TableCell>{productDetail.size || 'N/A'}</TableCell>
                         </TableRow>
                         <TableRow>
+                          <TableCell sx={{ fontWeight: 'bold' }}>Weight</TableCell>
+                          <TableCell>{productDetail.weight || 'N/A'} kg</TableCell>
+                        </TableRow>
+                        <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Sold</TableCell>
                           <TableCell>{productDetail.sold}</TableCell>
                         </TableRow>
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Featured</TableCell>
                           <TableCell>
-                            <Chip 
+                            <Chip
                               label={productDetail.featured ? 'Yes' : 'No'}
                               color={productDetail.featured ? 'success' : 'default'}
                               size="small"
@@ -1092,7 +1116,7 @@ const ProductManagement = () => {
                         <TableRow>
                           <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
                           <TableCell>
-                            <Chip 
+                            <Chip
                               label={productDetail.status ? 'Active' : 'Inactive'}
                               color={productDetail.status ? 'success' : 'error'}
                               size="small"
@@ -1118,10 +1142,10 @@ const ProductManagement = () => {
                     <Typography variant="h6" gutterBottom>
                       Description
                     </Typography>
-                    <Paper 
-                      variant="outlined" 
-                      sx={{ 
-                        p: 2, 
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 2,
                         backgroundColor: '#f8f8f8',
                         minHeight: 100
                       }}

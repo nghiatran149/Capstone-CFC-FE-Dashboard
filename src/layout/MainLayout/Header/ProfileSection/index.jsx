@@ -164,7 +164,7 @@ const ProfileSection = () => {
                         }
                       }}
                     >
-                      <ListItemButton
+                      {/* <ListItemButton
                         sx={{
                           borderRadius: `${customization.borderRadius}px`,
                           '&:hover': {
@@ -184,7 +184,7 @@ const ProfileSection = () => {
                             </Typography>
                           }
                         />
-                      </ListItemButton>
+                      </ListItemButton> */}
 
                       <ListItemButton
                         sx={{

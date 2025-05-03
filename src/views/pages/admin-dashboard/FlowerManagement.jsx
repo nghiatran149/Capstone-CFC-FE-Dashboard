@@ -311,6 +311,8 @@ const FlowerManagement = () => {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Id</TableCell>
+
               <TableCell>Image</TableCell>
               <TableCell>Name</TableCell>
               <TableCell>Price</TableCell>
@@ -327,6 +329,8 @@ const FlowerManagement = () => {
           <TableBody>
             {flowers.map((flower) => (
               <TableRow key={flower.flowerId}>
+                <TableCell>{flower.flowerId}</TableCell>
+
                 <TableCell>
                   {flower.image && (
                     <img
@@ -363,7 +367,7 @@ const FlowerManagement = () => {
                   />
                 </TableCell>
                 <TableCell>
-                <IconButton
+                  <IconButton
                     color="info"
                     onClick={() => setViewDetail({ open: true, flower: flower })}
                     title="View Details"
@@ -377,7 +381,7 @@ const FlowerManagement = () => {
                   >
                     <Edit />
                   </IconButton>
-                 
+
                   <IconButton
                     color="error"
                     onClick={() => setConfirmDelete({
@@ -645,7 +649,7 @@ const FlowerManagement = () => {
             {updateFlowerData.image && (
               <Box sx={{ position: 'relative', width: 200, height: 200 }}>
                 <img
-                  src={updateFlowerData.image instanceof File 
+                  src={updateFlowerData.image instanceof File
                     ? URL.createObjectURL(updateFlowerData.image)
                     : updateFlowerData.image}
                   alt="Preview"

@@ -1,4 +1,4 @@
-import { IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
+import { IconWallet, IconBasketCog,IconGraph, IconChartBar, IconDashboard, IconUsersGroup, IconFlower, IconGiftCard, IconCategory, IconGift, IconBasket, IconDiamond, IconSettings, IconCreditCardRefund } from '@tabler/icons-react';
 
 const adminDashboard = {
   id: 'adminDashboard',
@@ -7,11 +7,19 @@ const adminDashboard = {
   type: 'group',
   children: [
     {
+      id: 'stat',
+      title: 'Statistic',
+      type: 'item',
+      url: '/adminDashboard/statistic',
+      icon: IconGraph,
+      breadcrumbs: true
+    },
+    {
       id: 'chain',
       title: 'Chain Overview',
       type: 'item',
       url: '/adminDashboard/chain-overview',
-      icon: IconDashboard,
+      icon: IconChartBar,
       breadcrumbs: true
     },
     {
@@ -23,11 +31,27 @@ const adminDashboard = {
       breadcrumbs: true
     },
     {
+      id: 'wallet',
+      title: 'System Wallet',
+      type: 'item',
+      url: '/adminDashboard/system-wallet',
+      icon: IconWallet,
+      breadcrumbs: true
+    },
+    {
       id: 'customer',
       title: 'Customer Management',
       type: 'item',
       url: '/adminDashboard/customer-management',
       icon: IconUsersGroup,
+      breadcrumbs: true
+    },
+    {
+      id: 'order',
+      title: 'Order Management',
+      type: 'item',
+      url: '/adminDashboard/order-management',
+      icon: IconBasketCog,
       breadcrumbs: true
     },
     {

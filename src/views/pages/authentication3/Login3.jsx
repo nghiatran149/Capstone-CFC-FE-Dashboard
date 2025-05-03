@@ -16,6 +16,11 @@ import AuthWrapper1 from '../AuthWrapper1';
 import AuthCardWrapper from '../AuthCardWrapper';
 import Logo from 'ui-component/Logo';
 import AuthFooter from 'ui-component/cards/AuthFooter';
+import AuthPic from "../../../assets/images/authpic.jpg"
+import menuItems from 'menu-items';
+
+// Import ảnh nền nếu cần
+// import backgroundImage from '../assets/image.png';
 
 // ================================|| AUTH3 - LOGIN ||================================ //
 
@@ -50,6 +55,11 @@ const Login = () => {
 
       const data = await response.json();
       if (response.ok) {
+        console.log("data", data);
+        if (data?.roleName === 'Customer') {
+          setError('You do not have access to this system.');
+          return;
+        }
         setSuccessMessage(data.messages[0]);
         localStorage.setItem('accessToken', data.data.accessToken);
         localStorage.setItem('roleName', data.data.roleName);
@@ -80,7 +90,15 @@ const Login = () => {
   };
 
   return (
-    <AuthWrapper1>
+
+    <AuthWrapper1
+      sx={{
+        backgroundImage: `url(${AuthPic})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh'
+      }}
+    >
       <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
         <Grid item xs={12}>
           <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: 'calc(100vh - 68px)' }}>
@@ -94,7 +112,7 @@ const Login = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Stack alignItems="center" justifyContent="center" spacing={1}>
-                      <Typography color="secondary.main" gutterBottom variant={downMD ? 'h3' : 'h2'}>
+                      <Typography color="#ff54b1" gutterBottom variant={downMD ? 'h3' : 'h2'}>
                         Hi, Welcome Back
                       </Typography>
                       <Typography variant="caption" fontSize="16px" textAlign={{ xs: 'center', md: 'inherit' }}>
@@ -123,20 +141,21 @@ const Login = () => {
                       {successMessage && <Alert severity="success">{successMessage}</Alert>}
                       <Button
                         variant="contained"
-                        color="primary"
+                        sx={{ backgroundColor: '#ff66b2', '&:hover': { backgroundColor: '#ff33a2' } }}
                         fullWidth
                         onClick={handleLogin}
                         disabled={loading}
                       >
                         {loading ? 'Logging in...' : 'Login'}
                       </Button>
+
                     </Stack>
                   </Grid>
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography component={Link} to="/register" variant="subtitle1" sx={{ textDecoration: 'none' }}>
+                    <Typography component={Link} to="/register" variant="subtitle1" sx={{ color: '#ff66b2', textDecoration: 'none' }}>
                       Don&apos;t have an account?
                     </Typography>
                   </Grid>
@@ -145,7 +164,7 @@ const Login = () => {
             </Grid>
           </Grid>
         </Grid>
-        <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
+        <Grid item xs={12} sx={{ m: 3, mt: 1, position: 'relative', zIndex: 2 }}>
           <AuthFooter />
         </Grid>
       </Grid>

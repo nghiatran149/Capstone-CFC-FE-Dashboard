@@ -128,37 +128,19 @@ const CustomerManagement = () => {
           <TableHead>
             <TableRow>
               {/* <TableCell>ID</TableCell> */}
-              <TableCell>Avatar</TableCell>
-              <TableCell>Full Name</TableCell>
-              <TableCell>City</TableCell>
-              <TableCell>District</TableCell>
-              <TableCell>Address</TableCell>
+              <TableCell>ID</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Phone</TableCell>
-              <TableCell>Gender</TableCell>
-              <TableCell>Birthday</TableCell>
-              <TableCell>Status</TableCell>
+                <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {customers.map((customer) => (
               <TableRow key={customer.customerId}>
                 {/* <TableCell>{customer.customerId}</TableCell> */}
-                <TableCell>
-                  <img
-                    src={customer.avatar}
-                    alt={customer.fullName}
-                    style={{ width: 50, height: 50, objectFit: 'cover', borderRadius: 4 }}
-                  />
-                </TableCell>
-                <TableCell>{customer.fullName}</TableCell>
-                <TableCell>{customer.city}</TableCell>
-                <TableCell>{customer.district}</TableCell>
-                <TableCell>{customer.address}</TableCell>
+                <TableCell>{customer.customerId}</TableCell>
+
                 <TableCell>{customer.email}</TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{customer.gender}</TableCell>
-                <TableCell>{customer.birthday ? customer.birthday.split('T')[0] : ''}</TableCell>
+
                 <TableCell>
                   <Chip 
                     label={customer.status ? 'Active' : 'Inactive'}
