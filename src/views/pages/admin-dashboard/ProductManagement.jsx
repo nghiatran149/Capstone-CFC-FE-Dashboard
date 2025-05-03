@@ -456,7 +456,7 @@ const ProductManagement = () => {
           <TableBody>
             {products.map((product) => (
               <TableRow key={product.productId}>
-                <TableCell>{product.productId}</TableCell>
+                <TableCell>{product.productId.slice(0, 8)}</TableCell>
 
                 {/* <TableCell>{product.productId}</TableCell> */}
                 <TableCell>
@@ -1053,8 +1053,8 @@ const ProductManagement = () => {
                     <Typography variant="h4" gutterBottom>
                       {productDetail.productName}
                     </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Product ID: {productDetail.productId}
+                    <Typography variant="caption" color="textSecondary" title={productDetail.productId} >
+                      Product ID: {productDetail.productId? `#${productDetail.productId.slice(0, 8)}` : "N/A"}
                     </Typography>
                   </Box>
 

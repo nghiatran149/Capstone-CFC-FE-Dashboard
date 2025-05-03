@@ -644,7 +644,7 @@ const OrderManagement = () => {
                     <TableBody>
                         {order.orderDetails.map((detail) => (
                             <TableRow key={detail.orderDetailId}>
-                                <TableCell>{detail.productId}</TableCell>
+                                <TableCell>{detail.productId.slice(0, 8)}</TableCell>
                                 <TableCell>{detail.productName}</TableCell>
                                 <TableCell>
                                     <img
@@ -834,7 +834,7 @@ const OrderManagement = () => {
                         <TableBody>
                             {filteredOrders.map((order) => (
                                 <TableRow key={order.orderId}>
-                                    <TableCell>{order.orderId}</TableCell>
+                                    <TableCell>Order #{order.orderId.slice(0, 8)}</TableCell>
                                     <TableCell>{order.productCustomResponse ? [order.productCustomResponse.productName] : order.orderDetails.map(detail => detail.productName)}</TableCell>
                                     <TableCell>{formatPrice(order.orderPrice)}</TableCell>
                                     <TableCell>{order.transfer ? "100% transfer" : "50% deposit"}</TableCell>
@@ -902,9 +902,9 @@ const OrderManagement = () => {
                             <TableBody>
                                 {refundOrders.map((order) => (
                                     <TableRow key={order.orderId}>
-                                        <TableCell>{order.orderId}</TableCell>
+                                        <TableCell>Order #{order.orderId.slice(0, 8)}</TableCell>
                                         <TableCell>{formatPrice(order.orderPrice)}</TableCell>
-                                        <TableCell>{order.customerId}</TableCell>
+                                        <TableCell>{order.customerId.slice(0, 8)}</TableCell>
                                         <TableCell>{order.phone}</TableCell>
                                         <TableCell>{formatDateTime(order.createAt)}</TableCell>
                                         <TableCell>
@@ -979,7 +979,7 @@ const OrderManagement = () => {
                                     <OrderSection>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                                             <Box>
-                                                <Typography variant="h5" gutterBottom>Order #{detailedOrder.orderId}</Typography>
+                                                <Typography variant="h5" gutterBottom>Order #{detailedOrder.orderId.slice(0, 8)}</Typography>
                                                 <Typography variant="body1" color="textSecondary">
                                                     Created at {formatDateTime(detailedOrder.createAt)}
                                                 </Typography>
@@ -1055,7 +1055,7 @@ const OrderManagement = () => {
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Customer ID</Typography>
-                                                        <Typography className="value">{detailedOrder.customerId}</Typography>
+                                                        <Typography className="value">{detailedOrder.customerId.slice(0, 8)}</Typography>
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Phone</Typography>
@@ -1079,7 +1079,7 @@ const OrderManagement = () => {
                                                     <Stack spacing={2}>
                                                         <InfoRow>
                                                             <Typography className="label">Staff ID</Typography>
-                                                            <Typography className="value">{detailedOrder.staffId}</Typography>
+                                                            <Typography className="value">{detailedOrder.staffId.slice(0, 8)}</Typography>
                                                         </InfoRow>
                                                         <InfoRow>
                                                             <Typography className="label">Name</Typography>
@@ -1176,7 +1176,7 @@ const OrderManagement = () => {
                                         <Stack spacing={2}>
                                             <InfoRow>
                                                 <Typography className="label">Payment ID</Typography>
-                                                <Typography className="value">{detailedOrder.paymentId}</Typography>
+                                                <Typography className="value">{detailedOrder.paymentId.slice(0, 8)}</Typography>
                                             </InfoRow>
                                             <InfoRow>
                                                 <Typography className="label">Payment Method</Typography>
@@ -1233,7 +1233,7 @@ const OrderManagement = () => {
                                             <Stack spacing={2}>
                                                 <InfoRow>
                                                     <Typography className="label">Delivery ID</Typography>
-                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId}</Typography>
+                                                    <Typography className="value">{detailedOrder.deliveryDetails.deliveryId.slice(0, 8)}</Typography>
                                                 </InfoRow>
                                                 <InfoRow>
                                                     <Typography className="label">Shipper Name</Typography>
@@ -1317,17 +1317,17 @@ const OrderManagement = () => {
                         <Grid container spacing={2}>
                             <Grid item xs={12}>
                                 <Typography variant="h6" color="primary" sx={{ fontWeight: 'bold' }}>
-                                    Feedback ID: {feedbackData.feedbackId}
+                                    Feedback ID: {feedbackData.feedbackId.slice(0, 8)}
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Typography variant="body1" color="textSecondary">
-                                    Customer ID: {feedbackData.customerId}
+                                    Customer ID: {feedbackData.customerId.slice(0, 8)}
                                 </Typography>
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Typography variant="body1" color="textSecondary">
-                                    Order ID: {feedbackData.orderId}
+                                    Order ID: {feedbackData.orderId.slice(0, 8)}
                                 </Typography>
                             </Grid>
                             <Grid item xs={12}>

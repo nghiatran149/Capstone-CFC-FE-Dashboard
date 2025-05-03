@@ -329,7 +329,7 @@ const FlowerManagement = () => {
           <TableBody>
             {flowers.map((flower) => (
               <TableRow key={flower.flowerId}>
-                <TableCell>{flower.flowerId}</TableCell>
+                <TableCell>{flower.flowerId.slice(0, 8)}</TableCell>
 
                 <TableCell>
                   {flower.image && (
@@ -749,8 +749,8 @@ const FlowerManagement = () => {
                     {viewDetail.flower.flowerName}
                   </Typography>
 
-                  <Typography color="text.secondary" variant="body2">
-                    ID: {viewDetail.flower.flowerId}
+                  <Typography color="text.secondary" variant="body2" title={viewDetail.flower.flowerId}>
+                  ID: {viewDetail.flower.flowerId ? `#${viewDetail.flower.flowerId.slice(0, 8)}` : "N/A"}
                   </Typography>
 
                   <Typography variant="h6" color="primary">

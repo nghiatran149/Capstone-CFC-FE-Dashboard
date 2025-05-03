@@ -333,7 +333,7 @@ const DesignManagement = () => {
                         <TableBody>
                             {filteredOrders.map((design) => (
                                 <TableRow key={design.designCustomId}>
-                                    <TableCell>{design.designCustomId}</TableCell>
+                                    <TableCell>{design.designCustomId.slice(0, 8)}</TableCell>
                                     <TableCell>
                                         <img src={design.requestImage} alt="request" style={{ width: '100px', height: 'auto' }} />
                                     </TableCell>

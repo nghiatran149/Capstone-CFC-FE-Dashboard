@@ -162,10 +162,10 @@ function TaskSchedule() {
 
         const formattedOrders = response.data.data.map(order => ({
           id: order.orderId,
-          title: `Order #${order.orderId}`,
+          title: `Order #${order.orderId.slice(0, 8)}`,
           createdAt: order.createAt,
           updatedAt: order.updateAt,
-          customer: order.customerId,
+          customer: order.customerId.slice(0, 8),
           status: order.status.toLowerCase(),
           description: order.note || 'Không có mô tả'
         }));
@@ -410,7 +410,7 @@ function TaskSchedule() {
               <div className="mb-3">
                 <Typography variant="subtitle2" className="font-medium">Customer:</Typography>
                 <Typography variant="body2">
-                  {selectedOrder.details?.customerId || selectedOrder.customer}
+                  {selectedOrder.details?.customerId.slice(0, 8) || selectedOrder.customer}
                 </Typography>
               </div>
               <div className="mb-3">

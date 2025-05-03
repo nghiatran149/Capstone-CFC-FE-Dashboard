@@ -442,7 +442,7 @@ const AccessoryManagement = () => {
             {accessories.map((accessory) => (
 
               <TableRow key={accessory.accessoryId}>
-                                <TableCell>{accessory.accessoryId}</TableCell>
+                                <TableCell>{accessory.accessoryId.slice(0, 8)}</TableCell>
 
                 <TableCell>
                   {accessory.image && (
@@ -772,8 +772,12 @@ const AccessoryManagement = () => {
                     <Typography variant="h4" gutterBottom>
                       {viewDetail.basket.name}
                     </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      ID: {viewDetail.basket.accessoryId}
+                    <Typography 
+                      variant="caption" 
+                      color="textSecondary" 
+                      title={viewDetail.basket.accessoryId}
+                    >
+                      ID: {viewDetail.basket.accessoryId ? `#${viewDetail.basket.accessoryId.slice(0, 8)}` : "N/A"}
                     </Typography>
                   </Box>
 

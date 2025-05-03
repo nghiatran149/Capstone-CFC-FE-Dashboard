@@ -467,7 +467,7 @@ const FloristManagement = () => {
                     <Typography variant="subtitle2" color="text.secondary">
                       Employee ID
                     </Typography>
-                    <Typography>{viewDetail.florist.employeeId}</Typography>
+                    <Typography>{viewDetail.florist.employeeId.slice(0, 8)}</Typography>
                   </Box>
 
                   <Box>

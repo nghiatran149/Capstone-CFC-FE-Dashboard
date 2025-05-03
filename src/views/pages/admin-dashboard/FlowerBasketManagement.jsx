@@ -408,7 +408,7 @@ const FlowerBasketManagement = () => {
             {flowerBaskets.map((basket) => (
 
               <TableRow key={basket.flowerBasketId}>
-                <TableCell>{basket.flowerBasketId}</TableCell>
+                <TableCell>{basket.flowerBasketId.slice(0, 8)}</TableCell>
 
                 <TableCell>
                   {basket.image && (
@@ -779,8 +779,8 @@ const FlowerBasketManagement = () => {
                     <Typography variant="h4" gutterBottom>
                       {viewDetail.basket.flowerBasketName}
                     </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      ID: {viewDetail.basket.flowerBasketId}
+                    <Typography variant="caption" color="textSecondary"  title={viewDetail.basket.flowerBasketId}>
+                    ID: {viewDetail.basket.flowerBasketId ? `#${viewDetail.basket.flowerBasketId.slice(0, 8)}` : "N/A"}
                     </Typography>
                   </Box>
 

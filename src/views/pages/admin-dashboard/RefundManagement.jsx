@@ -90,7 +90,7 @@ const RefundManagement = () => {
             <TableBody>
               {withdrawals.map((withdrawal) => (
                 <TableRow key={withdrawal.withdrawMoneyId}>
-                  <TableCell>{withdrawal.withdrawMoneyId}</TableCell>
+                  <TableCell>{withdrawal.withdrawMoneyId.slice(0, 8)}</TableCell>
                   <TableCell>{withdrawal.price}</TableCell>
                   <TableCell>{withdrawal.bankAccountName}</TableCell>
                   <TableCell>{withdrawal.bankName}</TableCell>
