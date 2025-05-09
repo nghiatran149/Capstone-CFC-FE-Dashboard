@@ -304,8 +304,10 @@ const TaskManagement = () => {
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
+
                     }
                 }
+
             );
 
             // Refresh order details
@@ -323,6 +325,8 @@ const TaskManagement = () => {
             setNote('');
             setFreeShip(true);
             setFee(0);
+            window.location.reload();
+
         } catch (error) {
             console.error('Error assigning delivery:', error);
         } finally {
