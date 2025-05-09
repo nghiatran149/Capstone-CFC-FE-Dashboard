@@ -876,6 +876,8 @@ const TaskManagement = () => {
             if (response.status === 200) {
                 fetchTasks(); // Làm mới danh sách đơn hàng
                 handleCloseFailDialog(); // Đóng dialog
+                window.location.reload();
+
             }
         } catch (error) {
             console.error('Error updating order status to Fail:', error);
@@ -1220,25 +1222,7 @@ const TaskManagement = () => {
                                                             detailedOrder.status === 'Received' ? 'info' : 'warning'}
                                                         sx={{ mb: 1 }}
                                                     />
-                                                    <Select
-                                                        size="small"
-                                                        value=""
-                                                        onChange={(e) => handleStatusChange(detailedOrder.orderId, e.target.value)}
-                                                        sx={{
-                                                            minWidth: 200,
-                                                            mb: 1,
-                                                            '& .MuiSelect-select': { py: 1 }
-                                                        }}
-                                                        displayEmpty
-                                                    >
-                                                        <MenuItem value="" disabled>Change Status</MenuItem>
-                                                        <MenuItem value="Awaiting Design Approval">4️⃣ Awaiting Design Approval</MenuItem>
-                                                        <MenuItem value="Flower Completed">5️⃣ Flower Completed</MenuItem>
-                                                        {/* Chỉ hiển thị option Received nếu delivery là false (Pickup) */}
-                                                        {!detailedOrder.delivery && (
-                                                            <MenuItem value="Received">6️⃣ Received</MenuItem>
-                                                        )}
-                                                    </Select>
+                                                  
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
                                                     </Typography>
