@@ -36,6 +36,7 @@ import {
     Checkbox,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import Divider from '@mui/material/Divider';
 
 const formatDateTime = (dateTimeStr) => {
     return new Date(dateTimeStr).toLocaleString();
@@ -902,7 +903,7 @@ const TaskManagement = () => {
         <Box sx={{ p: 4 }}>
             <Typography variant="h3" sx={{ marginBottom: 3 }}>Florist Task Management</Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                
+
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
                         label="All"
@@ -1088,7 +1089,7 @@ const TaskManagement = () => {
                                                 />
                                             )}
                                         </Button>
-                                        {task.status !== "Fail" && task.status !== "Received" && (
+                                        {task.status !== "Fail" && task.status !== "Received" && task.status !== "Cancel" &&(
                                             <Button
                                                 variant="outlined"
                                                 color="error"
@@ -1222,7 +1223,7 @@ const TaskManagement = () => {
                                                             detailedOrder.status === 'Received' ? 'info' : 'warning'}
                                                         sx={{ mb: 1 }}
                                                     />
-                                                  
+
                                                     <Typography variant="h5" color="primary">
                                                         {formatPrice(detailedOrder.orderPrice)}
                                                     </Typography>
@@ -1602,7 +1603,7 @@ const TaskManagement = () => {
                 task={selectedTask}
             />
             <Dialog open={failDialogOpen} onClose={() => setFailDialogOpen(false)}>
-                <DialogTitle>Fail Order</DialogTitle>
+                <DialogTitle variant="h3" sx={{ mb: 1 }}>Fail Order</DialogTitle>
                 <DialogContent>
                     <TextField
                         label="Reason for Failure"
@@ -1619,8 +1620,11 @@ const TaskManagement = () => {
                         onChange={(e) => setTimeDelay(e.target.value)}
                         fullWidth
                         margin="normal"
+                        InputLabelProps={{
+                            shrink: true,
+                        }}
                     />
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
                         <InputLabel>Wallet</InputLabel>
                         <Select
                             value={wallet}
@@ -1653,18 +1657,23 @@ const TaskManagement = () => {
                 </DialogActions>
             </Dialog>
             <Dialog open={failReasonDialogOpen} onClose={() => setFailReasonDialogOpen(false)}>
-                <DialogTitle>Fail Order Details</DialogTitle>
-                <DialogContent>
+                <DialogTitle variant="h3" sx={{ mb: 1 }}>Fail Order Details</DialogTitle>
+                <DialogContent sx={{ p: 3, bgcolor: '#ffffff' }}>
                     {failOrderDetails && (
                         <Box>
-                            <Typography variant="h6">Fail Order ID: {failOrderDetails.failOrderId.slice(0, 8)}</Typography>
-                            <Typography variant="body1">Reason: {failOrderDetails.reasonFail}</Typography>
+                            <Typography variant="h5" sx={{ mb: 1 }}>Fail Order ID: {failOrderDetails.failOrderId.slice(0, 8)}</Typography>
                             <img src={failOrderDetails.imageFail} alt="Failure Image" style={{ width: '100%', height: 'auto' }} />
-                            <Typography variant="body1">Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>
-                            <Typography variant="body1">Refund Price: {formatPrice(failOrderDetails.refundPrice)}</Typography>
-                            <Typography variant="body1">Wallet: {failOrderDetails.wallet ? 'Yes' : 'No'}</Typography>
-                            <Typography variant="body1">Created At: {formatDateTime(failOrderDetails.createAt)}</Typography>
-                            <Typography variant="body1">Updated At: {formatDateTime(failOrderDetails.updateAt)}</Typography>
+                            <Typography variant="body1" sx={{ mb: 1, mt: 1 }}>Reason: {failOrderDetails.reasonFail}</Typography>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body1" sx={{ mb: 1 }}>Time Delay: {formatDateTime(failOrderDetails.timeDelay)}</Typography>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body1" sx={{ mb: 1 }}>Refund Price: {formatPrice(failOrderDetails.refundPrice)}</Typography>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body1" sx={{ mb: 1 }}>Wallet: {failOrderDetails.wallet ? 'Yes' : 'No'}</Typography>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body1" sx={{ mb: 1 }}>Created At: {formatDateTime(failOrderDetails.createAt)}</Typography>
+                            <Divider sx={{ my: 1 }} />
+                            <Typography variant="body1" sx={{ mb: 1 }}>Updated At: {formatDateTime(failOrderDetails.updateAt)}</Typography>
                         </Box>
                     )}
                 </DialogContent>
