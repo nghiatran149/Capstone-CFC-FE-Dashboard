@@ -1089,7 +1089,7 @@ const TaskManagement = () => {
                                                 />
                                             )}
                                         </Button>
-                                        {task.status !== "Fail" && task.status !== "Received" && (
+                                        {task.status !== "Fail" && task.status !== "Received" && task.status !== "Cancel" &&(
                                             <Button
                                                 variant="outlined"
                                                 color="error"
