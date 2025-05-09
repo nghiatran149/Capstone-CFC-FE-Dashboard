@@ -250,9 +250,9 @@ const NotificationList = ({ notifications, markAsRead, onClose }) => {
               <ListItemSecondaryAction>
                 <Grid container justifyContent="flex-end">
                   <Grid item xs={12}>
-                    <Typography variant="caption" display="block" gutterBottom>
+                    {/* <Typography variant="caption" display="block" gutterBottom>
                       {formatTime(notification.updateAt ?? notification.createAt)}
-                    </Typography>
+                    </Typography> */}
                   </Grid>
                 </Grid>
               </ListItemSecondaryAction>
