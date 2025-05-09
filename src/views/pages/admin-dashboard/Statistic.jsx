@@ -44,17 +44,17 @@ const Statistic = () => {
     }, []);
 
     // Data Sample
-    useEffect(() => {
-        if (error || (storeData.length > 0 && storeData.every(store => store.revenue === 0))) {
-            const sampleData = [
-                { storeId: 'd00fd877-6288-46ec-b324-7865aea14f6c', storeName: 'Store Quận 3', city: 'Hồ Chí Minh', district: 'Quận 3', address: '185 B1 Đ. Võ Thị Sáu, Phường Võ Thị Sáu', revenue: 3612530 }
-            ];
-            setStoreData(sampleData);
-            if (error) {
-                console.log('Using sample data due to API error');
-            }
-        }
-    }, [error, storeData]);
+    // useEffect(() => {
+    //     if (error || (storeData.length > 0 && storeData.every(store => store.revenue === 0))) {
+    //         const sampleData = [
+    //             { storeId: 'd00fd877-6288-46ec-b324-7865aea14f6c', storeName: 'Store Quận 3', city: 'Hồ Chí Minh', district: 'Quận 3', address: '185 B1 Đ. Võ Thị Sáu, Phường Võ Thị Sáu', revenue: 3612530 }
+    //         ];
+    //         setStoreData(sampleData);
+    //         if (error) {
+    //             console.log('Using sample data due to API error');
+    //         }
+    //     }
+    // }, [error, storeData]);
 
     return (
         <Container maxWidth="xl" sx={{ mt: 3, mb: 3 }}>
