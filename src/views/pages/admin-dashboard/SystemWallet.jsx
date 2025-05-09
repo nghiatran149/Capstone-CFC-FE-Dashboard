@@ -124,30 +124,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 // Mock data
 const stats = [
-  { 
-    title: "Revenue", 
-    value: "$4,350.00", 
-    icon: <AttachMoney fontSize="large" />, 
-    change: "+8.1%", 
-    positive: true,
-    color: "success"
-  },
-  { 
-    title: "Expenses", 
-    value: "$1,250.00", 
-    icon: <TrendingDown fontSize="large" />, 
-    change: "+2.3%", 
-    positive: false,
-    color: "error"
-  },
-  { 
-    title: "Profit", 
-    value: "$3,100.00", 
-    icon: <TrendingUp fontSize="large" />, 
-    change: "+10.4%", 
-    positive: true,
-    color: "info"
-  },
+ 
+  
 ];
 
 const transactions = [
@@ -197,7 +175,7 @@ export default function SystemWallet() {
 
   const fetchWalletData = async () => {
     try {
-      const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Wallet/GetWalletByAdmin?id=55d9964b-8543-4b74-96d6-e0ab2ce86d3f');
+      const response = await axios.get('https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/Wallet/GetWalletByAdmin?id=5ec81b98-2896-4275-89b4-17572f0f6c34');
       if (response.status === 200) {
         const walletData = response.data.data;
         setTotalBalance(walletData.totalPrice);
@@ -211,7 +189,7 @@ export default function SystemWallet() {
 
   const fetchIncomeData = async () => {
     try {
-      const walletId = '55d9964b-8543-4b74-96d6-e0ab2ce86d3f';
+      const walletId = '5ec81b98-2896-4275-89b4-17572f0f6c34';
       const incomeResponse = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/IncomeWallet/GetInComWalletByWalletId?WalletId=${walletId}`);
       if (incomeResponse.status === 200) {
         const incomeData = incomeResponse.data.data.filter(item => item.method === "Payment");
