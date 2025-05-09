@@ -711,7 +711,7 @@ const StoreOverview = () => {
               helperText={formErrors.storeEmail}
             />
             <TextField
-              label="Avatar URL"
+              label="Decription"
               value={newStore.storeAvatar}
               onChange={handleInputChange('storeAvatar')}
               fullWidth
