@@ -249,8 +249,8 @@ const DesignManagement = () => {
 
     return (
         <Box sx={{ p: 4 }}>
+            <Typography variant="h3" sx={{ marginBottom: 3 }}>Design Custom Management</Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h3">Design Management</Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
                         label="All"

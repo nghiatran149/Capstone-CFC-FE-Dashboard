@@ -709,7 +709,7 @@ const TaskManagement = () => {
                             </Grid>
                             <Grid item xs={12} md={6}>
                                 <Stack spacing={2}>
-                                   
+
                                     <Box>
                                         <Typography variant="subtitle2" color="textSecondary">Response Image</Typography>
                                         <img src={designCustom.responseImage} alt="Response" style={{ width: '100%', height: 'auto' }} />
@@ -794,7 +794,7 @@ const TaskManagement = () => {
                 return '#fee2e2'; // Light red
             case 'Request refund':
                 return '#fbcfe8'; // Light pink
-          
+
             default:
                 return '#e5e7eb'; // Light gray
         }
@@ -808,7 +808,7 @@ const TaskManagement = () => {
                 return '#dc2626'; // Dark red
             case 'Request refund':
                 return '#db2777'; // Dark pink
-         
+
             default:
                 return '#374151'; // Dark gray
         }
@@ -871,7 +871,7 @@ const TaskManagement = () => {
             );
 
             console.log('Order status updated to Fail:', response.data);
-            
+
             // Kiểm tra mã trạng thái và đóng dialog nếu thành công
             if (response.status === 200) {
                 fetchTasks(); // Làm mới danh sách đơn hàng
@@ -885,7 +885,7 @@ const TaskManagement = () => {
     const handleViewReasonFail = async (orderId) => {
         try {
             const response = await axios.get(`https://customchainflower-ecbrb4bhfrguarb9.southeastasia-01.azurewebsites.net/api/failOrder/GetFailOrderByOrderId?orderID=${orderId}`);
-            
+
             if (response.status === 200) {
                 const failOrderData = response.data.data; // Giả sử dữ liệu nằm trong response.data.data
                 setFailOrderDetails(failOrderData); // Lưu thông tin vào state
@@ -898,8 +898,9 @@ const TaskManagement = () => {
 
     return (
         <Box sx={{ p: 4 }}>
+            <Typography variant="h3" sx={{ marginBottom: 3 }}>Florist Task Management</Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h3">Florist Task Management</Typography>
+                
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
                         label="All"
@@ -910,7 +911,7 @@ const TaskManagement = () => {
                             '&:hover': { opacity: 0.9 }
                         }}
                     />
-                     <Chip
+                    <Chip
                         label="Fail"
                         color={filteredStatus === "Fail" ? "primary" : "default"}
                         onClick={() => setFilteredStatus("Fail")}
@@ -1005,7 +1006,7 @@ const TaskManagement = () => {
                                 <TableCell>Payment</TableCell>
                                 <TableCell>Delivery</TableCell>
                                 <TableCell>Create Time</TableCell>
-                                <TableCell>RecipientTime</TableCell>
+                                <TableCell>Recipient Time</TableCell>
                                 <TableCell>Status</TableCell>
                                 <TableCell>Actions</TableCell>
                             </TableRow>
@@ -1034,8 +1035,8 @@ const TaskManagement = () => {
                                                             task.status === "Flower Completed" ? '#fed7aa' :
                                                                 task.status === "Delivery" ? '#d8b4fe' :
                                                                     task.status === "Cancel" ? '#ff9999' :
-                                                                    task.status === "Fail" ? '#ff1a1a' :
-                                                                        task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
+                                                                        task.status === "Fail" ? '#ff1a1a' :
+                                                                            task.status === "Received" ? '#bfdbfe' : '#e5e7eb',
                                                     color: task.status === "Arranging & Packing" ? '#9d174d' :
                                                         task.status === "Awaiting Design Approval" ? '#854d0e' :
                                                             task.status === "Flower Completed" ? '#9a3412' :
@@ -1250,11 +1251,25 @@ const TaskManagement = () => {
                                             <Grid item xs={12} md={6}>
                                                 <Typography variant="h6" className="section-title">Order Details</Typography>
                                                 <Stack spacing={2}>
-                                                    <InfoRow>
+                                                    {/* <InfoRow>
                                                         <Typography className="label">Payment Method</Typography>
                                                         <Typography className="value">
                                                             {detailedOrder.transfer ? "100% transfer" : "50% deposit"}
                                                         </Typography>
+                                                    </InfoRow> */}
+                                                    <InfoRow>
+                                                        <Typography className="label">Payment Method</Typography>
+                                                        <Box className="value" sx={{ width: '100%' }}>
+                                                            <Typography>{detailedOrder.transfer ? "100% transfer" : "50% deposit"}</Typography>
+                                                            {!detailedOrder.transfer && (
+                                                                <Box sx={{ mt: 1, backgroundColor: '#FFF9C4', p: 1, borderRadius: 1, maxWidth: '100%', wordBreak: 'break-word' }}>
+                                                                    <Typography variant="body2" color="warning.dark">
+                                                                        Customers are required to pay the remaining 50%
+                                                                        ({formatPrice(detailedOrder.orderPrice / 2)}) upon delivery.
+                                                                    </Typography>
+                                                                </Box>
+                                                            )}
+                                                        </Box>
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Delivery Date</Typography>
@@ -1437,10 +1452,10 @@ const TaskManagement = () => {
                                         <Typography variant="h6" className="section-title">
                                             {detailedOrder.productCustomResponse ? 'Custom Product Details' : 'Product Details'}
                                         </Typography>
-                                        {detailedOrder.productCustomResponse 
-                                            ? renderCustomOrderDetails(detailedOrder) 
-                                            : detailedOrder.designCustomBuCustomerResponse 
-                                                ? rederDesignCustomOrderDetail(detailedOrder) 
+                                        {detailedOrder.productCustomResponse
+                                            ? renderCustomOrderDetails(detailedOrder)
+                                            : detailedOrder.designCustomBuCustomerResponse
+                                                ? rederDesignCustomOrderDetail(detailedOrder)
                                                 : renderRegularOrderDetails(detailedOrder)}
                                     </OrderSection>
                                 </Grid>

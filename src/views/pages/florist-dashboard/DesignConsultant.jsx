@@ -3,6 +3,7 @@ import axios from 'axios';
 import { HubConnectionBuilder, HttpTransportType } from "@microsoft/signalr";
 import { jwtDecode } from "jwt-decode";
 import ChatModal from "chat/ChatModal";
+import Divider from '@mui/material/Divider';
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -122,7 +123,7 @@ const DesignManagement = () => {
     const [selectedTask, setSelectedTask] = useState(null);
     const [connection, setConnection] = useState(null);
 
-   
+
 
     const [responsePrice, setResponsePrice] = useState('');
     const [responseDescription, setResponseDescription] = useState('');
@@ -144,9 +145,9 @@ const DesignManagement = () => {
 
             if (orderId && customerId && employeeId) {
                 const fakeTask = {
-                  orderId: orderId,
-                  customerId: customerId,
-                  employeeId: employeeId,
+                    orderId: orderId,
+                    customerId: customerId,
+                    employeeId: employeeId,
                 };
                 handleOpenChatDialog(fakeTask);
                 navigate('/floristDashboard/task-management', { replace: true });
@@ -220,7 +221,7 @@ const DesignManagement = () => {
         setIsChatModalOpen(false);
         setHasNewMessage(false);
     };
-  
+
 
     const fetchDesigns = async () => {
         try {
@@ -263,7 +264,7 @@ const DesignManagement = () => {
             ? designs
             : designs.filter((design) => design.status === filterStatus);
 
-   
+
 
     const handleViewDetails = async (design) => {
         try {
@@ -385,7 +386,7 @@ const DesignManagement = () => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>DesignCustom ID</TableCell>
+                                <TableCell>Design Custom ID</TableCell>
                                 <TableCell>Request Image</TableCell>
                                 <TableCell>Request Description</TableCell>
                                 <TableCell>Request Price</TableCell>
@@ -447,7 +448,7 @@ const DesignManagement = () => {
                                                     }}
                                                 />
                                             )}
-                                        </Button>                
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -457,89 +458,207 @@ const DesignManagement = () => {
             )}
 
             {/* Dialog for detailed design information */}
-            <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+            <Dialog
+                open={dialogOpen}
+                onClose={handleCloseDialog}
+                PaperProps={{
+                    sx: {
+                        width: '80%',
+                        maxWidth: 'none',
+                        borderRadius: '12px'
+                    }
+                }}
+            >
                 <DialogTitle sx={{
                     fontSize: '1.5rem',
                     fontWeight: 'bold',
                     textAlign: 'center',
-                    background: 'linear-gradient(45deg, #FF0080 30%, #FF8C00 90%)',
+                    background: 'linear-gradient(45deg, #FF0080 30%, rgb(255, 0, 204) 90%)',
                     color: 'white',
                     borderRadius: '12px 12px 0 0',
-                    padding: 3,
+                    padding: 2,
+                    marginBottom: 2,
                 }}>
                     Design Details
                 </DialogTitle>
                 <DialogContent sx={{ p: 3, bgcolor: '#ffffff' }}>
                     {detailedDesign && (
-                        <Grid container spacing={2}>
-                            {/* Bên trái */}
-                            <Grid item xs={6}>
-                                <Typography variant="h6" color="primary">Design ID: {detailedDesign.designCustomId.slice(0, 8)}</Typography>
-                                <Typography><strong>Request Image:</strong></Typography>
-                                <img src={detailedDesign.requestImage} alt="Design" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
-                                <Typography><strong>Description:</strong> {detailedDesign.requestDescription}</Typography>
-                                <Typography><strong>Price:</strong> {detailedDesign.requestPrice}</Typography>
-                                <Typography><strong>Occasion:</strong> {detailedDesign.requestOccasion}</Typography>
-                                <Typography><strong>Main Color:</strong> {detailedDesign.requestMainColor}</Typography>
-                                <Typography><strong>Flower Type:</strong> {detailedDesign.requestFlowerType}</Typography>
-                                <Typography><strong>Card Message:</strong> {detailedDesign.requestCard}</Typography>
-                                <Typography><strong>Phone:</strong> {detailedDesign.phone}</Typography>
-                                <Typography><strong>Recipient Name:</strong> {detailedDesign.recipientName}</Typography>
+                        <Grid container spacing={0}>
+                            <Grid item xs={6} sx={{ pr: 2 }}>
+                                <Box sx={{ height: '100%' }}>
+                                    {/* Request Column */}
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>Request</Typography>
+
+                                    {/* Request Image */}
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography sx={{ mb: 1 }}><strong>Request Image:</strong></Typography>
+                                        <img src={detailedDesign.requestImage} alt="Design" style={{
+                                            width: '70%',
+                                            height: '350px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                        }} />
+                                    </Box>
+
+                                    {/* Design ID & Price */}
+                                    <Box sx={{ mb: 2 }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Design ID:</strong> {detailedDesign.designCustomId.slice(0, 8)}</Typography>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Price:</strong> {detailedDesign.requestPrice}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Description */}
+                                    <Box sx={{ mb: 2 }}>
+                                        <Typography><strong>Description:</strong> {detailedDesign.requestDescription}</Typography>
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Card Message & Occasion */}
+                                    <Box sx={{ mb: 2 }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Card Message:</strong> {detailedDesign.requestCard}</Typography>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Occasion:</strong> {detailedDesign.requestOccasion}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Main Color & Flower Type */}
+                                    <Box sx={{ mb: 2 }}>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Main Color:</strong> {detailedDesign.requestMainColor}</Typography>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Flower Type:</strong> {detailedDesign.requestFlowerType}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Recipient Info */}
+                                    <Box>
+                                        <Grid container spacing={2}>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Recipient Name:</strong> {detailedDesign.recipientName}</Typography>
+                                            </Grid>
+                                            <Grid item xs={6}>
+                                                <Typography><strong>Phone:</strong> {detailedDesign.phone}</Typography>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Box>
                             </Grid>
 
-                            {/* Bên phải */}
-                            <Grid item xs={6}>
-                                {detailedDesign.status === 'Send Response' || detailedDesign.status === 'Design Successfully' || detailedDesign.status === 'Design Failure' ? (
-                                    <>
-                                        <Typography><strong>Response Image:</strong></Typography>
-                                        <img src={detailedDesign.responseImage} alt="Response" style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
-                                        <Typography><strong>Response Price:</strong> {detailedDesign.responsePrice}</Typography>
-                                        <Typography><strong>Response Description:</strong> {detailedDesign.responseDescription}</Typography>
-                                    </>
-                                ) : (
-                                    <>
-                                        <TextField
-                                            label="Response Price"
-                                            value={responsePrice}
-                                            onChange={(e) => setResponsePrice(e.target.value)}
-                                            fullWidth
-                                            margin="normal"
-                                            variant="outlined"
-                                            sx={{ bgcolor: '#f0f0f0' }}
-                                        />
-                                        <TextField
-                                            label="Response Description"
-                                            value={responseDescription}
-                                            onChange={(e) => setResponseDescription(e.target.value)}
-                                            fullWidth
-                                            margin="normal"
-                                            variant="outlined"
-                                            sx={{ bgcolor: '#f0f0f0' }}
-                                        />
-                                        <Button
-                                            variant="contained"
-                                            component="label"
-                                            fullWidth
-                                            sx={{ bgcolor: '#FF0080', color: 'white', '&:hover': { bgcolor: '#FF8C00' } }}
-                                        >
-                                            Upload Response Image
-                                            <input
-                                                type="file"
-                                                hidden
-                                                accept="image/*"
-                                                onChange={(e) => setResponseImage(e.target.files[0])}
+                            <Grid item xs={6} sx={{ pl: 2 }}>
+                                <Box sx={{ height: '100%' }}>
+                                    {/* Response Column */}
+                                    <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>Response</Typography>
+
+                                    {/* Response Image */}
+                                    <Box sx={{ mb: 2 }}>
+                                        {detailedDesign.status === 'Send Response' ||
+                                            detailedDesign.status === 'Design Successfully' ||
+                                            detailedDesign.status === 'Design Failure' ? (
+                                            <>
+                                                <Typography sx={{ mb: 1 }}><strong>Response Image:</strong></Typography>
+                                                <img src={detailedDesign.responseImage} alt="Response" style={{
+                                                    width: '70%',
+                                                    height: '350px',
+                                                    objectFit: 'cover',
+                                                    borderRadius: '8px',
+                                                }} />
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Button
+                                                    variant="contained"
+                                                    component="label"
+                                                    fullWidth
+                                                    sx={{ bgcolor: '#FF0080', color: 'white', '&:hover': { bgcolor: '#FF8C00' }, mb: 1 }}
+                                                >
+                                                    Upload Response Image
+                                                    <input
+                                                        type="file"
+                                                        hidden
+                                                        accept="image/*"
+                                                        onChange={(e) => setResponseImage(e.target.files[0])}
+                                                    />
+                                                </Button>
+                                                {responseImage && (
+                                                    <Typography>{responseImage.name}</Typography>
+                                                )}
+                                            </>
+                                        )}
+                                    </Box>
+
+                                    {/* Response Price */}
+                                    <Box sx={{ mb: 2 }}>
+                                        {detailedDesign.status === 'Send Response' ||
+                                            detailedDesign.status === 'Design Successfully' ||
+                                            detailedDesign.status === 'Design Failure' ? (
+                                            <Typography><strong>Response Price:</strong> {detailedDesign.responsePrice}</Typography>
+                                        ) : (
+                                            <TextField
+                                                label="Response Price"
+                                                value={responsePrice}
+                                                onChange={(e) => setResponsePrice(e.target.value)}
+                                                fullWidth
+                                                variant="outlined"
+                                                sx={{ bgcolor: '#f0f0f0' }}
                                             />
-                                        </Button>
-                                        {responseImage && <Typography>{responseImage.name}</Typography>}
-                                        <Button variant="contained" color="primary" onClick={handleResponse}>
-                                            Response
-                                        </Button>
-                                    </>
-                                )}
+                                        )}
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Response Description */}
+                                    <Box sx={{ mb: 2 }}>
+                                        {detailedDesign.status === 'Send Response' ||
+                                            detailedDesign.status === 'Design Successfully' ||
+                                            detailedDesign.status === 'Design Failure' ? (
+                                            <Typography><strong>Response Description:</strong> {detailedDesign.responseDescription}</Typography>
+                                        ) : (
+                                            <TextField
+                                                label="Response Description"
+                                                value={responseDescription}
+                                                onChange={(e) => setResponseDescription(e.target.value)}
+                                                fullWidth
+                                                variant="outlined"
+                                                sx={{ bgcolor: '#f0f0f0' }}
+                                            />
+                                        )}
+                                    </Box>
+                                    <Divider sx={{ my: 2 }} />
+
+                                    {/* Response Button */}
+                                    <Box sx={{ mb: 2 }}>
+                                        {detailedDesign.status !== 'Send Response' &&
+                                            detailedDesign.status !== 'Design Successfully' &&
+                                            detailedDesign.status !== 'Design Failure' && (
+                                                <Button
+                                                    variant="contained"
+                                                    color="primary"
+                                                    onClick={handleResponse}
+                                                >
+                                                    Response
+                                                </Button>
+                                            )}
+                                    </Box>
+                                </Box>
                             </Grid>
                         </Grid>
                     )}
                 </DialogContent>
+
                 <DialogActions>
                     <Button onClick={handleCloseDialog} sx={{ bgcolor: '#FF0080', color: 'white', '&:hover': { bgcolor: '#FF8C00' } }}>
                         Close

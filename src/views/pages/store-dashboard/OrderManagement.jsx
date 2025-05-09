@@ -755,8 +755,8 @@ const OrderManagement = () => {
 
     return (
         <Box sx={{ p: 4 }}>
+            <Typography variant="h3" sx={{ marginBottom: 3 }}>Order Management</Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h3">Order Management</Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                     <Chip
                         label="All"
@@ -1052,11 +1052,25 @@ const OrderManagement = () => {
                                             <Grid item xs={12} md={6}>
                                                 <Typography variant="h6" className="section-title">Order Details</Typography>
                                                 <Stack spacing={2}>
-                                                    <InfoRow>
+                                                    {/* <InfoRow>
                                                         <Typography className="label">Payment Method</Typography>
                                                         <Typography className="value">
                                                             {detailedOrder.transfer ? "100% transfer" : "50% deposit"}
                                                         </Typography>
+                                                    </InfoRow> */}
+                                                    <InfoRow>
+                                                        <Typography className="label">Payment Method</Typography>
+                                                        <Box className="value" sx={{ width: '100%' }}>
+                                                            <Typography>{detailedOrder.transfer ? "100% transfer" : "50% deposit"}</Typography>
+                                                            {!detailedOrder.transfer && (
+                                                                <Box sx={{ mt: 1, backgroundColor: '#FFF9C4', p: 1, borderRadius: 1, maxWidth: '100%', wordBreak: 'break-word' }}>
+                                                                    <Typography variant="body2" color="warning.dark">
+                                                                        Customers are required to pay the remaining 50%
+                                                                        ({formatPrice(detailedOrder.orderPrice / 2)}) upon delivery.
+                                                                    </Typography>
+                                                                </Box>
+                                                            )}
+                                                        </Box>
                                                     </InfoRow>
                                                     <InfoRow>
                                                         <Typography className="label">Delivery Date</Typography>
@@ -1272,7 +1286,7 @@ const OrderManagement = () => {
                                         }
                                     </OrderSection>
                                 </Grid>
-                              
+
                                 {/* Delivery Details */}
                                 {detailedOrder.deliveryDetails && (
                                     <Grid item xs={12}>

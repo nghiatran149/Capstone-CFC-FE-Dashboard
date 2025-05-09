@@ -430,13 +430,13 @@ function TaskSchedule() {
                   <div className="mb-3">
                     <Typography variant="subtitle2" className="font-medium">Payment:</Typography>
                     <Typography variant="body2">
-                      {selectedOrder.details.transfer ? "100% chuyển khoản" : "50% đặt cọc"}
+                      {selectedOrder.details.transfer ? "100% Payment" : "50% Deposit"}
                     </Typography>
                   </div>
                   <div className="mb-3">
                     <Typography variant="subtitle2" className="font-medium">Shipping Method:</Typography>
                     <Typography variant="body2">
-                      {selectedOrder.details.delivery ? "Giao hàng" : "Nhận tại cửa hàng"}
+                      {selectedOrder.details.delivery ? "Delivery" : "Pickup"}
                     </Typography>
                   </div>
                   <div className="mb-3">
